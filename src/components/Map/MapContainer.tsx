@@ -67,7 +67,6 @@ export const MapContainer: React.FC<MapContainerProps> = ({
         center={center}
         zoom={zoom}
         style={{ height: "100%", width: "100%" }}
-        className="rounded-lg shadow-lg"
         attributionControl={false}
       >
         <TileLayer
