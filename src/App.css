@@ -1,0 +1,51 @@
+/* Global styles for the map application */
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Map container styles */
+.map-container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Custom popup styles for map markers */
+.map-popup {
+  max-width: 250px;
+}
+
+.map-popup h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.map-popup p {
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .map-popup {
+    max-width: 200px;
+  }
+
+  .map-popup h3 {
+    font-size: 14px;
+  }
+}
