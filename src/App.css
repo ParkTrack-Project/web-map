@@ -7,6 +7,12 @@
   overflow: hidden;
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 /* Map container styles */
 .map-container {
   position: relative;
@@ -48,4 +54,19 @@
   .map-popup h3 {
     font-size: 14px;
   }
+}
+
+/* Map overlay styles */
+.map-overlay {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Ensure map controls don't interfere with status bar */
+.leaflet-control-container {
+  z-index: 999;
+}
+
+.leaflet-top, .leaflet-bottom {
+  z-index: 999;
 }
