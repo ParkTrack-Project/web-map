@@ -1,123 +1,17 @@
 import React from "react"
-import { Marker, Popup } from "react-leaflet"
+import { Marker, Popup, Polygon, Polyline } from "react-leaflet"
 import L from "leaflet"
-import type { MapPoint } from "../../types"
+import type { Zone, Point } from "../../types/api"
 
-// Custom marker icons for different parking categories
-const createCategoryIcon = (category?: string) => {
-  const iconUrl = (() => {
-    switch (category) {
-      case "underground":
-        return (
-          "data:image/svg+xml;base64," +
-          btoa(`
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="4" width="16" height="16" rx="2" fill="#3B82F6" stroke="#1E40AF" stroke-width="2"/>
-            <path d="M8 8h8v8H8z" fill="#1E40AF"/>
-            <text x="12" y="16" text-anchor="middle" fill="white" font-size="8">P</text>
-          </svg>
-        `)
-        )
-      case "street":
-        return (
-          "data:image/svg+xml;base64," +
-          btoa(`
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="6" y="6" width="12" height="12" rx="2" fill="#10B981" stroke="#059669" stroke-width="2"/>
-            <path d="M10 10h4v4h-4z" fill="#059669"/>
-            <text x="12" y="15" text-anchor="middle" fill="white" font-size="8">P</text>
-          </svg>
-        `)
-        )
-      case "mall":
-        return (
-          "data:image/svg+xml;base64," +
-          btoa(`
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="4" width="16" height="16" rx="2" fill="#F59E0B" stroke="#D97706" stroke-width="2"/>
-            <path d="M8 8h8v8H8z" fill="#D97706"/>
-            <text x="12" y="16" text-anchor="middle" fill="white" font-size="8">P</text>
-          </svg>
-        `)
-        )
-      case "airport":
-        return (
-          "data:image/svg+xml;base64," +
-          btoa(`
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="4" width="16" height="16" rx="2" fill="#EF4444" stroke="#DC2626" stroke-width="2"/>
-            <path d="M8 8h8v8H8z" fill="#DC2626"/>
-            <text x="12" y="16" text-anchor="middle" fill="white" font-size="8">P</text>
-          </svg>
-        `)
-        )
-      case "park":
-        return (
-          "data:image/svg+xml;base64," +
-          btoa(`
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="6" y="6" width="12" height="12" rx="2" fill="#10B981" stroke="#059669" stroke-width="2"/>
-            <path d="M10 10h4v4h-4z" fill="#059669"/>
-            <text x="12" y="15" text-anchor="middle" fill="white" font-size="8">P</text>
-          </svg>
-        `)
-        )
-      case "station":
-        return (
-          "data:image/svg+xml;base64," +
-          btoa(`
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="4" width="16" height="16" rx="2" fill="#8B5CF6" stroke="#7C3AED" stroke-width="2"/>
-            <path d="M8 8h8v8H8z" fill="#7C3AED"/>
-            <text x="12" y="16" text-anchor="middle" fill="white" font-size="8">P</text>
-          </svg>
-        `)
-        )
-      case "tourist":
-        return (
-          "data:image/svg+xml;base64," +
-          btoa(`
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="6" y="6" width="12" height="12" rx="2" fill="#F59E0B" stroke="#D97706" stroke-width="2"/>
-            <path d="M10 10h4v4h-4z" fill="#D97706"/>
-            <text x="12" y="15" text-anchor="middle" fill="white" font-size="8">P</text>
-          </svg>
-        `)
-        )
-      case "office":
-        return (
-          "data:image/svg+xml;base64," +
-          btoa(`
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="4" y="4" width="16" height="16" rx="2" fill="#6B7280" stroke="#4B5563" stroke-width="2"/>
-            <path d="M8 8h8v8H8z" fill="#4B5563"/>
-            <text x="12" y="16" text-anchor="middle" fill="white" font-size="8">P</text>
-          </svg>
-        `)
-        )
-      case "municipal":
-        return (
-          "data:image/svg+xml;base64," +
-          btoa(`
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="6" y="6" width="12" height="12" rx="2" fill="#3B82F6" stroke="#1E40AF" stroke-width="2"/>
-            <path d="M10 10h4v4h-4z" fill="#1E40AF"/>
-            <text x="12" y="15" text-anchor="middle" fill="white" font-size="8">P</text>
-          </svg>
-        `)
-        )
-      default:
-        return (
-          "data:image/svg+xml;base64," +
-          btoa(`
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="8" fill="#6B7280"/>
-            <text x="12" y="16" text-anchor="middle" fill="white" font-size="8">P</text>
-          </svg>
-        `)
-        )
-    }
-  })()
+const createZoneIcon = () => {
+  const iconUrl =
+    "data:image/svg+xml;base64," +
+    btoa(`
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="4" width="16" height="16" rx="2" fill="#10B981" stroke="#059669" stroke-width="2"/>
+      <text x="12" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="bold">P</text>
+    </svg>
+  `)
 
   return new L.Icon({
     iconUrl,
@@ -127,130 +21,228 @@ const createCategoryIcon = (category?: string) => {
   })
 }
 
-interface MapPointsProps {
-  points: MapPoint[]
-  onPointClick?: (point: MapPoint) => void
+const calculateCenterLine = (points: Point[]): [number, number][] => {
+  if (points.length !== 4) return []
+
+  const [p0, p1, p2] = points
+
+  const dist1 = Math.sqrt(
+    Math.pow(p1.latitude - p0.latitude, 2) +
+      Math.pow(p1.longitude - p0.longitude, 2)
+  )
+  const dist2 = Math.sqrt(
+    Math.pow(p2.latitude - p1.latitude, 2) +
+      Math.pow(p2.longitude - p1.longitude, 2)
+  )
+
+  if (dist1 > dist2) {
+    return [
+      [p0.latitude, p0.longitude],
+      [p1.latitude, p1.longitude],
+    ]
+  } else {
+    return [
+      [p1.latitude, p1.longitude],
+      [p2.latitude, p2.longitude],
+    ]
+  }
 }
 
-/**
- * Component to render map points as markers with popups
- */
-export const MapPoints: React.FC<MapPointsProps> = ({
-  points,
-  onPointClick,
-}) => {
+interface MapPointsProps {
+  zones: Zone[]
+  onZoneClick?: (zone: Zone) => void
+}
+
+const getZonePolygonColor = (
+  zoneType?: string,
+  occupied?: number,
+  capacity?: number
+) => {
+  if (zoneType === "parallel") {
+    return "#3B82F6"
+  }
+
+  if (occupied !== undefined && capacity !== undefined) {
+    const occupancyRate = capacity > 0 ? occupied / capacity : 0
+    if (occupancyRate >= 0.9) return "#EF4444"
+    if (occupancyRate >= 0.7) return "#F59E0B"
+    return "#10B981"
+  }
+
+  return "#10B981"
+}
+
+export const MapPoints: React.FC<MapPointsProps> = ({ zones, onZoneClick }) => {
   return (
     <>
-      {points.map((point) => (
-        <Marker
-          key={point.id}
-          position={[point.coordinates.lat, point.coordinates.lng]}
-          icon={createCategoryIcon(point.category)}
-          eventHandlers={{
-            click: () => onPointClick?.(point),
-          }}
-        >
-          <Popup>
-            <div className="map-popup">
-              <h3 className="font-semibold text-gray-800 mb-1">{point.name}</h3>
-              {point.metadata?.свободно && (
-                <p className="text-sm font-medium text-green-600 mb-2">
-                  Свободно: {point.metadata.свободно}
-                </p>
-              )}
-              {point.description && (
-                <p className="text-sm text-gray-600 mb-2">
-                  {point.description}
-                </p>
-              )}
-              {point.category && (
+      {zones.map((zone) => {
+        const zoneId = zone.zone_id as number
+        const points = zone.points as Point[]
+        const zoneType = zone.zone_type as string
+        const occupied = zone.occupied as number | undefined
+        const capacity = zone.capacity as number
+        const pay = zone.pay as number
+        const confidence = zone.confidence as number | undefined
+        const cameraId = zone.camera_id as number | undefined
+
+        const fillColor = getZonePolygonColor(zoneType, occupied, capacity)
+        const freeSpots =
+          occupied !== undefined ? capacity - occupied : undefined
+
+        const centerLat =
+          points.reduce((sum, p) => sum + p.latitude, 0) / points.length
+        const centerLng =
+          points.reduce((sum, p) => sum + p.longitude, 0) / points.length
+
+        const popupContent = (
+          <div className="map-popup min-w-[200px]">
+            <h3 className="font-semibold text-gray-800 mb-2">Зона {zoneId}</h3>
+
+            {zoneType && (
+              <div className="mb-2">
                 <span
                   className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                    point.category === "underground"
+                    zoneType === "parallel"
                       ? "bg-blue-100 text-blue-800"
-                      : point.category === "street"
-                      ? "bg-green-100 text-green-800"
-                      : point.category === "mall"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : point.category === "airport"
-                      ? "bg-red-100 text-red-800"
-                      : point.category === "park"
-                      ? "bg-teal-100 text-teal-800"
-                      : point.category === "station"
-                      ? "bg-purple-100 text-purple-800"
-                      : point.category === "tourist"
-                      ? "bg-orange-100 text-orange-800"
-                      : point.category === "office"
-                      ? "bg-gray-100 text-gray-800"
-                      : point.category === "municipal"
-                      ? "bg-indigo-100 text-indigo-800"
-                      : "bg-gray-100 text-gray-800"
+                      : "bg-green-100 text-green-800"
                   }`}
                 >
-                  {point.category === "underground"
-                    ? "Подземная"
-                    : point.category === "street"
-                    ? "Уличная"
-                    : point.category === "mall"
-                    ? "Торговый центр"
-                    : point.category === "airport"
-                    ? "Аэропорт"
-                    : point.category === "park"
-                    ? "Парк"
-                    : point.category === "station"
-                    ? "Вокзал"
-                    : point.category === "tourist"
-                    ? "Туристическая"
-                    : point.category === "office"
-                    ? "Офис"
-                    : point.category === "municipal"
-                    ? "Муниципальная"
-                    : point.category}
+                  {zoneType === "parallel" ? "Параллельная" : "Стандартная"}
                 </span>
+              </div>
+            )}
+
+            {capacity !== undefined && (
+              <div className="mb-1">
+                <span className="text-sm font-medium text-gray-700">
+                  Вместимость:
+                </span>{" "}
+                <span className="text-sm text-gray-900">{capacity}</span>
+              </div>
+            )}
+
+            {occupied !== undefined && (
+              <div className="mb-1">
+                <span className="text-sm font-medium text-gray-700">
+                  Занято:
+                </span>{" "}
+                <span className="text-sm text-gray-900">{occupied}</span>
+              </div>
+            )}
+
+            {freeSpots !== undefined && (
+              <div className="mb-2">
+                <span className="text-sm font-medium text-green-600">
+                  Свободно:
+                </span>{" "}
+                <span className="text-sm font-semibold text-green-700">
+                  {freeSpots}
+                </span>
+              </div>
+            )}
+
+            {pay !== undefined && (
+              <div className="mb-1">
+                <span className="text-sm font-medium text-gray-700">
+                  Оплата:
+                </span>{" "}
+                <span className="text-sm text-gray-900">
+                  {pay === 0 ? "Бесплатно" : `${pay} руб`}
+                </span>
+              </div>
+            )}
+
+            {confidence !== undefined && (
+              <div className="mb-1">
+                <span className="text-sm font-medium text-gray-700">
+                  Уверенность:
+                </span>{" "}
+                <span className="text-sm text-gray-900">
+                  {(Number(confidence) * 100).toFixed(1)}%
+                </span>
+              </div>
+            )}
+
+            {cameraId !== undefined && (
+              <div className="mt-2 pt-2 border-t border-gray-200">
+                <span className="text-xs text-gray-500">
+                  Камера ID: {String(cameraId)}
+                </span>
+              </div>
+            )}
+          </div>
+        )
+
+        if (zoneType === "parallel" && points && points.length === 4) {
+          const centerLine = calculateCenterLine(points)
+
+          return (
+            <React.Fragment key={zoneId}>
+              {centerLine.length === 2 && (
+                <Polyline
+                  positions={centerLine}
+                  pathOptions={{
+                    color: fillColor,
+                    weight: 10,
+                    opacity: 1.0,
+                    lineCap: "round",
+                    lineJoin: "round",
+                  }}
+                  eventHandlers={{
+                    click: () => onZoneClick?.(zone),
+                  }}
+                >
+                  <Popup>{popupContent}</Popup>
+                </Polyline>
               )}
-              {point.metadata && Object.keys(point.metadata).length > 0 && (
-                <div className="mt-2 pt-2 border-t border-gray-200">
-                  {Object.entries(point.metadata).map(([key, value]) => (
-                    <div key={key} className="text-xs text-gray-500">
-                      <span className="font-medium">
-                        {key === "вместимость"
-                          ? "Вместимость"
-                          : key === "свободно"
-                          ? "Свободно"
-                          : key === "тариф"
-                          ? "Тариф"
-                          : key === "охрана"
-                          ? "Охрана"
-                          : key === "зона"
-                          ? "Зона"
-                          : key === "бесплатно"
-                          ? "Бесплатно"
-                          : key === "этажей"
-                          ? "Этажей"
-                          : key === "долгосрочная"
-                          ? "Долгосрочная"
-                          : key === "время"
-                          ? "Время"
-                          : key === "камеры"
-                          ? "Камеры"
-                          : key === "сезон"
-                          ? "Сезон"
-                          : key === "пропуск"
-                          ? "Пропуск"
-                          : key === "оплата"
-                          ? "Оплата"
-                          : key}
-                        :
-                      </span>{" "}
-                      {String(value)}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </Popup>
-        </Marker>
-      ))}
+              <Marker
+                position={[centerLat, centerLng]}
+                icon={createZoneIcon()}
+                eventHandlers={{
+                  click: () => onZoneClick?.(zone),
+                }}
+              >
+                <Popup>{popupContent}</Popup>
+              </Marker>
+            </React.Fragment>
+          )
+        }
+
+        const polygonPoints =
+          points && points.length === 4
+            ? points.map((p) => [p.latitude, p.longitude] as [number, number])
+            : null
+
+        return (
+          <React.Fragment key={zoneId}>
+            {polygonPoints && (
+              <Polygon
+                positions={polygonPoints}
+                pathOptions={{
+                  color: fillColor,
+                  fillColor,
+                  fillOpacity: 0.3,
+                  weight: 2,
+                }}
+                eventHandlers={{
+                  click: () => onZoneClick?.(zone),
+                }}
+              >
+                <Popup>{popupContent}</Popup>
+              </Polygon>
+            )}
+            <Marker
+              position={[centerLat, centerLng]}
+              icon={createZoneIcon()}
+              eventHandlers={{
+                click: () => onZoneClick?.(zone),
+              }}
+            >
+              <Popup>{popupContent}</Popup>
+            </Marker>
+          </React.Fragment>
+        )
+      })}
     </>
   )
 }

@@ -4,21 +4,19 @@ import {
   TileLayer,
   useMap,
 } from "react-leaflet"
-import type { MapPoint, MapState } from "../../types"
+import type { MapState } from "../../types"
+import type { Zone } from "../../types/api"
 import { MapPoints } from "./MapPoints"
 import "leaflet/dist/leaflet.css"
 
 interface MapContainerProps {
-  points: MapPoint[]
+  zones: Zone[]
   mapState: MapState
   onMapStateChange?: (newState: MapState) => void
-  onPointClick?: (point: MapPoint) => void
+  onZoneClick?: (zone: Zone) => void
   className?: string
 }
 
-/**
- * Internal component to handle map events and state changes
- */
 const MapEventHandler: React.FC<{
   onMapStateChange?: (newState: MapState) => void
 }> = ({ onMapStateChange }) => {
@@ -49,14 +47,11 @@ const MapEventHandler: React.FC<{
   return null
 }
 
-/**
- * Main map container component using Leaflet
- */
 export const MapContainer: React.FC<MapContainerProps> = ({
-  points,
+  zones,
   mapState,
   onMapStateChange,
-  onPointClick,
+  onZoneClick,
   className = "",
 }) => {
   const { center, zoom } = mapState
@@ -66,6 +61,7 @@ export const MapContainer: React.FC<MapContainerProps> = ({
       <LeafletMapContainer
         center={center}
         zoom={zoom}
+        maxZoom={30}
         style={{ height: "100%", width: "100%" }}
         attributionControl={false}
       >
@@ -76,7 +72,7 @@ export const MapContainer: React.FC<MapContainerProps> = ({
 
         <MapEventHandler onMapStateChange={onMapStateChange} />
 
-        <MapPoints points={points} onPointClick={onPointClick} />
+        <MapPoints zones={zones} onZoneClick={onZoneClick} />
       </LeafletMapContainer>
     </div>
   )
