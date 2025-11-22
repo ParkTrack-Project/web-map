@@ -3,12 +3,25 @@ import { Marker, Popup, Polygon, Polyline } from "react-leaflet"
 import L from "leaflet"
 import type { Zone, Point } from "../../types/api"
 
-const createZoneIcon = () => {
+const getIconColor = (
+  freeSpots: number | undefined
+): { fill: string; stroke: string } => {
+  if (freeSpots === undefined || freeSpots === 0) {
+    return { fill: "#EF4444", stroke: "#DC2626" }
+  }
+  if (freeSpots === 1) {
+    return { fill: "#F59E0B", stroke: "#D97706" }
+  }
+  return { fill: "#10B981", stroke: "#059669" }
+}
+
+const createZoneIcon = (freeSpots: number | undefined) => {
+  const colors = getIconColor(freeSpots)
   const iconUrl =
     "data:image/svg+xml;base64," +
     btoa(`
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="4" y="4" width="16" height="16" rx="2" fill="#10B981" stroke="#059669" stroke-width="2"/>
+      <rect x="4" y="4" width="16" height="16" rx="2" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="2"/>
       <text x="12" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="bold">P</text>
     </svg>
   `)
@@ -147,7 +160,7 @@ export const MapPoints: React.FC<MapPointsProps> = ({ zones, onZoneClick }) => {
                   Оплата:
                 </span>{" "}
                 <span className="text-sm text-gray-900">
-                  {pay === 0 ? "Бесплатно" : `${pay} руб`}
+                  {pay != null && (pay === 0 ? "Бесплатно" : `${pay} руб`)}
                 </span>
               </div>
             )}
@@ -197,7 +210,7 @@ export const MapPoints: React.FC<MapPointsProps> = ({ zones, onZoneClick }) => {
               )}
               <Marker
                 position={[centerLat, centerLng]}
-                icon={createZoneIcon()}
+                icon={createZoneIcon(freeSpots)}
                 eventHandlers={{
                   click: () => onZoneClick?.(zone),
                 }}
@@ -233,7 +246,7 @@ export const MapPoints: React.FC<MapPointsProps> = ({ zones, onZoneClick }) => {
             )}
             <Marker
               position={[centerLat, centerLng]}
-              icon={createZoneIcon()}
+              icon={createZoneIcon(freeSpots)}
               eventHandlers={{
                 click: () => onZoneClick?.(zone),
               }}
