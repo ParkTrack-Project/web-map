@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useEffect } from "react"
 import { MapContainer } from "./components/Map/MapContainer"
 import { useMapData } from "./hooks/useMapData"
 import type { MapState } from "./types"
@@ -18,8 +18,8 @@ function App() {
   const totalFreeSpots = useMemo(
     () =>
       zones.reduce((acc, zone) => {
-        const occupied = zone.occupied as number | undefined
-        const capacity = zone.capacity as number
+        const occupied = zone.occupied
+        const capacity = zone.capacity
         if (occupied !== undefined) {
           return acc + (capacity - occupied)
         }
@@ -31,14 +31,14 @@ function App() {
   const totalCapacity = useMemo(
     () =>
       zones.reduce((acc, zone) => {
-        const capacity = zone.capacity as number
+        const capacity = zone.capacity
         return acc + capacity
       }, 0),
     [zones]
   )
 
   const handleZoneClick = useCallback((zone: Zone) => {
-    const points = zone.points as { latitude: number; longitude: number }[]
+    const points = zone.points
     if (points && points.length > 0) {
       const centerLat =
         points.reduce((sum, p) => sum + p.latitude, 0) / points.length
@@ -56,6 +56,14 @@ function App() {
     setMapState(newState)
   }, [])
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch()
+    }, 10000)
+
+    return () => clearInterval(interval)
+  }, [refetch])
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -66,13 +74,6 @@ function App() {
                 Парковки СПб
               </h1>
             </div>
-
-            <button
-              onClick={refetch}
-              className="px-1 sm:px-2 py-1 text-xs sm:text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-            >
-              Обновить
-            </button>
           </div>
         </div>
       </header>
