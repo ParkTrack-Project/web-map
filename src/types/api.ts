@@ -26,7 +26,14 @@ export interface CreateZone {
 }
 
 export interface Zone {
-  [key: string]: unknown
+  zone_id: number
+  points: Point[]
+  zone_type: string
+  capacity: number
+  pay: number
+  occupied?: number
+  confidence?: number
+  camera_id?: number
 }
 
 export interface GetZonesParams {

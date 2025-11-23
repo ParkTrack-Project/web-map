@@ -66,22 +66,13 @@ interface MapPointsProps {
   onZoneClick?: (zone: Zone) => void
 }
 
-const getZonePolygonColor = (
-  zoneType?: string,
-  occupied?: number,
-  capacity?: number
-) => {
-  if (zoneType === "parallel") {
-    return "#3B82F6"
+const getZonePolygonColor = (freeSpots: number | undefined): string => {
+  if (freeSpots === undefined || freeSpots === 0) {
+    return "#EF4444"
   }
-
-  if (occupied !== undefined && capacity !== undefined) {
-    const occupancyRate = capacity > 0 ? occupied / capacity : 0
-    if (occupancyRate >= 0.9) return "#EF4444"
-    if (occupancyRate >= 0.7) return "#F59E0B"
-    return "#10B981"
+  if (freeSpots === 1) {
+    return "#F59E0B"
   }
-
   return "#10B981"
 }
 
@@ -89,57 +80,56 @@ export const MapPoints: React.FC<MapPointsProps> = ({ zones, onZoneClick }) => {
   return (
     <>
       {zones.map((zone) => {
-        const zoneId = zone.zone_id as number
-        const points = zone.points as Point[]
-        const zoneType = zone.zone_type as string
-        const occupied = zone.occupied as number | undefined
-        const capacity = zone.capacity as number
-        const pay = zone.pay as number
-        const confidence = zone.confidence as number | undefined
-        const cameraId = zone.camera_id as number | undefined
-
-        const fillColor = getZonePolygonColor(zoneType, occupied, capacity)
         const freeSpots =
-          occupied !== undefined ? capacity - occupied : undefined
+          zone.occupied !== undefined
+            ? zone.capacity - zone.occupied
+            : undefined
+        const fillColor = getZonePolygonColor(freeSpots)
 
         const centerLat =
-          points.reduce((sum, p) => sum + p.latitude, 0) / points.length
+          zone.points.reduce((sum, p) => sum + p.latitude, 0) /
+          zone.points.length
         const centerLng =
-          points.reduce((sum, p) => sum + p.longitude, 0) / points.length
+          zone.points.reduce((sum, p) => sum + p.longitude, 0) /
+          zone.points.length
 
         const popupContent = (
           <div className="map-popup min-w-[200px]">
-            <h3 className="font-semibold text-gray-800 mb-2">Зона {zoneId}</h3>
+            <h3 className="font-semibold text-gray-800 mb-2">
+              Зона {zone.zone_id}
+            </h3>
 
-            {zoneType && (
+            {zone.zone_type && (
               <div className="mb-2">
                 <span
                   className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                    zoneType === "parallel"
+                    zone.zone_type === "parallel"
                       ? "bg-blue-100 text-blue-800"
                       : "bg-green-100 text-green-800"
                   }`}
                 >
-                  {zoneType === "parallel" ? "Параллельная" : "Стандартная"}
+                  {zone.zone_type === "parallel"
+                    ? "Параллельная"
+                    : "Стандартная"}
                 </span>
               </div>
             )}
 
-            {capacity !== undefined && (
+            {zone.capacity !== undefined && (
               <div className="mb-1">
                 <span className="text-sm font-medium text-gray-700">
                   Вместимость:
                 </span>{" "}
-                <span className="text-sm text-gray-900">{capacity}</span>
+                <span className="text-sm text-gray-900">{zone.capacity}</span>
               </div>
             )}
 
-            {occupied !== undefined && (
+            {zone.occupied !== undefined && (
               <div className="mb-1">
                 <span className="text-sm font-medium text-gray-700">
                   Занято:
                 </span>{" "}
-                <span className="text-sm text-gray-900">{occupied}</span>
+                <span className="text-sm text-gray-900">{zone.occupied}</span>
               </div>
             )}
 
@@ -154,43 +144,44 @@ export const MapPoints: React.FC<MapPointsProps> = ({ zones, onZoneClick }) => {
               </div>
             )}
 
-            {pay !== undefined && (
+            {zone.pay !== undefined && (
               <div className="mb-1">
                 <span className="text-sm font-medium text-gray-700">
                   Оплата:
                 </span>{" "}
                 <span className="text-sm text-gray-900">
-                  {pay != null && (pay === 0 ? "Бесплатно" : `${pay} руб`)}
+                  {zone.pay != null &&
+                    (zone.pay === 0 ? "Бесплатно" : `${zone.pay} руб`)}
                 </span>
               </div>
             )}
 
-            {confidence !== undefined && (
+            {zone.confidence !== undefined && (
               <div className="mb-1">
                 <span className="text-sm font-medium text-gray-700">
                   Уверенность:
                 </span>{" "}
                 <span className="text-sm text-gray-900">
-                  {(Number(confidence) * 100).toFixed(1)}%
+                  {(Number(zone.confidence) * 100).toFixed(1)}%
                 </span>
               </div>
             )}
 
-            {cameraId !== undefined && (
+            {zone.camera_id !== undefined && (
               <div className="mt-2 pt-2 border-t border-gray-200">
                 <span className="text-xs text-gray-500">
-                  Камера ID: {String(cameraId)}
+                  Камера ID: {String(zone.camera_id)}
                 </span>
               </div>
             )}
           </div>
         )
 
-        if (zoneType === "parallel" && points && points.length === 4) {
-          const centerLine = calculateCenterLine(points)
+        if (zone.zone_type === "parallel" && zone.points.length === 4) {
+          const centerLine = calculateCenterLine(zone.points)
 
           return (
-            <React.Fragment key={zoneId}>
+            <React.Fragment key={zone.zone_id}>
               {centerLine.length === 2 && (
                 <Polyline
                   positions={centerLine}
@@ -222,12 +213,14 @@ export const MapPoints: React.FC<MapPointsProps> = ({ zones, onZoneClick }) => {
         }
 
         const polygonPoints =
-          points && points.length === 4
-            ? points.map((p) => [p.latitude, p.longitude] as [number, number])
+          zone.points.length === 4
+            ? zone.points.map(
+                (p) => [p.latitude, p.longitude] as [number, number]
+              )
             : null
 
         return (
-          <React.Fragment key={zoneId}>
+          <React.Fragment key={zone.zone_id}>
             {polygonPoints && (
               <Polygon
                 positions={polygonPoints}

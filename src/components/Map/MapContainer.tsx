@@ -61,7 +61,7 @@ export const MapContainer: React.FC<MapContainerProps> = ({
       <LeafletMapContainer
         center={center}
         zoom={zoom}
-        maxZoom={30}
+        maxZoom={18}
         style={{ height: "100%", width: "100%" }}
         attributionControl={false}
       >
