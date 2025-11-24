@@ -6,7 +6,7 @@ import type { Zone, Point } from "../../types/api"
 const getIconColor = (
   freeSpots: number | undefined
 ): { fill: string; stroke: string } => {
-  if (freeSpots === undefined || freeSpots === 0) {
+  if (freeSpots === undefined || freeSpots <= 0) {
     return { fill: "#EF4444", stroke: "#DC2626" }
   }
   if (freeSpots === 1) {
@@ -67,7 +67,7 @@ interface MapPointsProps {
 }
 
 const getZonePolygonColor = (freeSpots: number | undefined): string => {
-  if (freeSpots === undefined || freeSpots === 0) {
+  if (freeSpots === undefined || freeSpots <= 0) {
     return "#EF4444"
   }
   if (freeSpots === 1) {
@@ -139,7 +139,7 @@ export const MapPoints: React.FC<MapPointsProps> = ({ zones, onZoneClick }) => {
                   Свободно:
                 </span>{" "}
                 <span className="text-sm font-semibold text-green-700">
-                  {freeSpots}
+                  {Math.max(freeSpots, 0)}
                 </span>
               </div>
             )}
