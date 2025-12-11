@@ -1,6 +1,11 @@
 import { useState, useCallback, useMemo, useEffect } from "react"
 import { MapContainer } from "./components/Map/MapContainer"
 import { useMapData } from "./hooks/useMapData"
+import {
+  FreeSpotsFilter,
+  ZoneSelector,
+  type FreeSpotFilterValue,
+} from "./components/Filters"
 import type { MapState } from "./types"
 import type { Zone } from "./types/api"
 import "./App.css"
@@ -11,13 +16,34 @@ function App() {
     zoom: 12,
   })
 
+  const [freeSpotFilter, setFreeSpotFilter] =
+    useState<FreeSpotFilterValue>("all")
+  const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null)
+
   const { zones, loading, error, total, refetch } = useMapData({
     autoFetch: true,
   })
 
+  const filteredZones = useMemo(() => {
+    return zones.filter((zone) => {
+      const freeSpots =
+        zone.occupied !== undefined ? zone.capacity - zone.occupied : 0
+
+      switch (freeSpotFilter) {
+        case "one":
+          return freeSpots === 1
+        case "twoOrMore":
+          return freeSpots >= 2
+        case "all":
+        default:
+          return true
+      }
+    })
+  }, [zones, freeSpotFilter])
+
   const totalFreeSpots = useMemo(
     () =>
-      zones.reduce((acc, zone) => {
+      filteredZones.reduce((acc, zone) => {
         const occupied = zone.occupied
         const capacity = zone.capacity
         if (occupied !== undefined) {
@@ -25,19 +51,19 @@ function App() {
         }
         return acc
       }, 0),
-    [zones]
+    [filteredZones]
   )
 
   const totalCapacity = useMemo(
     () =>
-      zones.reduce((acc, zone) => {
+      filteredZones.reduce((acc, zone) => {
         const capacity = zone.capacity
         return acc + capacity
       }, 0),
-    [zones]
+    [filteredZones]
   )
 
-  const handleZoneClick = useCallback((zone: Zone) => {
+  const focusOnZone = useCallback((zone: Zone) => {
     const points = zone.points
     if (points && points.length > 0) {
       const centerLat =
@@ -46,11 +72,30 @@ function App() {
         points.reduce((sum, p) => sum + p.longitude, 0) / points.length
 
       setMapState((prev) => ({
-        ...prev,
         center: [centerLat, centerLng],
+        zoom: Math.max(prev.zoom, 18),
       }))
     }
   }, [])
+
+  const handleZoneClick = useCallback(
+    (zone: Zone) => {
+      focusOnZone(zone)
+    },
+    [focusOnZone]
+  )
+
+  const handleZoneSelect = useCallback(
+    (zone: Zone | null) => {
+      if (zone) {
+        setSelectedZoneId(zone.zone_id)
+        focusOnZone(zone)
+      } else {
+        setSelectedZoneId(null)
+      }
+    },
+    [focusOnZone]
+  )
 
   const handleMapStateChange = useCallback((newState: MapState) => {
     setMapState(newState)
@@ -70,19 +115,40 @@ function App() {
       <main className="mx-auto">
         <div className="relative h-[calc(100vh)] w-full">
           <MapContainer
-            zones={zones}
+            zones={filteredZones}
             mapState={mapState}
             onMapStateChange={handleMapStateChange}
             onZoneClick={handleZoneClick}
             className="w-full h-full"
           />
 
+          <div className="absolute top-2 left-16 right-2 sm:top-4 sm:left-16 sm:right-auto sm:max-w-md z-[1000] bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200">
+            <div className="p-3 sm:p-4">
+              <div className="flex flex-col gap-3">
+                <div>
+                  <h3 className="text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                    Фильтр по свободным местам
+                  </h3>
+                  <FreeSpotsFilter
+                    value={freeSpotFilter}
+                    onChange={setFreeSpotFilter}
+                  />
+                </div>
+                <ZoneSelector
+                  zones={zones}
+                  selectedZoneId={selectedZoneId}
+                  onZoneSelect={handleZoneSelect}
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="absolute bottom-2 left-2 right-2 sm:bottom-4 sm:left-4 sm:right-4 z-[1000] bg-white/70 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 map-overlay">
             <div className="flex items-center justify-between p-1 sm:p-2 min-w-0">
               <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1 flex-wrap gap-1">
                 {total > 0 && (
                   <span className="text-xs sm:text-sm text-gray-700">
-                    Зон: {total}
+                    Зон: {filteredZones.length}/{total}
                   </span>
                 )}
                 {totalCapacity > 0 && (
