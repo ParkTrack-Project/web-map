@@ -125,7 +125,7 @@ export const MapPoints: React.FC<MapPointsProps> = ({ zones, onZoneClick }) => {
           const popupContent = (
             <div className="map-popup min-w-[200px]">
               <h3 className="font-semibold text-gray-800 mb-2">
-                Зона {zone.zone_id}
+                Парковка {zone.zone_id}
               </h3>
 
               {zone.zone_type && (
@@ -192,14 +192,6 @@ export const MapPoints: React.FC<MapPointsProps> = ({ zones, onZoneClick }) => {
                   </span>{" "}
                   <span className="text-sm text-gray-900">
                     {(Number(zone.confidence) * 100).toFixed(1)}%
-                  </span>
-                </div>
-              )}
-
-              {zone.camera_id !== undefined && (
-                <div className="mt-2 pt-2 border-t border-gray-200">
-                  <span className="text-xs text-gray-500">
-                    Камера ID: {String(zone.camera_id)}
                   </span>
                 </div>
               )}
