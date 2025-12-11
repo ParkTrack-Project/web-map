@@ -7,6 +7,18 @@ export interface Point {
 
 export type ZonePoint = Point
 
+export interface Camera {
+  camera_id: number
+  title: string
+  source: string
+  image_width: number
+  image_height: number
+  calib: unknown
+  latitude: number
+  longitude: number
+  is_active?: boolean
+}
+
 export interface CreateCamera {
   title: string
   source: string
@@ -15,6 +27,14 @@ export interface CreateCamera {
   calib: unknown
   latitude: number
   longitude: number
+}
+
+export interface GetCamerasParams {
+  q?: string
+  top_left_corner_latitude?: number
+  top_left_corner_longitude?: number
+  bottom_right_corner_latitude?: number
+  bottom_right_corner_longitude?: number
 }
 
 export interface CreateZone {

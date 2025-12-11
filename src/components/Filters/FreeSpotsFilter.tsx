@@ -1,6 +1,6 @@
 import React from "react"
 
-export type FreeSpotFilterValue = "all" | "one" | "twoOrMore"
+export type FreeSpotFilterValue = "all" | "available"
 
 interface FreeSpotsFilterProps {
   value: FreeSpotFilterValue
@@ -13,8 +13,7 @@ export const FreeSpotsFilter: React.FC<FreeSpotsFilterProps> = ({
 }) => {
   const filters: { value: FreeSpotFilterValue; label: string }[] = [
     { value: "all", label: "Все" },
-    { value: "one", label: "1 свободное место" },
-    { value: "twoOrMore", label: "2 и более свободных мест" },
+    { value: "available", label: "≥1 свободное место" },
   ]
 
   return (
