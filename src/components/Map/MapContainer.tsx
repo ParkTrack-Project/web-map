@@ -47,6 +47,27 @@ const MapEventHandler: React.FC<{
   return null
 }
 
+const MapViewController: React.FC<{ mapState: MapState }> = ({ mapState }) => {
+  const map = useMap()
+
+  useEffect(() => {
+    const currentCenter = map.getCenter()
+    const currentZoom = map.getZoom()
+
+    const [newLat, newLng] = mapState.center
+    const centerChanged =
+      Math.abs(currentCenter.lat - newLat) > 0.000001 ||
+      Math.abs(currentCenter.lng - newLng) > 0.000001
+    const zoomChanged = currentZoom !== mapState.zoom
+
+    if (centerChanged || zoomChanged) {
+      map.setView(mapState.center, mapState.zoom)
+    }
+  }, [map, mapState])
+
+  return null
+}
+
 export const MapContainer: React.FC<MapContainerProps> = ({
   zones,
   mapState,
@@ -70,6 +91,7 @@ export const MapContainer: React.FC<MapContainerProps> = ({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
+        <MapViewController mapState={mapState} />
         <MapEventHandler onMapStateChange={onMapStateChange} />
 
         <MapPoints zones={zones} onZoneClick={onZoneClick} />

@@ -37,9 +37,9 @@ const createZoneIcon = (freeSpots: number | undefined) => {
 const calculateCenterLine = (points: Point[]): [number, number][] => {
   if (!points || points.length !== 4) return []
 
-  const [p0, p1, p2] = points
+  const [p0, p1, p2, p3] = points
 
-  if (!p0 || !p1 || !p2) return []
+  if (!p0 || !p1 || !p2 || !p3) return []
 
   const dist1 = Math.sqrt(
     Math.pow(p1.latitude - p0.latitude, 2) +
@@ -50,15 +50,23 @@ const calculateCenterLine = (points: Point[]): [number, number][] => {
       Math.pow(p2.longitude - p1.longitude, 2)
   )
 
-  if (dist1 > dist2) {
+  if (dist1 < dist2) {
+    const midShort1Lat = (p0.latitude + p1.latitude) / 2
+    const midShort1Lng = (p0.longitude + p1.longitude) / 2
+    const midShort2Lat = (p2.latitude + p3.latitude) / 2
+    const midShort2Lng = (p2.longitude + p3.longitude) / 2
     return [
-      [p0.latitude, p0.longitude],
-      [p1.latitude, p1.longitude],
+      [midShort1Lat, midShort1Lng],
+      [midShort2Lat, midShort2Lng],
     ]
   } else {
+    const midShort1Lat = (p1.latitude + p2.latitude) / 2
+    const midShort1Lng = (p1.longitude + p2.longitude) / 2
+    const midShort2Lat = (p3.latitude + p0.latitude) / 2
+    const midShort2Lng = (p3.longitude + p0.longitude) / 2
     return [
-      [p1.latitude, p1.longitude],
-      [p2.latitude, p2.longitude],
+      [midShort1Lat, midShort1Lng],
+      [midShort2Lat, midShort2Lng],
     ]
   }
 }
