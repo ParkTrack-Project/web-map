@@ -66,20 +66,9 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
-          <div className="flex justify-between items-center h-10 sm:h-12">
-            <div className="flex items-center">
-              <h1 className="text-sm sm:text-lg font-bold text-gray-900">
-                Парковки СПб
-              </h1>
-            </div>
-          </div>
-        </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-1 sm:px-2 lg:px-4 py-1">
-        <div className="relative h-[calc(100vh-100px)] w-full">
+      <main className="mx-auto">
+        <div className="relative h-[calc(100vh)] w-full">
           <MapContainer
             zones={zones}
             mapState={mapState}
@@ -107,11 +96,11 @@ function App() {
                   </span>
                 )}
 
-                {loading !== "idle" && (
+                {loading === "loading" && (
                   <div className="flex items-center space-x-1">
                     <div className="animate-spin rounded-full h-2 w-2 sm:h-3 sm:w-3 border-b-2 border-blue-600"></div>
                     <span className="text-xs sm:text-sm text-gray-600">
-                      {loading === "loading" ? "Загрузка..." : "Обработка..."}
+                      Загрузка...
                     </span>
                   </div>
                 )}
