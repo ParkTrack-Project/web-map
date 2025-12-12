@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react"
+import { useState, useCallback, useMemo, useEffect, useRef } from "react"
 import { MapContainer } from "./components/Map/MapContainer"
 import { useMapData } from "./hooks/useMapData"
 import { useCameras } from "./hooks/useCameras"
@@ -21,6 +21,8 @@ function App() {
     useState<FreeSpotFilterValue>("all")
   const [selectedCameraId, setSelectedCameraId] = useState<number | null>(null)
   const [filtersVisible, setFiltersVisible] = useState(false)
+  const filtersRef = useRef<HTMLDivElement>(null)
+  const toggleButtonRef = useRef<HTMLButtonElement>(null)
 
   const { zones, loading, error, total, refetch } = useMapData({
     autoFetch: true,
@@ -113,6 +115,28 @@ function App() {
     return () => clearInterval(interval)
   }, [refetch])
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        filtersVisible &&
+        filtersRef.current &&
+        toggleButtonRef.current &&
+        !filtersRef.current.contains(event.target as Node) &&
+        !toggleButtonRef.current.contains(event.target as Node)
+      ) {
+        setFiltersVisible(false)
+      }
+    }
+
+    if (filtersVisible) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [filtersVisible])
+
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="mx-auto">
@@ -126,26 +150,45 @@ function App() {
           />
 
           <button
+            ref={toggleButtonRef}
             onClick={() => setFiltersVisible(!filtersVisible)}
             className="absolute top-20 left-2 sm:top-20 sm:left-4 z-[1001] bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-2 hover:bg-white transition-colors"
             aria-label="Toggle filters"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-gray-700"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
-                clipRule="evenodd"
-              />
-            </svg>
+            {filtersVisible ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-gray-700"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-gray-700"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            )}
           </button>
 
           {filtersVisible && (
-            <div className="absolute top-2 left-16 right-2 sm:top-4 sm:left-16 sm:right-auto sm:max-w-md z-[1000] bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200">
+            <div
+              ref={filtersRef}
+              className="absolute top-2 left-16 right-2 sm:top-4 sm:left-16 sm:right-auto sm:max-w-md z-[1000] bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200"
+            >
               <div className="p-3 sm:p-4">
                 <div className="flex flex-col gap-3">
                   <div>

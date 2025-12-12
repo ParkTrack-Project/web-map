@@ -12,3 +12,4 @@ export const camerasApi = {
     return response.data
   },
 }
+
