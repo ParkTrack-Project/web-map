@@ -97,7 +97,12 @@ const isValidPoint = (point: Point): boolean => {
 }
 
 const validateZone = (zone: Zone): boolean => {
-  if (!zone.points || !Array.isArray(zone.points) || zone.points.length !== 4) {
+  if (
+    !zone.points ||
+    !Array.isArray(zone.points) ||
+    zone.points.length !== 4 ||
+    zone.occupied == null
+  ) {
     return false
   }
 

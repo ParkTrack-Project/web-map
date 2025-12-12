@@ -34,3 +34,4 @@ export const FreeSpotsFilter: React.FC<FreeSpotsFilterProps> = ({
     </div>
   )
 }
+
