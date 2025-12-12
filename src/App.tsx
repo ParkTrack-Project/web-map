@@ -127,7 +127,7 @@ function App() {
 
           <button
             onClick={() => setFiltersVisible(!filtersVisible)}
-            className="absolute top-20 left-2 sm:top-4 sm:left-4 z-[1001] bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-2 hover:bg-white transition-colors"
+            className="absolute top-20 left-2 sm:top-20 sm:left-4 z-[1001] bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-2 hover:bg-white transition-colors"
             aria-label="Toggle filters"
           >
             <svg
