@@ -30,15 +30,15 @@ export const CameraSelector: React.FC<CameraSelectorProps> = ({
         htmlFor="camera-selector"
         className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap"
       >
-        Перейти к камере:
+        Перейти к парковке:
       </label>
       <select
         id="camera-selector"
         value={selectedCameraId ?? ""}
         onChange={handleChange}
-        className="px-2 py-1.5 text-xs sm:text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex-1"
+        className="px-2 py-1.5 min-w-0 text-xs sm:text-sm border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex-1"
       >
-        <option value="">Выберите камеру</option>
+        <option value="">Выберите парковку</option>
         {cameras.map((camera) => (
           <option key={camera.camera_id} value={camera.camera_id}>
             {camera.title}
