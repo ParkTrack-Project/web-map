@@ -147,7 +147,6 @@ function App() {
               <span className="text-xs sm:text-sm text-gray-700"><a
                   href="https://github.com/ParkTrack-Project" target="_blank" rel="noopener noreferrer">GitHub</a></span>
               <span className="text-xs sm:text-sm text-gray-700"><a href="https://docs.parktrack.live" target="_blank" rel="noopener noreferrer">Документация</a></span>
-              <span className="text-xs sm:text-sm text-gray-700"><a href="https://grafana.nawinds.dev/public-dashboards/4235e9d4e1074087a41e1205bbc91042?from=now-3h&to=now&timezone=browser" target="_blank" rel="noopener noreferrer">Статус</a></span>
             </div>
           </div>
         </div>
