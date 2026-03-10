@@ -13,8 +13,8 @@ import "./App.css"
 
 function App() {
     const [mapState, setMapState] = useState<MapState>({
-        center: [60.8943, 31.3351],
-        zoom: 7,
+        center: [59.737790, 30.402809],
+        zoom: 20,
     })
 
   const [freeSpotFilter, setFreeSpotFilter] =
