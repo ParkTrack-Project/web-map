@@ -16,8 +16,8 @@ vi.mock('@/shared/lib/ymaps', () => ({
   YMapControls: ({ children }: { children?: React.ReactNode }) => children,
   YMapZoomControl: () => null,
   YMapGeolocationControl: () => null,
-  reactify: { useDefault: <T,>(v: T): T => v },
-  useDefault: <T,>(v: T): T => v,
+  reactify: { useDefault: <T>(v: T): T => v },
+  useDefault: <T>(v: T): T => v,
 }));
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
