@@ -6,15 +6,18 @@
 // Толщина — фиксированная stroke-width 6px (zoom-aware расчёт можно ввести
 // позже; пока стабильная читаемость > zoom-scale).
 //
-// onClick — stub до Plan 02 (так же как в ZoneLayer.tsx).
+// Plan 02-02 wiring: клик → setSelectedZone(z.zone_id), выбранная зона получает
+// stroke-width 8 (вместо 6) для визуального отличия (D-08 для LineString-варианта).
 import type { LngLat } from '@yandex/ymaps3-types/common/types/lng-lat';
 import { YMapFeature, YMapFeatureDataSource, YMapLayer } from '@/shared/lib/ymaps';
 import { useViewportZones } from '@/features/viewport-driven-zones';
+import { useSelectedZone } from '@/features/select-zone';
 import { polygonToParallelLine } from '@/shared/lib/geo';
 import { computeZoneStyle } from '../model/zone-style';
 
 export function ParallelZoneLayer() {
   const { data, isPending, isError } = useViewportZones();
+  const { selectedZoneId, setSelectedZone } = useSelectedZone();
   if (isPending || isError || !data) return null;
 
   const parallel = data.filter((z) => z.zone_type === 'parallel');
@@ -32,24 +35,22 @@ export function ParallelZoneLayer() {
           confidence: z.confidence,
           is_active: z.is_active,
           mode: 'now',
-          selected: false,
+          selected: z.zone_id === selectedZoneId, // D-08
         });
         const geometry = {
           type: 'LineString' as const,
           coordinates: line.coordinates as LngLat[],
         };
-        // Для LineString используем stroke (fill игнорируется), ширина 6px.
+        // Для LineString используем stroke (fill игнорируется), ширина 6 / 8 (selected).
+        const strokeWidth = z.zone_id === selectedZoneId ? 8 : 6;
         return (
           <YMapFeature
             key={z.zone_id}
             id={`zone-parallel-${z.zone_id}`}
             geometry={geometry}
-            style={{ stroke: [{ color: palette.stroke, width: 6 }] }}
+            style={{ stroke: [{ color: palette.stroke, width: strokeWidth }] }}
             source="ptk-zones-parallel"
-            onClick={() => {
-              // TODO Plan 02
-              console.debug('[ptk] parallel zone click', z.zone_id);
-            }}
+            onClick={() => setSelectedZone(z.zone_id)}
           />
         );
       })}
