@@ -4,17 +4,22 @@
 // CSS @media gate (`hidden lg:flex` + `flex lg:hidden`) разделяет; никогда оба
 // не видны одновременно.
 //
+// Phase 3 Plan 04: добавлен <TimeModeLiveRegion/> для A11Y-03 — один на страницу.
+//
 // Phase 5 polish (RESP-05): h-screen в Layout'ах → dvh + visualViewport API.
 // Сейчас dvh уже используется в MobileFiltersDrawer и MobileZoneCard, но базовый
 // h-screen в DesktopLayout/MobileLayout остаётся.
 import { DesktopLayout } from './ui/DesktopLayout';
 import { MobileLayout } from './ui/MobileLayout';
+import { TimeModeLiveRegion } from '@/widgets/time-selector';
 
 export function MapPage() {
   return (
     <>
       <DesktopLayout />
       <MobileLayout />
+      {/* A11Y-03 / D-17 — один live region на страницу */}
+      <TimeModeLiveRegion />
     </>
   );
 }
