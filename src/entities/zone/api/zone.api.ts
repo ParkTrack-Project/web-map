@@ -1,12 +1,19 @@
 // Сетевой слой для зон. AbortSignal протаскивается до axios — TanStack Query
 // автоматически отменяет in-flight запрос при смене queryKey (MAP-05).
+//
+// Phase 2 Plan 03: fetchZones принимает serverQuery (Record<string,string> от
+// buildServerQuery) — сериализованные filter params, спред-нутые в axios `params`.
 import { apiClient } from '@/shared/api';
 import type { Bbox } from '@/shared/lib/geo';
 import type { ZoneMapItem, Zone } from '../model/zone.types';
 
-export async function fetchZones(bbox: Bbox, signal: AbortSignal): Promise<ZoneMapItem[]> {
+export async function fetchZones(
+  bbox: Bbox,
+  serverQuery: Record<string, string>,
+  signal: AbortSignal,
+): Promise<ZoneMapItem[]> {
   const res = await apiClient.get<ZoneMapItem[]>('/zones', {
-    params: { bbox: bbox.join(','), view: 'map' },
+    params: { bbox: bbox.join(','), view: 'map', ...serverQuery },
     signal,
   });
   return res.data;
