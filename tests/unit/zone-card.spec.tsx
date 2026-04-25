@@ -35,7 +35,15 @@ const baseZone = {
   pay: 0,
   geometry: {
     type: 'Polygon' as const,
-    coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]],
+    coordinates: [
+      [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 1],
+        [0, 0],
+      ],
+    ],
   },
   location_type: 'street' as const,
   is_private: false,
