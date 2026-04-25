@@ -1,1 +1,11 @@
 @import 'tailwindcss';
+
+/* A11Y-04 / D-18: глобальный focus-ring для всех :focus-visible элементов.
+   Никакого outline:none без замены — все интерактивные кастомные компоненты
+   используют semantic HTML и наследуют этот ring. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid #16a34a;
+    outline-offset: 2px;
+  }
+}

@@ -32,6 +32,7 @@ import { MapRefContext } from '../model/map-ref-context';
 import { ZoneLayer } from './ZoneLayer';
 import { ParallelZoneLayer } from './ParallelZoneLayer';
 import { ZoneBadgesLayer } from './ZoneBadgesLayer';
+import { ZoneStateOverlay } from './ZoneStateOverlay';
 
 export function MapCanvas() {
   const { zoom: urlZoom, writeViewport } = useBboxTracking();
@@ -65,6 +66,8 @@ export function MapCanvas() {
           <ParallelZoneLayer />
           <ZoneBadgesLayer zoom={zoom} />
         </YMap>
+        {/* D-21 / D-22 / UX-02 / UX-04 — overlay над картой для empty/error states */}
+        <ZoneStateOverlay />
       </div>
     </MapRefContext.Provider>
   );
