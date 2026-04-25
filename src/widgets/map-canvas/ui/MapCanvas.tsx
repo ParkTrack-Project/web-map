@@ -8,16 +8,15 @@
 //   - ParallelZoneLayer (LineString для parallel — D-04)
 //   - ZoneBadgesLayer (free_count pills, скрыты при zoom < ZONE_BADGE_MIN_ZOOM=14)
 //
-// zoom трекаем локально через useState — Phase 2 Plan 03 поднимет в URL state
-// (?z=N) через nuqs (URL-01). Здесь локальный state достаточен для conditional
-// рендера бейджей.
-//
 // Phase 2 Plan 02 Task 3: экспонируем ref на YMap через MapRefContext
 // (вынесен в model/map-ref-context.ts из-за react-refresh/only-export-components).
 // MobileZoneCard использует map.setLocation({center, duration:300}) для CARD-07
-// mobile pan -20% viewport (D-07 mobile half). Reactified <YMap> поддерживает
-// ref через forwardRef-обёртку (см. @yandex/ymaps3-types YMap forwarding).
-import { useRef, useState } from 'react';
+// mobile pan -20% viewport (D-07 mobile half).
+//
+// Phase 2 Plan 03 (URL-01): zoom поднят в URL-state ?z=N через nuqs внутри
+// useBboxTracking. Локальный useState удалён; ZoneBadgesLayer читает зум из
+// единого источника (URL или DEFAULT_ZOOM как fallback при пустом URL).
+import { useRef } from 'react';
 import type { YMap as YMapInstance } from '@yandex/ymaps3-types';
 import {
   YMap,
@@ -35,8 +34,8 @@ import { ParallelZoneLayer } from './ParallelZoneLayer';
 import { ZoneBadgesLayer } from './ZoneBadgesLayer';
 
 export function MapCanvas() {
-  const { writeBbox } = useBboxTracking();
-  const [zoom, setZoom] = useState<number>(DEFAULT_ZOOM);
+  const { zoom: urlZoom, writeViewport } = useBboxTracking();
+  const zoom = urlZoom ?? DEFAULT_ZOOM;
   const mapRef = useRef<YMapInstance | null>(null);
 
   return (
@@ -50,13 +49,13 @@ export function MapCanvas() {
             onUpdate={({ location }) => {
               // location.bounds: [[lonSW, latSW], [lonNE, latNE]]
               const b = location.bounds;
-              writeBbox({
-                southWest: b[0] as [number, number],
-                northEast: b[1] as [number, number],
-              });
-              // Локальный zoom — для conditional рендера бейджей.
-              // Phase 2 Plan 03 заменит на URL-state ?z=N через nuqs.
-              setZoom(location.zoom);
+              writeViewport(
+                {
+                  southWest: b[0] as [number, number],
+                  northEast: b[1] as [number, number],
+                },
+                location.zoom,
+              );
             }}
           />
           <YMapControls position="right">
