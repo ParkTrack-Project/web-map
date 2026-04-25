@@ -53,3 +53,29 @@ export function computeZoneStyle(k: StyleKey): ZoneStyle {
   cache.set(key, style);
   return style;
 }
+
+// Конвертация внутреннего ZoneStyle в формат ymaps3 DrawingStyle.
+// ymaps3 ожидает stroke как массив StrokeStyle (с поддержкой палитры по zoom),
+// а наш внутренний формат — плоский { stroke, strokeWidth } для удобства тестов
+// и Phase 5 swap на UI-kit Миши. Граничный конвертер изолирует это различие.
+//
+// Мемоизирован отдельным кешем по reference на ZoneStyle: т.к. computeZoneStyle
+// уже отдаёт stable reference per-key, toDrawingStyle тоже будет stable.
+const drawingCache = new WeakMap<
+  ZoneStyle,
+  { fill: string; stroke: { color: string; width: number }[] }
+>();
+
+export function toDrawingStyle(s: ZoneStyle): {
+  fill: string;
+  stroke: { color: string; width: number }[];
+} {
+  const hit = drawingCache.get(s);
+  if (hit) return hit;
+  const out = {
+    fill: s.fill,
+    stroke: [{ color: s.stroke, width: s.strokeWidth }],
+  };
+  drawingCache.set(s, out);
+  return out;
+}

@@ -1,16 +1,21 @@
-// Playwright smoke для Plan 03: реальный браузер, реальный Vite dev-server,
-// MSW в режиме mock через VITE_AUTH_MODE='mock' (см. main.tsx). Yandex CDN
-// тянется живьём — на CI понадобится сетевой доступ, иначе тест упадёт
-// и должен быть skipped manual'но.
+// Playwright smoke для Plan 03 + Plan 02-01: реальный браузер, реальный Vite
+// dev-server, MSW в режиме mock через VITE_AUTH_MODE='mock' (см. main.tsx).
+// Yandex CDN тянется живьём — на CI понадобится сетевой доступ, иначе тест
+// упадёт и должен быть skipped manual'но.
+//
+// NOTE (Phase 2 Plan 01): Phase 1 ZoneLayer-debug-overlay (data-testid="zone-count")
+// удалён в Plan 02-01 Task 3. Сигнал «зоны загрузились» теперь — наличие хотя бы
+// одного [data-testid="zone-badge"] на карте (бейджи free_count появляются на
+// zoom >= ZONE_BADGE_MIN_ZOOM=14, а DEFAULT_ZOOM=15 → они видны сразу).
 import { test, expect } from '@playwright/test';
 
-test('карта монтируется и показывает overlay с количеством зон', async ({ page }) => {
+test('карта монтируется и показывает зоны (badges visible at zoom >= 14)', async ({ page }) => {
   await page.goto('/');
   // AuthReady даёт ~500мс mock-задержки, затем рендерится MapPage → MapCanvas →
-  // ZoneLayer (после первого ответа /zones). Таймаут с запасом под загрузку
-  // ymaps3-CDN на медленных машинах.
-  await expect(page.getByTestId('zone-count')).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByTestId('zone-count')).toContainText(/Зон в видимой области:\s*\d+/);
+  // ZoneLayer (после первого ответа /zones) + ZoneBadgesLayer. Таймаут с запасом
+  // под загрузку ymaps3-CDN на медленных машинах.
+  const firstBadge = page.getByTestId('zone-badge').first();
+  await expect(firstBadge).toBeVisible({ timeout: 15_000 });
 });
 
 test('MAP-05: непрерывный пан 5с → не более 3 запросов /zones (debounce + AbortSignal)', async ({
@@ -26,7 +31,7 @@ test('MAP-05: непрерывный пан 5с → не более 3 запро
   });
 
   await page.goto('/');
-  await expect(page.getByTestId('zone-count')).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId('zone-badge').first()).toBeVisible({ timeout: 15_000 });
   const initialCount = zonesRequests.length;
 
   // Непрерывный drag-пан ~5с

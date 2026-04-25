@@ -1,23 +1,62 @@
-// MAP-09 NOTE: Phase 1 рендерит 200 зон без кластеризации. Порог кластеризации
-// (~500 зон по educated guess) надо измерить spike'ом в Phase 2: визуально
-// должно отрисовываться плавно при пане; если fps проседает — включаем
-// ymaps3-clusterer и подбираем порог по результатам профайла.
+// ZONE-01/02 (D-01): реальный полигональный рендер standard-зон.
 //
-// Phase 1 — debug-overlay: показывает количество зон в видимой области, чтобы
-// доказать, что MSW + TanStack Query + viewport pipeline работают end-to-end.
-// Phase 2 (ZONE-01..07) заменит overlay на реальный полигональный рендер
-// через <YMapFeature> + computeZoneStyle.
+// Каждая зона — отдельный <YMapFeature> в общем YMapFeatureDataSource. Reactify
+// diff'ит features по key, поэтому изменение одного стиля НЕ перерисовывает
+// все 200 зон (Pattern 1 в RESEARCH.md).
+//
+// selectedZoneId здесь захардкожен false — Plan 02 заменит на реальный
+// useSelectedZone() hook (?sel= via nuqs). onClick — stub с console.debug
+// до того же Plan 02; setSelectedZone(z.zone_id) включится тогда.
+//
+// MAP-09 SPIKE NOTE (Phase 2 Plan 01 Task 4): измерение fps при ~150-200 зонах
+// в viewport ИТМО + бейджах. Результат фиксируется коммитом Task 4 — порог
+// 45 fps определяет, нужна ли кластеризация (@yandex/ymaps3-clusterer) для MVP.
+//
+// Геометрия zone.geometry.coordinates: number[][][] — наш внутренний формат
+// (PolygonGeometry в entities/zone). ymaps3 ожидает LngLat[][] = [number,
+// number][][]. Cast безопасен: MSW-генератор всегда даёт пары [lon, lat].
+import type { LngLat } from '@yandex/ymaps3-types/common/types/lng-lat';
+import { YMapFeature, YMapFeatureDataSource, YMapLayer } from '@/shared/lib/ymaps';
 import { useViewportZones } from '@/features/viewport-driven-zones';
+import { computeZoneStyle, toDrawingStyle } from '../model/zone-style';
 
 export function ZoneLayer() {
   const { data, isPending, isError } = useViewportZones();
-  if (isPending || isError) return null;
+  if (isPending || isError || !data) return null;
+
+  const standard = data.filter((z) => z.zone_type === 'standard');
+
   return (
-    <div
-      data-testid="zone-count"
-      className="absolute top-4 left-4 rounded bg-white/90 px-2 py-1 text-sm shadow"
-    >
-      Зон в видимой области: {data?.length ?? 0}
-    </div>
+    <>
+      <YMapFeatureDataSource id="ptk-zones-standard" />
+      <YMapLayer source="ptk-zones-standard" type="features" zIndex={1900} />
+      {standard.map((z) => {
+        const style = computeZoneStyle({
+          zoneId: z.zone_id,
+          free_count: z.free_count,
+          confidence: z.confidence,
+          is_active: z.is_active,
+          mode: 'now', // Phase 3 forward-compat
+          selected: false, // Plan 02 заменит на (z.zone_id === selectedZoneId)
+        });
+        const geometry = {
+          type: 'Polygon' as const,
+          coordinates: z.geometry.coordinates as LngLat[][],
+        };
+        return (
+          <YMapFeature
+            key={z.zone_id}
+            id={`zone-${z.zone_id}`}
+            geometry={geometry}
+            style={toDrawingStyle(style)}
+            source="ptk-zones-standard"
+            onClick={() => {
+              // TODO Plan 02: setSelectedZone(z.zone_id) через useSelectedZone hook
+              console.debug('[ptk] zone click', z.zone_id);
+            }}
+          />
+        );
+      })}
+    </>
   );
 }
