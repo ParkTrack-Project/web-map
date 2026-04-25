@@ -25,6 +25,7 @@ import {
   YMapListener,
   YMapControls,
   YMapZoomControl,
+  useDefault,
 } from '@/shared/lib/ymaps';
 import { ITMO_CENTER, DEFAULT_ZOOM } from '@/shared/config';
 import { useBboxTracking } from '../model/useBboxTracking';
@@ -33,16 +34,22 @@ import { ZoneLayer } from './ZoneLayer';
 import { ParallelZoneLayer } from './ParallelZoneLayer';
 import { ZoneBadgesLayer } from './ZoneBadgesLayer';
 import { ZoneStateOverlay } from './ZoneStateOverlay';
+import { ModeTransitionOverlay } from '@/widgets/mode-transition-overlay';
 
 export function MapCanvas() {
   const { zoom: urlZoom, writeViewport } = useBboxTracking();
   const zoom = urlZoom ?? DEFAULT_ZOOM;
   const mapRef = useRef<YMapInstance | null>(null);
+  // Pitfall #1 fix: location обёрнут в reactify.useDefault — делает prop uncontrolled
+  // (initial-value-only). Без этого React при каждом ре-рендере MapCanvas пересоздаёт
+  // объектный литерал, reactify считает prop изменённым и pushes setLocation(ITMO),
+  // выбрасывая пользователя обратно в исходную точку при первом же пане.
+  const initialLocation = useDefault({ center: ITMO_CENTER, zoom: DEFAULT_ZOOM });
 
   return (
     <MapRefContext.Provider value={mapRef}>
       <div className="relative h-full w-full">
-        <YMap ref={mapRef} location={{ center: ITMO_CENTER, zoom: DEFAULT_ZOOM }} mode="vector">
+        <YMap ref={mapRef} location={initialLocation} mode="vector">
           <YMapDefaultSchemeLayer />
           {/* MAP-03: встроенный парковочный слой Yandex входит в default features layer */}
           <YMapDefaultFeaturesLayer />
@@ -66,8 +73,10 @@ export function MapCanvas() {
           <ParallelZoneLayer />
           <ZoneBadgesLayer zoom={zoom} />
         </YMap>
-        {/* D-21 / D-22 / UX-02 / UX-04 — overlay над картой для empty/error states */}
+        {/* Z_INDEX.zoneStateOverlay=20 — empty/error overlay (Phase 2: D-21/D-22/UX-02/UX-04) */}
         <ZoneStateOverlay />
+        {/* Z_INDEX.modeTransitionOverlay=30 — mode-switch skeleton (Phase 3 TIME-06) */}
+        <ModeTransitionOverlay />
       </div>
     </MapRefContext.Provider>
   );

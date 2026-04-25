@@ -5,12 +5,16 @@
 // Plan 02 wiring сохранён: <ZoneCard/> рендерится внутри этого layout'а,
 // а не на уровне MapPage — карточка attached к relative-контейнеру (`flex-1
 // overflow-hidden`), не к viewport.
+//
+// Phase 3 Plan 04 / D-01: TimeSelectorStrip располагается ВЫШЕ FiltersToolbar.
+// Layout сверху-вниз: [TimeSelectorStrip 64px] → [FiltersToolbar] → [MapArea].
 import { lazy, Suspense } from 'react';
 import { MapErrorBoundary } from '@/app/errors';
 import { MapSkeleton } from '@/widgets/map-canvas/ui/MapSkeleton';
 import { FiltersToolbar } from '@/widgets/filters-bar';
 import { Legend } from '@/widgets/legend';
 import { ZoneCard } from '@/widgets/zone-card';
+import { TimeSelectorStrip } from '@/widgets/time-selector';
 
 const MapCanvas = lazy(() =>
   import('@/widgets/map-canvas/ui/MapCanvas').then((m) => ({ default: m.MapCanvas })),
@@ -19,6 +23,8 @@ const MapCanvas = lazy(() =>
 export function DesktopLayout() {
   return (
     <div className="hidden h-screen w-screen flex-col lg:flex">
+      {/* D-01: дифференциатор продукта — strip ВЫШЕ фильтров */}
+      <TimeSelectorStrip />
       <FiltersToolbar />
       <div className="relative flex-1 overflow-hidden">
         <MapErrorBoundary>
