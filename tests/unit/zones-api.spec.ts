@@ -6,7 +6,7 @@ vi.mock('@/shared/api', () => ({
   apiClient: { get: vi.fn().mockResolvedValue({ data: [] }) },
 }));
 
-import { fetchZones } from '@/entities/zone/api/zone.api';
+import { fetchZones } from '@/entities/zone';
 import { apiClient } from '@/shared/api';
 
 describe('fetchZones mode dispatch (TIME-02, Q1 fix)', () => {
