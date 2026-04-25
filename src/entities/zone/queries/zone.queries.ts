@@ -4,6 +4,10 @@
 //
 // Phase 2 Plan 03: queryKey также включает serverQuery (filters). Смена фильтра →
 // новый key → старый запрос cancelled через AbortSignal (race protection D-12).
+//
+// Phase 3 Plan 01 (D-15): hard-separation guard — past/future без `at` это
+// программная ошибка. Synchronous throw ловит баг в коде, который забыл
+// передать `at`. Это НЕ runtime-fallback для пользователя.
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { roundBbox5, type Bbox } from '@/shared/lib/geo';
 import { fetchZones, fetchZoneById } from '../api/zone.api';
@@ -14,10 +18,15 @@ export function useZonesQuery(
   serverQuery: Record<string, string> = {},
   mode: TimeMode = { kind: 'now' },
 ) {
+  // D-15 hard-separation guard: программная ошибка, если past/future без at.
+  // Это dev-time bug detector, НЕ runtime-fallback для пользователя.
+  if ((mode.kind === 'past' || mode.kind === 'future') && !mode.at) {
+    throw new Error(`[useZonesQuery] mode.kind=${mode.kind} requires .at (TimeMode invariant)`);
+  }
   const rounded = bbox ? roundBbox5(bbox) : null;
   return useQuery({
     queryKey: ['zones', mode, rounded, serverQuery] as const,
-    queryFn: ({ signal }) => fetchZones(rounded!, serverQuery, signal),
+    queryFn: ({ signal }) => fetchZones(rounded!, serverQuery, mode, signal),
     enabled: rounded !== null,
     placeholderData: keepPreviousData,
     staleTime: 30_000,
