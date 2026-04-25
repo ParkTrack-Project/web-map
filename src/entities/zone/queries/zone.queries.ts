@@ -33,13 +33,25 @@ export function useZonesQuery(
   });
 }
 
-// CARD-01: запрос полной Zone по id. enabled=false при id===null (карточка
-// закрыта). staleTime 60с — карточка чаще закрывается/открывается чем меняются
-// мета-поля зоны (имя/тип/etc.); занятость уже отдельно живёт через useZonesQuery.
-export function useZoneByIdQuery(id: number | null) {
+// CARD-01 + Phase 3 Plan 05 / TIME-07: запрос полной Zone по id с mode-awareness.
+// enabled=false при id===null (карточка закрыта). staleTime 60с — карточка чаще
+// закрывается/открывается чем меняются мета-поля зоны.
+//
+// mode в queryKey → atomic card mode-switch: при смене ?t= TanStack автоматически
+// перевычитывает карточку через новый key + abort'ит старый запрос (TIME-05 + TIME-07).
+//
+// D-15 hard-separation guard для card-уровня: past/future без at — программная
+// ошибка, ловим в dev-time.
+//
+// Backward-compat: default mode={kind:'now'} → существующие Phase 1+2 callsites
+// (без mode arg) продолжают работать через /zones/:id endpoint.
+export function useZoneByIdQuery(id: number | null, mode: TimeMode = { kind: 'now' }) {
+  if ((mode.kind === 'past' || mode.kind === 'future') && !mode.at) {
+    throw new Error(`[useZoneByIdQuery] mode.kind=${mode.kind} requires .at (TimeMode invariant)`);
+  }
   return useQuery({
-    queryKey: ['zone', id] as const,
-    queryFn: ({ signal }) => fetchZoneById(id!, signal),
+    queryKey: ['zone', id, mode] as const,
+    queryFn: ({ signal }) => fetchZoneById(id!, signal, mode),
     enabled: id !== null,
     staleTime: 60_000,
   });

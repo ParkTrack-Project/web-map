@@ -47,9 +47,44 @@ export async function fetchZones(
   return res.data;
 }
 
-// CARD-01: полная Zone для модального окна. AbortSignal — для отмены при
-// быстром перетыке зон (D-08a) или закрытии карточки до приземления ответа.
-export async function fetchZoneById(id: number, signal: AbortSignal): Promise<Zone> {
-  const res = await apiClient.get<Zone>(`/zones/${id}`, { signal });
-  return res.data;
+// CARD-01 + Phase 3 Plan 05 / TIME-07: полная Zone для модального окна.
+// AbortSignal — для отмены при быстром перетыке зон (D-08a) или закрытии карточки.
+//
+// Mode dispatch (TIME-07 card mode-awareness):
+//   mode='now'    → GET /zones/:id (existing endpoint, unchanged)
+//   mode='past'   → GET /occupancy?view=card&zone_id=:id&at=ISO
+//   mode='future' → GET /forecasts?view=card&zone_id=:id&at=ISO
+//
+// MSW handlers расширены view=card branch'ом (Plan 05 Task 1 Step 3).
+// Backward-compat: default mode={kind:'now'} сохраняет существующее поведение —
+// все Phase 1+2 callsites (без mode arg) продолжают бить /zones/:id.
+//
+// Q4 wrap-shape детектится так же, как в fetchZones — { error_description }
+// на не-массиве → throw TimeModeUnavailableError → ZoneCard покажет backend message.
+export async function fetchZoneById(
+  id: number,
+  signal: AbortSignal,
+  mode: TimeMode = { kind: 'now' },
+): Promise<Zone> {
+  if (mode.kind === 'now') {
+    const res = await apiClient.get<Zone>(`/zones/${id}`, { signal });
+    return res.data;
+  }
+  // past/future: dispatch через timeModeAdapter, override view='card' и
+  // zone_id=:id (вместо bbox для card-context).
+  const { endpoint, extraParams } = timeModeAdapter(mode);
+  const res = await apiClient.get<Zone | { error_description?: string }>(endpoint, {
+    params: { ...extraParams, view: 'card', zone_id: String(id) },
+    signal,
+  });
+  // Q4 wrap-shape: backend сообщил, что mode на это время недоступен.
+  if (
+    res.data &&
+    typeof res.data === 'object' &&
+    'error_description' in res.data &&
+    res.data.error_description
+  ) {
+    throw new TimeModeUnavailableError(res.data.error_description, mode);
+  }
+  return res.data as Zone;
 }
