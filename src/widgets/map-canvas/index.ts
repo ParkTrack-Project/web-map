@@ -3,4 +3,5 @@ export { MapSkeleton } from './ui/MapSkeleton';
 export { ZoneLayer } from './ui/ZoneLayer';
 export { ParallelZoneLayer } from './ui/ParallelZoneLayer';
 export { ZoneBadgesLayer } from './ui/ZoneBadgesLayer';
+export { ZoneStateOverlay } from './ui/ZoneStateOverlay';
 export { MapRefContext } from './model/map-ref-context';
