@@ -2,7 +2,7 @@
 // baseUrl берётся из env.VITE_API_BASE_URL (axios с adapter:'fetch' эмитит абсолютные URL).
 // /auth/me с задержкой 500мс в DEV — подсвечивает race-condition (Pitfall #7).
 import { http, HttpResponse, delay } from 'msw';
-import { env } from '@/shared/config';
+import { env, MAX_PAST_DAYS, MAX_FUTURE_HOURS } from '@/shared/config';
 import { generateMockAuthMe, generateMockUserProfile } from './generators/users';
 import {
   generateMockZones,
@@ -15,8 +15,8 @@ import {
   type ZoneMapItem,
   type MockFilterParams,
 } from './generators/zones';
-import { generateOccupancyTimeseries } from './generators/occupancy';
-import { generateForecasts } from './generators/forecasts';
+import { generateOccupancyTimeseries, generateOccupancyZoneSnapshot } from './generators/occupancy';
+import { generateForecasts, generateForecastZoneSnapshot } from './generators/forecasts';
 
 const baseUrl = env.VITE_API_BASE_URL;
 
@@ -107,10 +107,15 @@ export const handlers = [
   }),
 
   // ---- Occupancy (исторический режим) ----
+  // Phase 3 Plan 01 (Q1 fix / D-18): view=map → ZoneMapItem[] (полная зона +
+  // time-skewed occupied/free_count/confidence). view=series (default) → старая
+  // узкая OccupancyItem[] схема для backward-compat. Также добавлен bound-check
+  // at ∈ [now - MAX_PAST_DAYS, now] → 422 OUT_OF_RANGE.
   http.get(`${baseUrl}/occupancy`, ({ request }) => {
     const url = new URL(request.url);
     const at = url.searchParams.get('at');
     const bboxRaw = url.searchParams.get('bbox');
+    const view = url.searchParams.get('view') ?? 'series';
     if (!at) {
       return HttpResponse.json(
         { error_description: 'Missing required query: at (ISO 8601)' },
@@ -130,15 +135,43 @@ export const handlers = [
         { status: 422 },
       );
     }
+    // D-18 bound-check: at ∈ [now - MAX_PAST_DAYS, now]
+    const atTime = new Date(at).getTime();
+    if (Number.isNaN(atTime)) {
+      return HttpResponse.json(
+        { error_description: 'Invalid at: not a parseable ISO datetime' },
+        { status: 422 },
+      );
+    }
+    const now = Date.now();
+    const lowerBound = now - MAX_PAST_DAYS * 86_400_000;
+    if (atTime < lowerBound || atTime > now) {
+      return HttpResponse.json(
+        {
+          error_description: `History only available between ${new Date(lowerBound).toISOString()} and ${new Date(now).toISOString()}`,
+          code: 'OUT_OF_RANGE',
+        },
+        { status: 422 },
+      );
+    }
     const zones = filterByBbox(ZONES, bbox);
+    // Phase 3 Q1 fix: view=map → ZoneMapItem[]; view=series (default) → старая узкая схема
+    if (view === 'map') {
+      return HttpResponse.json(generateOccupancyZoneSnapshot(zones, new Date(at)));
+    }
     return HttpResponse.json(generateOccupancyTimeseries(zones, new Date(at)));
   }),
 
   // ---- Forecasts (будущий режим) ----
+  // Phase 3 Plan 01 (Q1 fix / D-19): view=map → ZoneMapItem[]; view=series (default) →
+  // старая ForecastItem[]. Bound-check at ∈ [now, now + MAX_FUTURE_HOURS] → 422.
+  // Q4 deterministic edge-case: ровно на 03:00:00 UTC возвращаем «прогноз недоступен»
+  // (для E2E / TIME-09 empty-state триггера).
   http.get(`${baseUrl}/forecasts`, ({ request }) => {
     const url = new URL(request.url);
     const at = url.searchParams.get('at');
     const bboxRaw = url.searchParams.get('bbox');
+    const view = url.searchParams.get('view') ?? 'series';
     if (!at) {
       return HttpResponse.json(
         { error_description: 'Missing required query: at (ISO 8601)' },
@@ -158,7 +191,37 @@ export const handlers = [
         { status: 422 },
       );
     }
+    const atTime = new Date(at).getTime();
+    if (Number.isNaN(atTime)) {
+      return HttpResponse.json(
+        { error_description: 'Invalid at: not a parseable ISO datetime' },
+        { status: 422 },
+      );
+    }
+    const now = Date.now();
+    const upperBound = now + MAX_FUTURE_HOURS * 3_600_000;
+    if (atTime < now || atTime > upperBound) {
+      return HttpResponse.json(
+        {
+          error_description: `Forecasts only available between ${new Date(now).toISOString()} and ${new Date(upperBound).toISOString()}`,
+          code: 'OUT_OF_RANGE',
+        },
+        { status: 422 },
+      );
+    }
+    // Q4 deterministic edge-case: ровно на 03:00:00.000 UTC прогноз «недоступен».
+    // Дает E2E/UAT стабильный триггер для TIME-09 «прогноз недоступен» empty-state.
+    const atDate = new Date(at);
+    if (atDate.getUTCHours() === 3 && atDate.getUTCMinutes() === 0) {
+      return HttpResponse.json(
+        { error_description: 'Прогноз на это время недоступен', items: [] },
+        { status: 200 },
+      );
+    }
     const zones = filterByBbox(ZONES, bbox);
+    if (view === 'map') {
+      return HttpResponse.json(generateForecastZoneSnapshot(zones, new Date(at)));
+    }
     return HttpResponse.json(generateForecasts(zones, new Date(at)));
   }),
 
