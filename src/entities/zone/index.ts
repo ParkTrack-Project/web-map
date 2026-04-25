@@ -6,5 +6,5 @@ export type {
   LocationType,
   ConfidenceLevel,
 } from './model/zone.types';
-export { fetchZones } from './api/zone.api';
-export { useZonesQuery } from './queries/zone.queries';
+export { fetchZones, fetchZoneById } from './api/zone.api';
+export { useZonesQuery, useZoneByIdQuery } from './queries/zone.queries';

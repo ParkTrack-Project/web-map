@@ -1,8 +1,9 @@
-// TanStack Query обёртка для /zones. queryKey включает mode (Phase 3 forward-compat, MAP-08)
-// и round5-bbox (MAP-06). keepPreviousData → нет flicker при пане.
+// TanStack Query обёртки для /zones и /zones/:id.
+// queryKey включает mode (Phase 3 forward-compat, MAP-08) и round5-bbox (MAP-06).
+// keepPreviousData → нет flicker при пане.
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { roundBbox5, type Bbox } from '@/shared/lib/geo';
-import { fetchZones } from '../api/zone.api';
+import { fetchZones, fetchZoneById } from '../api/zone.api';
 import type { TimeMode } from '../model/zone.types';
 
 export function useZonesQuery(bbox: Bbox | null, mode: TimeMode = { kind: 'now' }) {
@@ -13,5 +14,17 @@ export function useZonesQuery(bbox: Bbox | null, mode: TimeMode = { kind: 'now' 
     enabled: rounded !== null,
     placeholderData: keepPreviousData,
     staleTime: 30_000,
+  });
+}
+
+// CARD-01: запрос полной Zone по id. enabled=false при id===null (карточка
+// закрыта). staleTime 60с — карточка чаще закрывается/открывается чем меняются
+// мета-поля зоны (имя/тип/etc.); занятость уже отдельно живёт через useZonesQuery.
+export function useZoneByIdQuery(id: number | null) {
+  return useQuery({
+    queryKey: ['zone', id] as const,
+    queryFn: ({ signal }) => fetchZoneById(id!, signal),
+    enabled: id !== null,
+    staleTime: 60_000,
   });
 }

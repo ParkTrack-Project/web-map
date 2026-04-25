@@ -8,18 +8,13 @@
 // См. .planning/phases/02-zones-card-filters-url-baseline/02-HUMAN-UAT.md item «MAP-09 fps».
 //
 // ZONE-01/02 (D-01): реальный полигональный рендер standard-зон.
+// ZONE-07 / D-08 (Plan 02-02 wiring): клик по зоне записывает её id в URL ?sel=
+// через useSelectedZone (nuqs pushState). Выбранная зона получает strokeWidth=3
+// через computeZoneStyle({selected: z.zone_id === selectedZoneId}).
 //
 // Каждая зона — отдельный <YMapFeature> в общем YMapFeatureDataSource. Reactify
 // diff'ит features по key, поэтому изменение одного стиля НЕ перерисовывает
 // все 200 зон (Pattern 1 в RESEARCH.md).
-//
-// selectedZoneId здесь захардкожен false — Plan 02 заменит на реальный
-// useSelectedZone() hook (?sel= via nuqs). onClick — stub с console.debug
-// до того же Plan 02; setSelectedZone(z.zone_id) включится тогда.
-//
-// MAP-09 SPIKE NOTE (Phase 2 Plan 01 Task 4): измерение fps при ~150-200 зонах
-// в viewport ИТМО + бейджах. Результат фиксируется коммитом Task 4 — порог
-// 45 fps определяет, нужна ли кластеризация (@yandex/ymaps3-clusterer) для MVP.
 //
 // Геометрия zone.geometry.coordinates: number[][][] — наш внутренний формат
 // (PolygonGeometry в entities/zone). ymaps3 ожидает LngLat[][] = [number,
@@ -27,10 +22,12 @@
 import type { LngLat } from '@yandex/ymaps3-types/common/types/lng-lat';
 import { YMapFeature, YMapFeatureDataSource, YMapLayer } from '@/shared/lib/ymaps';
 import { useViewportZones } from '@/features/viewport-driven-zones';
+import { useSelectedZone } from '@/features/select-zone';
 import { computeZoneStyle, toDrawingStyle } from '../model/zone-style';
 
 export function ZoneLayer() {
   const { data, isPending, isError } = useViewportZones();
+  const { selectedZoneId, setSelectedZone } = useSelectedZone();
   if (isPending || isError || !data) return null;
 
   const standard = data.filter((z) => z.zone_type === 'standard');
@@ -46,7 +43,7 @@ export function ZoneLayer() {
           confidence: z.confidence,
           is_active: z.is_active,
           mode: 'now', // Phase 3 forward-compat
-          selected: false, // Plan 02 заменит на (z.zone_id === selectedZoneId)
+          selected: z.zone_id === selectedZoneId, // D-08 highlight
         });
         const geometry = {
           type: 'Polygon' as const,
@@ -59,10 +56,7 @@ export function ZoneLayer() {
             geometry={geometry}
             style={toDrawingStyle(style)}
             source="ptk-zones-standard"
-            onClick={() => {
-              // TODO Plan 02: setSelectedZone(z.zone_id) через useSelectedZone hook
-              console.debug('[ptk] zone click', z.zone_id);
-            }}
+            onClick={() => setSelectedZone(z.zone_id)}
           />
         );
       })}
