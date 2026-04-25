@@ -1,1 +1,1 @@
-export { parseAsBbox } from './parsers';
+export * from './parsers';
