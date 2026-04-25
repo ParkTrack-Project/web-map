@@ -111,31 +111,22 @@ export const handlers = [
   // time-skewed occupied/free_count/confidence). view=series (default) → старая
   // узкая OccupancyItem[] схема для backward-compat. Также добавлен bound-check
   // at ∈ [now - MAX_PAST_DAYS, now] → 422 OUT_OF_RANGE.
+  //
+  // Plan 05 / TIME-07: view=card&zone_id=N → одна полная Zone (toFullZone) с
+  // time-skewed данными. Этот branch НЕ требует bbox (карточка знает zone_id).
   http.get(`${baseUrl}/occupancy`, ({ request }) => {
     const url = new URL(request.url);
     const at = url.searchParams.get('at');
     const bboxRaw = url.searchParams.get('bbox');
     const view = url.searchParams.get('view') ?? 'series';
+    const zoneIdRaw = url.searchParams.get('zone_id');
     if (!at) {
       return HttpResponse.json(
         { error_description: 'Missing required query: at (ISO 8601)' },
         { status: 400 },
       );
     }
-    if (!bboxRaw) {
-      return HttpResponse.json(
-        { error_description: 'Missing required query: bbox' },
-        { status: 400 },
-      );
-    }
-    const bbox = parseBbox(bboxRaw);
-    if (!bbox) {
-      return HttpResponse.json(
-        { error_description: 'Validation error: bbox malformed' },
-        { status: 422 },
-      );
-    }
-    // D-18 bound-check: at ∈ [now - MAX_PAST_DAYS, now]
+    // D-18 bound-check: at ∈ [now - MAX_PAST_DAYS, now] (применяется ко всем view-режимам).
     const atTime = new Date(at).getTime();
     if (Number.isNaN(atTime)) {
       return HttpResponse.json(
@@ -154,6 +145,38 @@ export const handlers = [
         { status: 422 },
       );
     }
+    // Plan 05 / TIME-07: card-уровень — полная Zone для одной зоны (НЕ массив, НЕ требует bbox).
+    if (view === 'card' && zoneIdRaw) {
+      const zoneId = Number(zoneIdRaw);
+      const z = getZoneById(ZONES, zoneId);
+      if (!z) {
+        return HttpResponse.json({ error_description: 'Zone not found' }, { status: 404 });
+      }
+      const idx = ZONES.indexOf(z);
+      const skewed = generateOccupancyZoneSnapshot([z], new Date(at))[0];
+      const fullBase = toFullZone(z, idx);
+      return HttpResponse.json({
+        ...fullBase,
+        occupied: skewed.occupied,
+        free_count: skewed.free_count,
+        confidence: skewed.confidence,
+        confidence_level: skewed.confidence_level,
+        occupancy_updated_at: skewed.occupancy_updated_at,
+      });
+    }
+    if (!bboxRaw) {
+      return HttpResponse.json(
+        { error_description: 'Missing required query: bbox' },
+        { status: 400 },
+      );
+    }
+    const bbox = parseBbox(bboxRaw);
+    if (!bbox) {
+      return HttpResponse.json(
+        { error_description: 'Validation error: bbox malformed' },
+        { status: 422 },
+      );
+    }
     const zones = filterByBbox(ZONES, bbox);
     // Phase 3 Q1 fix: view=map → ZoneMapItem[]; view=series (default) → старая узкая схема
     if (view === 'map') {
@@ -167,28 +190,21 @@ export const handlers = [
   // старая ForecastItem[]. Bound-check at ∈ [now, now + MAX_FUTURE_HOURS] → 422.
   // Q4 deterministic edge-case: ровно на 03:00:00 UTC возвращаем «прогноз недоступен»
   // (для E2E / TIME-09 empty-state триггера).
+  //
+  // Plan 05 / TIME-07: view=card&zone_id=N → одна полная Zone (toFullZone) с
+  // forecast-семантикой. Не требует bbox. Q4 wrap-shape применяется и к card-уровню —
+  // карточка увидит TimeModeUnavailableError так же, как map-уровень (zone-level
+  // fallback message).
   http.get(`${baseUrl}/forecasts`, ({ request }) => {
     const url = new URL(request.url);
     const at = url.searchParams.get('at');
     const bboxRaw = url.searchParams.get('bbox');
     const view = url.searchParams.get('view') ?? 'series';
+    const zoneIdRaw = url.searchParams.get('zone_id');
     if (!at) {
       return HttpResponse.json(
         { error_description: 'Missing required query: at (ISO 8601)' },
         { status: 400 },
-      );
-    }
-    if (!bboxRaw) {
-      return HttpResponse.json(
-        { error_description: 'Missing required query: bbox' },
-        { status: 400 },
-      );
-    }
-    const bbox = parseBbox(bboxRaw);
-    if (!bbox) {
-      return HttpResponse.json(
-        { error_description: 'Validation error: bbox malformed' },
-        { status: 422 },
       );
     }
     const atTime = new Date(at).getTime();
@@ -211,11 +227,45 @@ export const handlers = [
     }
     // Q4 deterministic edge-case: ровно на 03:00:00.000 UTC прогноз «недоступен».
     // Дает E2E/UAT стабильный триггер для TIME-09 «прогноз недоступен» empty-state.
+    // Plan 05: применяется ко всем view-режимам (включая card) — fetchZoneById
+    // ловит wrap-shape и throw'ит TimeModeUnavailableError.
     const atDate = new Date(at);
     if (atDate.getUTCHours() === 3 && atDate.getUTCMinutes() === 0) {
       return HttpResponse.json(
         { error_description: 'Прогноз на это время недоступен', items: [] },
         { status: 200 },
+      );
+    }
+    // Plan 05 / TIME-07: card-уровень — полная Zone для одной зоны (forecast).
+    if (view === 'card' && zoneIdRaw) {
+      const zoneId = Number(zoneIdRaw);
+      const z = getZoneById(ZONES, zoneId);
+      if (!z) {
+        return HttpResponse.json({ error_description: 'Zone not found' }, { status: 404 });
+      }
+      const idx = ZONES.indexOf(z);
+      const skewed = generateForecastZoneSnapshot([z], new Date(at))[0];
+      const fullBase = toFullZone(z, idx);
+      return HttpResponse.json({
+        ...fullBase,
+        occupied: skewed.occupied,
+        free_count: skewed.free_count,
+        confidence: skewed.confidence,
+        confidence_level: skewed.confidence_level,
+        occupancy_updated_at: skewed.occupancy_updated_at,
+      });
+    }
+    if (!bboxRaw) {
+      return HttpResponse.json(
+        { error_description: 'Missing required query: bbox' },
+        { status: 400 },
+      );
+    }
+    const bbox = parseBbox(bboxRaw);
+    if (!bbox) {
+      return HttpResponse.json(
+        { error_description: 'Validation error: bbox malformed' },
+        { status: 422 },
       );
     }
     const zones = filterByBbox(ZONES, bbox);
