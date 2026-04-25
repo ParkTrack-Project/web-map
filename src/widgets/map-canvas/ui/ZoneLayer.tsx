@@ -21,12 +21,15 @@
 // number][][]. Cast безопасен: MSW-генератор всегда даёт пары [lon, lat].
 import type { LngLat } from '@yandex/ymaps3-types/common/types/lng-lat';
 import { YMapFeature, YMapFeatureDataSource, YMapLayer } from '@/shared/lib/ymaps';
-import { useViewportZones } from '@/features/viewport-driven-zones';
+import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { useSelectedZone } from '@/features/select-zone';
 import { computeZoneStyle, toDrawingStyle } from '../model/zone-style';
 
 export function ZoneLayer() {
-  const { data, isPending, isError } = useViewportZones();
+  // Phase 2 Plan 03: переключено с useViewportZones на useFilteredZones —
+  // тот же data shape, но с server-side + client-side фильтрами применёнными.
+  // useSelectedZone wiring (Plan 02) сохранён ниже без изменений.
+  const { data, isPending, isError } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
   if (isPending || isError || !data) return null;
 

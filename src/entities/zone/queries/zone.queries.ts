@@ -1,16 +1,23 @@
 // TanStack Query обёртки для /zones и /zones/:id.
 // queryKey включает mode (Phase 3 forward-compat, MAP-08) и round5-bbox (MAP-06).
 // keepPreviousData → нет flicker при пане.
+//
+// Phase 2 Plan 03: queryKey также включает serverQuery (filters). Смена фильтра →
+// новый key → старый запрос cancelled через AbortSignal (race protection D-12).
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { roundBbox5, type Bbox } from '@/shared/lib/geo';
 import { fetchZones, fetchZoneById } from '../api/zone.api';
 import type { TimeMode } from '../model/zone.types';
 
-export function useZonesQuery(bbox: Bbox | null, mode: TimeMode = { kind: 'now' }) {
+export function useZonesQuery(
+  bbox: Bbox | null,
+  serverQuery: Record<string, string> = {},
+  mode: TimeMode = { kind: 'now' },
+) {
   const rounded = bbox ? roundBbox5(bbox) : null;
   return useQuery({
-    queryKey: ['zones', mode, rounded] as const,
-    queryFn: ({ signal }) => fetchZones(rounded!, signal),
+    queryKey: ['zones', mode, rounded, serverQuery] as const,
+    queryFn: ({ signal }) => fetchZones(rounded!, serverQuery, signal),
     enabled: rounded !== null,
     placeholderData: keepPreviousData,
     staleTime: 30_000,

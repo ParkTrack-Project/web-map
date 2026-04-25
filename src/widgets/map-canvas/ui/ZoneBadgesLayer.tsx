@@ -7,7 +7,7 @@
 // pointer-events-none: бейдж не перехватывает клики — клик проходит сквозь
 // бейдж в polygon под ним → срабатывает onClick из ZoneLayer (Plan 02 wiring).
 import { YMapMarker } from '@/shared/lib/ymaps';
-import { useViewportZones } from '@/features/viewport-driven-zones';
+import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { ZONE_BADGE_MIN_ZOOM } from '@/shared/config';
 
@@ -16,7 +16,9 @@ interface Props {
 }
 
 export function ZoneBadgesLayer({ zoom }: Props) {
-  const { data, isPending, isError } = useViewportZones();
+  // Phase 2 Plan 03: переключено на useFilteredZones — бейджи показываются
+  // только для зон, прошедших фильтры.
+  const { data, isPending, isError } = useFilteredZones();
   if (zoom < ZONE_BADGE_MIN_ZOOM) return null;
   if (isPending || isError || !data) return null;
 

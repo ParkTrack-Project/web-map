@@ -8,10 +8,12 @@ import {
   generateMockZones,
   parseBbox,
   filterByBbox,
+  applyMockFilters,
   getZoneById,
   toFullZone,
   zoneCentroid,
   type ZoneMapItem,
+  type MockFilterParams,
 } from './generators/zones';
 import { generateOccupancyTimeseries } from './generators/occupancy';
 import { generateForecasts } from './generators/forecasts';
@@ -48,6 +50,11 @@ export const handlers = [
   }),
 
   // ---- Zones ----
+  // Phase 2 Plan 03: handler парсит filter query params (min_free_count,
+  // min_confidence, max_pay, include_private, include_accessible, is_active,
+  // hide_location_types) и применяет их через applyMockFilters после filterByBbox.
+  // Это эмулирует server-side filter path D-12 — E2E тест видит реальное
+  // изменение количества зон при переключении фильтров.
   http.get(`${baseUrl}/zones`, ({ request }) => {
     const url = new URL(request.url);
     const bboxRaw = url.searchParams.get('bbox');
@@ -64,6 +71,24 @@ export const handlers = [
       }
       zones = filterByBbox(zones, bbox);
     }
+
+    // Phase 2 Plan 03: Server-side filter mapping (D-12).
+    const filters: MockFilterParams = {};
+    const minFree = url.searchParams.get('min_free_count');
+    if (minFree !== null) filters.min_free_count = Number(minFree);
+    const minConf = url.searchParams.get('min_confidence');
+    if (minConf !== null) filters.min_confidence = Number(minConf);
+    const maxPay = url.searchParams.get('max_pay');
+    if (maxPay !== null) filters.max_pay = Number(maxPay);
+    const incPriv = url.searchParams.get('include_private');
+    if (incPriv !== null) filters.include_private = incPriv === 'true';
+    const incAcc = url.searchParams.get('include_accessible');
+    if (incAcc !== null) filters.include_accessible = incAcc === 'true';
+    const isAct = url.searchParams.get('is_active');
+    if (isAct !== null) filters.is_active = isAct === 'true';
+    const hideLoc = url.searchParams.get('hide_location_types');
+    if (hideLoc !== null) filters.hide_location_types = hideLoc.split(',').filter(Boolean);
+    zones = applyMockFilters(zones, filters);
 
     if (view === 'map') {
       return HttpResponse.json(zones);

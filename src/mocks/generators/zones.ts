@@ -172,6 +172,31 @@ export function filterByBbox(zones: ZoneMapItem[], bbox: Bbox): ZoneMapItem[] {
   });
 }
 
+// Phase 2 Plan 03: эмулирует серверную фильтрацию (D-12 server-side path в mock).
+// Используется MSW handler'ом /zones для применения query params после filterByBbox.
+export interface MockFilterParams {
+  min_free_count?: number;
+  min_confidence?: number;
+  max_pay?: number;
+  include_private?: boolean;
+  include_accessible?: boolean;
+  is_active?: boolean;
+  hide_location_types?: string[];
+}
+
+export function applyMockFilters(zones: ZoneMapItem[], f: MockFilterParams): ZoneMapItem[] {
+  return zones.filter((z) => {
+    if (f.min_free_count !== undefined && z.free_count < f.min_free_count) return false;
+    if (f.min_confidence !== undefined && z.confidence < f.min_confidence) return false;
+    if (f.max_pay !== undefined && z.pay > f.max_pay) return false;
+    if (f.include_private === false && z.is_private) return false;
+    if (f.include_accessible === false && z.is_accessible) return false;
+    if (f.is_active !== undefined && z.is_active !== f.is_active) return false;
+    if (f.hide_location_types && f.hide_location_types.includes(z.location_type)) return false;
+    return true;
+  });
+}
+
 export function getZoneById(zones: ZoneMapItem[], id: number): ZoneMapItem | undefined {
   return zones.find((z) => z.zone_id === id);
 }

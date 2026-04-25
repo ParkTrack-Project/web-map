@@ -10,13 +10,15 @@
 // stroke-width 8 (вместо 6) для визуального отличия (D-08 для LineString-варианта).
 import type { LngLat } from '@yandex/ymaps3-types/common/types/lng-lat';
 import { YMapFeature, YMapFeatureDataSource, YMapLayer } from '@/shared/lib/ymaps';
-import { useViewportZones } from '@/features/viewport-driven-zones';
+import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { useSelectedZone } from '@/features/select-zone';
 import { polygonToParallelLine } from '@/shared/lib/geo';
 import { computeZoneStyle } from '../model/zone-style';
 
 export function ParallelZoneLayer() {
-  const { data, isPending, isError } = useViewportZones();
+  // Phase 2 Plan 03: переключено на useFilteredZones (фильтры применены).
+  // useSelectedZone wiring (Plan 02) сохранён.
+  const { data, isPending, isError } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
   if (isPending || isError || !data) return null;
 
