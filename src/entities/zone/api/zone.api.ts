@@ -7,11 +7,18 @@
 // Phase 3 Plan 01 (D-13/D-14): fetchZones теперь принимает TimeMode.
 // timeModeAdapter диспатчит endpoint и extraParams. /occupancy и /forecasts MSW
 // (Plan 01 Task 4) расширены так, чтобы возвращать ZoneMapItem[] (Q1 schema fix).
+//
+// Phase 3 Plan 04 (I-6 / Q4): wrap-shape detection — /forecasts на 03:00 UTC
+// возвращает 200 + { error_description, items: [] } как deterministic триггер
+// для TIME-09 empty-state. Ловим этот pattern и throw'им typed
+// TimeModeUnavailableError, чтобы ZoneStateOverlay показал backend-message
+// (а не дефолт «Не удалось загрузить данные»).
 import { apiClient } from '@/shared/api';
 import type { Bbox } from '@/shared/lib/geo';
 import type { ZoneMapItem, Zone } from '../model/zone.types';
 import { timeModeAdapter } from '../model/time-mode-adapter';
 import type { TimeMode } from '../model/zone.types';
+import { TimeModeUnavailableError } from '../model/time-mode-error';
 
 export async function fetchZones(
   bbox: Bbox,
@@ -20,10 +27,23 @@ export async function fetchZones(
   signal: AbortSignal,
 ): Promise<ZoneMapItem[]> {
   const { endpoint, extraParams } = timeModeAdapter(mode);
-  const res = await apiClient.get<ZoneMapItem[]>(endpoint, {
+  const res = await apiClient.get<
+    ZoneMapItem[] | { error_description?: string; items?: ZoneMapItem[] }
+  >(endpoint, {
     params: { bbox: bbox.join(','), view: 'map', ...extraParams, ...serverQuery },
     signal,
   });
+
+  // I-6 / Q4: wrap-shape detection. Если ответ — объект (не массив) с
+  // error_description, throw'им TimeModeUnavailableError. Просто wrap без
+  // error_description → fallback на items или [].
+  if (!Array.isArray(res.data)) {
+    const data = res.data;
+    if (data?.error_description) {
+      throw new TimeModeUnavailableError(data.error_description, mode);
+    }
+    return Array.isArray(data?.items) ? data.items : [];
+  }
   return res.data;
 }
 
