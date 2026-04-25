@@ -13,3 +13,10 @@ export const ZONE_BADGE_MIN_ZOOM = 14;
 // D-11 (Phase 2): namespace для sessionStorage-ключей фильтров. Версионирование
 // «v1» позволяет bump'нуть до v2 при schema-bump (Phase 3+) без collision'ов.
 export const FILTER_STORAGE_PREFIX = 'parktrack:f:v1:';
+
+// D-09 (Phase 3): диапазоны для TimeSelector — clamp past/future ввод.
+// MVP-константы; Phase 5 интеграция с Никитой может вернуть их из API
+// (`supported_range`) — тогда заменить на dynamic source.
+export const MAX_PAST_DAYS = 7;
+export const MAX_FUTURE_HOURS = 24;
+export const MIN_RESOLUTION_MINUTES = 15;
