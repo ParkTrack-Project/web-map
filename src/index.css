@@ -2,7 +2,13 @@
 
 /* A11Y-04 / D-18: глобальный focus-ring для всех :focus-visible элементов.
    Никакого outline:none без замены — все интерактивные кастомные компоненты
-   используют semantic HTML и наследуют этот ring. */
+   используют semantic HTML и наследуют этот ring.
+
+   A11Y-05 / D-20 contrast verification — auto-mode pre-estimate (4 элемента) +
+   manual measurement deferred to HUMAN-UAT (см. .planning/phases/
+   02-zones-card-filters-url-baseline/02-03-VERIFICATION-NOTES.md).
+   Потенциальный fail: chip-toggle active state (text-white на bg-emerald-600)
+   ≈ 3:1 для small text — fix в Phase 5 polish (bg-emerald-700/800 или font-bump). */
 @layer base {
   :focus-visible {
     outline: 2px solid #16a34a;
