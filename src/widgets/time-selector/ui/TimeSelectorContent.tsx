@@ -92,6 +92,11 @@ export function TimeSelectorContent() {
   };
 
   // B-4: input bounds мемоизированы по kind — никаких new strings на каждый rerender
+  // (mobile webkit teardown'ит controlled input при flux-strings).
+  // ESLint warns: kind не используется внутри. Это намеренно — мы хотим
+  // пересчитывать Date.now()-based bounds когда юзер переключает kind
+  // (свежий now), но не на каждый параентский render.
+  /* eslint-disable react-hooks/exhaustive-deps */
   const { inputMin, inputMax, nowInput } = useMemo(() => {
     const now = Date.now();
     return {
@@ -100,6 +105,7 @@ export function TimeSelectorContent() {
       nowInput: utcIsoToInputValue(new Date(now).toISOString()),
     };
   }, [kind]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const effectiveInputMin = kind === 'past' ? inputMin : nowInput;
   const effectiveInputMax = kind === 'past' ? nowInput : inputMax;
