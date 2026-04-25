@@ -1,3 +1,12 @@
+// MAP-09 SPIKE (2026-04-25, auto-mode): estimated 50 fps при 200 zones + badges
+// (educated guess, базируется на PITFALLS #2 + mature reactify-diff pattern).
+// РЕАЛЬНОЕ измерение ОТЛОЖЕНО на HUMAN-UAT — fps без живого браузера + DevTools
+// Performance panel получить нельзя. Дев-сервер успешно стартует с 200 фейковыми
+// зонами (Vite ready в ~640мс), tsc/lint/тесты зелёные. Threshold MVP: 45 fps.
+// Если HUMAN-UAT покажет measured < 45 fps — Phase 2.x должен ввести
+// @yandex/ymaps3-clusterer с порогом ~150 зон.
+// См. .planning/phases/02-zones-card-filters-url-baseline/02-HUMAN-UAT.md item «MAP-09 fps».
+//
 // ZONE-01/02 (D-01): реальный полигональный рендер standard-зон.
 //
 // Каждая зона — отдельный <YMapFeature> в общем YMapFeatureDataSource. Reactify
