@@ -6,8 +6,15 @@
 //
 // Hidden lg:block — на мобильном показывается MobileZoneCard (vaul Portal).
 // Оба компонента слушают один и тот же useSelectedZone.
+//
+// Phase 3 Plan 05 / TIME-07 / D-16:
+// - useTimeMode().mode инжектится в useZoneByIdQuery → atomic card mode-switch
+//   (queryKey включает mode → smena ?t= → новый запрос /occupancy?view=card&...)
+// - is_active === false → empty-state «Зона неактивна в этот период»
+//   + CTA «Вернуться к Сейчас» (когда mode != now). Pattern из ZoneStateOverlay (Plan 04).
 import { X, Lock, Accessibility, Car, MapPin } from 'lucide-react';
 import { useSelectedZone } from '@/features/select-zone';
+import { useTimeMode } from '@/features/select-time-mode';
 import { useZoneByIdQuery, type Zone } from '@/entities/zone';
 import { pluralizeRu, formatRelativeRu } from '@/shared/lib/i18n';
 import { Spinner } from '@/shared/ui';
@@ -42,7 +49,9 @@ interface ContentProps {
 }
 
 export function ZoneCardContent({ zoneId, onClose }: ContentProps) {
-  const { data, isPending, isError, refetch } = useZoneByIdQuery(zoneId);
+  // Plan 05 / TIME-07: mode инжектится в useZoneByIdQuery → atomic card refetch.
+  const { mode, setNow } = useTimeMode();
+  const { data, isPending, isError, refetch } = useZoneByIdQuery(zoneId, mode);
 
   return (
     <div className="flex flex-col gap-4 p-5">
@@ -67,7 +76,28 @@ export function ZoneCardContent({ zoneId, onClose }: ContentProps) {
           </button>
         </div>
       )}
-      {data && <ZoneCardBody zone={data} />}
+      {/* Plan 05 / D-16: «Зона неактивна в этот период» empty-state.
+          Возникает фактически в past/future, когда зона была не-активна на выбранный момент.
+          CTA «Вернуться к Сейчас» — только при mode != now (pattern из ZoneStateOverlay). */}
+      {data && data.is_active === false && (
+        <div
+          role="status"
+          data-testid="zone-card-inactive"
+          className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm"
+        >
+          <p className="text-sm text-zinc-700">Зона неактивна в этот период</p>
+          {mode.kind !== 'now' && (
+            <button
+              type="button"
+              onClick={setNow}
+              className="mt-3 inline-flex items-center justify-center rounded-md border border-emerald-600 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
+            >
+              Вернуться к Сейчас
+            </button>
+          )}
+        </div>
+      )}
+      {data && data.is_active !== false && <ZoneCardBody zone={data} />}
     </div>
   );
 }

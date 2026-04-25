@@ -3,6 +3,7 @@ import type * as React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import { ZoneCardContent } from '@/widgets/zone-card/ui/ZoneCard';
 
 // Мокируем useZoneByIdQuery — позволяет инжектить любую форму ответа.
@@ -20,8 +21,14 @@ import { useZoneByIdQuery } from '@/entities/zone';
 const mockUseZoneByIdQuery = vi.mocked(useZoneByIdQuery);
 
 function withProviders(ui: React.ReactElement) {
+  // Plan 05 / TIME-07: ZoneCardContent теперь читает useTimeMode → требует
+  // NuqsTestingAdapter в дереве (default '?' → mode={kind:'now'} backward-compat).
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return <QueryClientProvider client={qc}>{ui}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={qc}>
+      <NuqsTestingAdapter searchParams="">{ui}</NuqsTestingAdapter>
+    </QueryClientProvider>
+  );
 }
 
 const baseZone = {

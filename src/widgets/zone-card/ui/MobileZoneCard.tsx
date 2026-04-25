@@ -14,6 +14,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { Drawer } from 'vaul';
 import { useSelectedZone } from '@/features/select-zone';
+import { useTimeMode } from '@/features/select-time-mode';
 import { useZoneByIdQuery } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { MapRefContext } from '@/widgets/map-canvas';
@@ -25,14 +26,19 @@ export function MobileZoneCard() {
   const isOpen = selectedZoneId != null;
   const mapRefHolder = useContext(MapRefContext);
 
-  // useZoneByIdQuery дедуплицируется TanStack Query'ем — тот же key, что и
-  // внутри ZoneCardContent → один реальный fetch.
-  const { data: zone } = useZoneByIdQuery(selectedZoneId);
+  // Plan 05 / TIME-07: mode → useZoneByIdQuery (тот же key, что и в ZoneCardContent
+  // — TanStack Query дедуплицирует, один реальный fetch). При смене mode оба
+  // компонента переходят на новый queryKey и получают новые данные синхронно.
+  const { mode, setNow } = useTimeMode();
+  const { data: zone } = useZoneByIdQuery(selectedZoneId, mode);
 
   // CARD-07 mobile: panorama -20% viewport вверх через ymaps3 setLocation.
   // duration: 300 — мягкая анимация без jump-эффекта (D-07 mobile half).
+  // Plan 05 / TIME-07: skip pan для is_active === false — нет смысла центрировать
+  // зону, которая «неактивна в этот период» (карточка покажет inactive empty-state).
   useEffect(() => {
     if (!isOpen || !zone || !mapRefHolder?.current) return;
+    if (zone.is_active === false) return;
     const center = zoneCentroid(zone.geometry);
     try {
       mapRefHolder.current.setLocation({
@@ -44,6 +50,12 @@ export function MobileZoneCard() {
       console.warn('[ptk] mobile pan failed:', e);
     }
   }, [isOpen, zone, mapRefHolder, selectedZoneId]);
+
+  // Plan 05 / D-16: inactive zone → render mobile-specific empty-state ВМЕСТО
+  // полной ZoneCardContent. ZoneCardContent тоже умеет показывать inactive, но для
+  // mobile показываем сжатый layout (без header/Spinner/etc.) внутри Drawer.
+  // Mirror'ит pattern desktop ZoneCard — D-16 «Зона неактивна в этот период».
+  const renderInactive = zone && zone.is_active === false;
 
   return (
     <Drawer.Root
@@ -64,8 +76,23 @@ export function MobileZoneCard() {
         >
           <Drawer.Title className="sr-only">Карточка парковки</Drawer.Title>
           <div className="mx-auto my-2 h-1.5 w-12 rounded-full bg-zinc-300" aria-hidden />
-          {selectedZoneId != null && (
-            <ZoneCardContent key={selectedZoneId} zoneId={selectedZoneId} onClose={closeCard} />
+          {renderInactive ? (
+            <div role="status" data-testid="mobile-zone-card-inactive" className="p-4">
+              <p className="text-sm text-zinc-700">Зона неактивна в этот период</p>
+              {mode.kind !== 'now' && (
+                <button
+                  type="button"
+                  onClick={setNow}
+                  className="mt-3 inline-flex items-center justify-center rounded-md border border-emerald-600 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
+                >
+                  Вернуться к Сейчас
+                </button>
+              )}
+            </div>
+          ) : (
+            selectedZoneId != null && (
+              <ZoneCardContent key={selectedZoneId} zoneId={selectedZoneId} onClose={closeCard} />
+            )
           )}
         </Drawer.Content>
       </Drawer.Portal>
