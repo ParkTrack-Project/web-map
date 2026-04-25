@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { applyClientFilters } from '@/features/filter-zones/lib/applyClientFilters';
-import { buildServerQuery } from '@/features/filter-zones/lib/buildServerQuery';
+import { applyClientFilters, buildServerQuery } from '@/features/filter-zones';
 import {
   DEFAULT_FILTERS,
   countActive,
