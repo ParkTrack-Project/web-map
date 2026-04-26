@@ -38,7 +38,12 @@ export function ModeTransitionOverlay() {
   const showSinceRef = useRef<number | null>(null);
   const hardTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetchingCount = useIsFetching({ queryKey: ['zones'] });
+  // D-42: aggregate fetchingCount across zones + routing-search subscriptions.
+  // routing-search → overlay показывается также при первом search-fetch
+  // при time-mode change (atomic-mode-switch coverage для ResultsPanel).
+  const fetchingZones = useIsFetching({ queryKey: ['zones'] });
+  const fetchingRouting = useIsFetching({ queryKey: ['routing-search'] });
+  const fetchingCount = fetchingZones + fetchingRouting;
 
   // N-5: Detect mode change → enter showing state + start ONE hard timeout
   useEffect(() => {
@@ -82,17 +87,27 @@ export function ModeTransitionOverlay() {
   }, []);
 
   if (!shouldShow) return null;
+
+  // D-42 + UX-05: context-aware text — собственное Phase 4 решение.
+  // routing-search активный → «Поиск парковок…»; иначе zones — «Загрузка данных…».
+  const message =
+    fetchingRouting > 0
+      ? 'Поиск парковок…'
+      : fetchingZones > 0
+        ? 'Загрузка данных за выбранное время…'
+        : 'Загрузка…';
+
   return (
     <div
       role="status"
       aria-busy="true"
-      aria-label="Загрузка данных за выбранное время"
+      aria-label={message}
       data-testid="mode-transition-overlay"
       className="pointer-events-auto absolute inset-0 z-30 grid place-items-center bg-white/70 backdrop-blur-sm"
     >
       <div className="flex flex-col items-center gap-3">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" />
-        <p className="text-sm text-zinc-700">Загрузка данных за выбранное время…</p>
+        <p className="text-sm text-zinc-700">{message}</p>
       </div>
     </div>
   );
