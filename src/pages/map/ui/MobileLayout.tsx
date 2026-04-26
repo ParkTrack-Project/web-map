@@ -23,6 +23,8 @@ import { MobileZoneCard } from '@/widgets/zone-card';
 import { TimeSelectorChip, MobileTimeSelectorSheet } from '@/widgets/time-selector';
 import { MobileSearchBar, DestPromptBanner } from '@/widgets/search-bar';
 import { WTPMobileFAB } from '@/widgets/wtp-cta';
+// Phase 4 Plan 03: MobileResultsSheet — vaul Drawer single-snap [0.92], mutually exclusive с MobileZoneCard.
+import { MobileResultsSheet } from '@/widgets/results-panel';
 
 const MapCanvas = lazy(() =>
   import('@/widgets/map-canvas/ui/MapCanvas').then((m) => ({ default: m.MapCanvas })),
@@ -61,6 +63,8 @@ export function MobileLayout() {
       </div>
       <MobileFiltersDrawer open={filtersOpen} onOpenChange={setFiltersOpen} />
       <MobileTimeSelectorSheet open={timeSheetOpen} onOpenChange={setTimeSheetOpen} />
+      {/* Phase 4 Plan 03: ResultsSheet mutually exclusive с MobileZoneCard через selectedZoneId logic (CO-02) */}
+      <MobileResultsSheet />
       {/* Plan 02 mobile vaul + CARD-07 pan */}
       <MobileZoneCard />
     </div>

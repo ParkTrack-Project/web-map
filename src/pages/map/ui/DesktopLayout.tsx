@@ -20,6 +20,8 @@ import { ZoneCard } from '@/widgets/zone-card';
 import { TimeSelectorPopover } from '@/widgets/time-selector';
 import { DesktopSearchBar, DestPromptBanner } from '@/widgets/search-bar';
 import { WTPCTAButton } from '@/widgets/wtp-cta';
+// Phase 4 Plan 03: ResultsPanel — overlay LEFT side, not collide с TimeSelector top-4 cluster.
+import { DesktopResultsPanel } from '@/widgets/results-panel';
 
 const MapCanvas = lazy(() =>
   import('@/widgets/map-canvas/ui/MapCanvas').then((m) => ({ default: m.MapCanvas })),
@@ -55,6 +57,8 @@ export function DesktopLayout() {
           <DestPromptBanner />
         </div>
         <Legend />
+        {/* Phase 4 Plan 03: ResultsPanel — z-20 overlay LEFT side; ZoneCard z-30 RIGHT side. */}
+        <DesktopResultsPanel />
         <ZoneCard />
       </div>
     </div>
