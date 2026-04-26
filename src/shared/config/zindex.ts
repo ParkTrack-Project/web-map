@@ -14,6 +14,14 @@ export const Z_INDEX = {
   timeSelectorChip: 30, // mobile time selector chip (Plan 02 I-1)
   drawerOverlay: 40, // vaul Drawer.Overlay backdrop
   drawerContent: 50, // vaul Drawer.Content sheet
+  // Phase 4 additions
+  resultsPanel: 20, // desktop left-side ResultsPanel (D-18); same layer as zoneStateOverlay
+  wtpCtaDesktop: 30, // desktop primary [Где припарковаться?] button overlay top-left (D-08, CO-01)
+  wtpFabMobile: 20, // mobile FAB; ниже filtersFab/timeSelectorChip — D-50 collision-prevention
+  fitToRouteButton: 25, // bottom-right map button (D-30); выше zoneStateOverlay но ниже modeTransitionOverlay
+  deeplinkPopover: 60, // radix Popover content (D-32); выше drawerContent чтобы видно над открытым vaul
+  preflightDialog: 60, // radix Dialog overlay+content (D-10); выше всех Drawer'ов
+  bestVariantGlow: 15, // YMapFeature внутри карты (D-21); ниже UI overlays
 } as const;
 
 export type ZIndexKey = keyof typeof Z_INDEX;
