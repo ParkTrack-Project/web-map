@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { parseAsZoom, parseAsLocationTypeCsv, parseAsTimeMode } from '@/shared/lib/url';
 
 // URL-01 / D-13: parseAsZoom — integer 8..19 с zod-валидацией.
@@ -47,12 +47,24 @@ describe('parseAsLocationTypeCsv (FILTER-06)', () => {
   });
 });
 
-// TIME-04 / URL-02 / D-11: parseAsTimeMode — single ?t= param с тремя формами.
-// Битый ввод → null + console.warn (silent fallback). eq object-equality для clearOnDefault.
-describe('parseAsTimeMode (TIME-04, URL-02)', () => {
-  beforeEach(() => vi.spyOn(console, 'warn').mockImplementation(() => {}));
+// Quick task 260426-hhb: parseAsTimeMode — derived mode из чистого ISO.
+// SUPERSEDES D-11 формат ?t=now|past:ISO|future:ISO. Новый формат:
+//   - отсутствие param'а или 'now' → { kind: 'now' }
+//   - чистый ISO UTC → derived past/future в зависимости от Date.now() ± TOLERANCE
+//   - legacy past:ISO/future:ISO → silently strip prefix, derive normally (backward-compat)
+// Битый ввод → null + console.warn.
+describe('parseAsTimeMode (TIME-04, URL-02, derived mode — quick 260426-hhb)', () => {
+  // Fixed system time чтобы derive был детерминированный.
+  // Tolerance ≈ 7.5 минут (MIN_RESOLUTION_MINUTES / 2).
+  const NOW = new Date('2026-04-25T12:00:00.000Z').getTime();
 
-  it('parse "now" → { kind: "now" }', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.useFakeTimers().setSystemTime(NOW);
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('parse "now" → { kind: "now" } (legacy backward-compat)', () => {
     expect(parseAsTimeMode.parse('now')).toEqual({ kind: 'now' });
   });
 
@@ -60,26 +72,49 @@ describe('parseAsTimeMode (TIME-04, URL-02)', () => {
     expect(parseAsTimeMode.parse('')).toEqual({ kind: 'now' });
   });
 
-  it('parse "past:ISO" → { kind: "past", at: ISO }', () => {
+  it('parse чистый ISO в прошлом → { kind: "past", at: ISO }', () => {
+    // 3 часа назад — далеко за пределами tolerance
+    const at = new Date(NOW - 3 * 3_600_000).toISOString();
+    expect(parseAsTimeMode.parse(at)).toEqual({ kind: 'past', at });
+  });
+
+  it('parse чистый ISO в будущем → { kind: "future", at: ISO }', () => {
+    const at = new Date(NOW + 3 * 3_600_000).toISOString();
+    expect(parseAsTimeMode.parse(at)).toEqual({ kind: 'future', at });
+  });
+
+  it('parse чистый ISO в пределах ±tolerance от now → { kind: "now" }', () => {
+    // 1 минута назад — внутри tolerance (~7.5 мин)
+    const at = new Date(NOW - 60_000).toISOString();
+    expect(parseAsTimeMode.parse(at)).toEqual({ kind: 'now' });
+  });
+
+  it('parse legacy "past:ISO" → silently strip prefix → derived past', () => {
     expect(parseAsTimeMode.parse('past:2026-04-22T09:00:00.000Z')).toEqual({
       kind: 'past',
       at: '2026-04-22T09:00:00.000Z',
     });
   });
 
-  it('parse "future:ISO" → { kind: "future", at: ISO }', () => {
+  it('parse legacy "future:ISO" → silently strip prefix → derived future', () => {
     expect(parseAsTimeMode.parse('future:2026-04-25T17:00:00.000Z')).toEqual({
       kind: 'future',
       at: '2026-04-25T17:00:00.000Z',
     });
   });
 
+  it('parse legacy "past:ISO" внутри tolerance от now → derived now', () => {
+    const at = new Date(NOW + 60_000).toISOString();
+    expect(parseAsTimeMode.parse(`past:${at}`)).toEqual({ kind: 'now' });
+  });
+
   it('parse битый ISO → null', () => {
+    expect(parseAsTimeMode.parse('not-an-iso')).toBeNull();
     expect(parseAsTimeMode.parse('past:not-an-iso')).toBeNull();
     expect(parseAsTimeMode.parse('past:2026-13-99T99:99:99Z')).toBeNull();
   });
 
-  it('parse неизвестный prefix → null', () => {
+  it('parse мусор без ISO → null', () => {
     expect(parseAsTimeMode.parse('garbage')).toBeNull();
     expect(parseAsTimeMode.parse('present:abc')).toBeNull();
   });
@@ -88,15 +123,15 @@ describe('parseAsTimeMode (TIME-04, URL-02)', () => {
     expect(parseAsTimeMode.serialize({ kind: 'now' })).toBe('now');
   });
 
-  it('serialize past → "past:ISO"', () => {
+  it('serialize past → чистый ISO без prefix', () => {
     expect(parseAsTimeMode.serialize({ kind: 'past', at: '2026-04-22T09:00:00.000Z' })).toBe(
-      'past:2026-04-22T09:00:00.000Z',
+      '2026-04-22T09:00:00.000Z',
     );
   });
 
-  it('serialize future → "future:ISO"', () => {
+  it('serialize future → чистый ISO без prefix', () => {
     expect(parseAsTimeMode.serialize({ kind: 'future', at: '2026-04-25T17:00:00.000Z' })).toBe(
-      'future:2026-04-25T17:00:00.000Z',
+      '2026-04-25T17:00:00.000Z',
     );
   });
 

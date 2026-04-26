@@ -6,6 +6,7 @@
 import { createParser } from 'nuqs';
 import { z } from 'zod';
 import { bboxFromString, bboxToString, type Bbox } from '@/shared/lib/geo';
+import { MIN_RESOLUTION_MINUTES } from '@/shared/config';
 import type { TimeMode } from '@/entities/zone';
 
 export const parseAsBbox = createParser<Bbox>({
@@ -48,29 +49,52 @@ export const parseAsLocationTypeCsv = createParser<string[]>({
   eq: (a, b) => a.length === b.length && a.every((v, i) => v === b[i]),
 });
 
-// Phase 3 / TIME-04 / URL-02 / D-11:
-// ?t=now | past:ISO | future:ISO. Single nuqs param с custom parser.
+// Quick task 260426-hhb (SUPERSEDES D-11):
+// ?t= формат → derived TimeMode из чистого ISO UTC.
+// - отсутствие param'а или 'now' → { kind: 'now' }
+// - <ISO UTC> → derived past/future относительно Date.now() ± TOLERANCE_MS
+// - past:<ISO> / future:<ISO> (legacy) → silently strip prefix → derive normally
+// - битый ввод → null + console.warn
+//
+// TOLERANCE_MS ≈ MIN_RESOLUTION_MINUTES/2 минут — буфер от flicker'а на границе now.
+// Если parsed time в пределах ±TOLERANCE — округляем к now (избегаем mode-jumping
+// между past/future при минутном сдвиге).
+//
 // clearOnDefault для 'now' (D-11) — пустой URL когда mode = 'now'.
-// ВАЖНО: eq обязателен — TimeMode это объект, без eq nuqs не сможет правильно
+// eq обязателен — TimeMode это объект, без eq nuqs не сможет правильно
 // работать с clearOnDefault и withDefault (Pitfall #3 — двунаправленный URL↔state цикл).
 const ISO_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{3})?)?Z$/;
+const TOLERANCE_MS = (MIN_RESOLUTION_MINUTES / 2) * 60_000;
+
+/**
+ * Derive TimeMode из абсолютного ISO timestamp.
+ * Tolerance буфер вокруг now устраняет flicker на границе.
+ */
+export function deriveMode(at: string, now: number = Date.now()): TimeMode {
+  const t = Date.parse(at);
+  if (Number.isNaN(t)) return { kind: 'now' };
+  if (t < now - TOLERANCE_MS) return { kind: 'past', at };
+  if (t > now + TOLERANCE_MS) return { kind: 'future', at };
+  return { kind: 'now' };
+}
 
 export const parseAsTimeMode = createParser<TimeMode>({
   parse: (v) => {
     if (v === 'now' || v === '') return { kind: 'now' };
-    const m = v.match(/^(past|future):(.+)$/);
-    if (!m) {
+
+    // Legacy backward-compat: silently strip past:/future: prefix.
+    // Новые ссылки используют чистый ISO; старые расшаренные URL продолжают работать.
+    const legacyMatch = v.match(/^(past|future):(.+)$/);
+    const iso = legacyMatch ? legacyMatch[2] : v;
+
+    if (!ISO_RE.test(iso) || Number.isNaN(Date.parse(iso))) {
       if (typeof window !== 'undefined') console.warn('[url] invalid t param:', v);
       return null;
     }
-    const [, kind, iso] = m;
-    if (!ISO_RE.test(iso) || Number.isNaN(Date.parse(iso))) {
-      if (typeof window !== 'undefined') console.warn('[url] invalid t.at ISO:', iso);
-      return null;
-    }
-    return { kind: kind as 'past' | 'future', at: iso };
+    return deriveMode(iso);
   },
-  serialize: (m) => (m.kind === 'now' ? 'now' : `${m.kind}:${m.at}`),
+  // Serialize: чистый ISO без prefix'а. 'now' → 'now' (clearOnDefault удалит param).
+  serialize: (m) => (m.kind === 'now' ? 'now' : m.at),
   eq: (a, b) => {
     if (a.kind !== b.kind) return false;
     if (a.kind === 'now') return true;
