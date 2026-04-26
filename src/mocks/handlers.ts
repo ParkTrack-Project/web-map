@@ -23,6 +23,75 @@ const baseUrl = env.VITE_API_BASE_URL;
 // Singleton-набор зон. Детерминирован — seed=42, count=200.
 const ZONES: ZoneMapItem[] = generateMockZones({ seed: 42, count: 200 });
 
+// Phase 4 / D-39: in-memory ROUTES для GET /routing/<id> reload-recovery.
+// Tradeoff (research §Runtime State Inventory): page reload в dev очищает Map →
+// ?route=<id> вернёт 404 → D-46 toast «Не удалось построить маршрут».
+// Acceptable для MVP; Phase 5 backend имеет реальную persistence.
+interface RoutingOriginDest {
+  latitude: number;
+  longitude: number;
+}
+interface RoutingSearchBody {
+  mode: 'find_parking' | 'route_to_destination';
+  origin: RoutingOriginDest;
+  destination?: RoutingOriginDest;
+  max_pay?: number;
+  min_free_count?: number;
+  min_confidence?: number;
+  max_distance_to_destination_meters?: number;
+  max_duration_from_origin_seconds?: number;
+  include_accessible?: boolean;
+  limit?: number;
+  use_forecast?: boolean;
+  provider?: string;
+}
+
+interface RouteCandidatePayload {
+  zone_id: number;
+  camera_id: number | null;
+  geometry: ZoneMapItem['geometry'];
+  zone_type: ZoneMapItem['zone_type'];
+  location_type: ZoneMapItem['location_type'] | null;
+  is_accessible: boolean | null;
+  pay: number;
+  capacity: number;
+  current_occupied: number;
+  current_free_count: number;
+  current_confidence: number;
+  predicted_for_arrival: string | null;
+  predicted_occupied: number | null;
+  predicted_free_count: number | null;
+  probability_free_space: number | null;
+  forecast_confidence: number | null;
+  distance_from_origin_meters: number;
+  duration_from_origin_seconds: number;
+  distance_to_destination_meters: number | null;
+  duration_to_destination_seconds: number | null;
+  score: number;
+  rank: number;
+}
+
+interface RouteRecord {
+  route_id: number;
+  user_id: number;
+  mode: 'find_parking' | 'route_to_destination';
+  provider: string;
+  origin: RoutingOriginDest;
+  destination: RoutingOriginDest | null;
+  selected_zone_id: number;
+  selected_candidate: RouteCandidatePayload;
+  eta_seconds: number;
+  arrival_time: string;
+  polyline: string | null;
+  deeplink_url: string | null;
+  status: 'active' | 'completed' | 'cancelled' | 'replaced';
+  created_at: string;
+  updated_at: string;
+}
+
+const ROUTES = new Map<number, RouteRecord>();
+let nextRouteId = 7000;
+
 // Haversine для /routing/search ранжирования (метры).
 function haversineMeters(a: [number, number], b: [number, number]): number {
   const R = 6371000;
@@ -35,6 +104,118 @@ function haversineMeters(a: [number, number], b: [number, number]): number {
   const sinDLon = Math.sin(dLon / 2);
   const h = sinDLat * sinDLat + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * sinDLon * sinDLon;
   return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+function rankCandidates(body: RoutingSearchBody): {
+  candidates: RouteCandidatePayload[];
+  total: number;
+} {
+  // 1. Apply server-side filters (analogous /zones)
+  const filterParams: MockFilterParams = {};
+  if (body.min_free_count !== undefined) filterParams.min_free_count = body.min_free_count;
+  if (body.min_confidence !== undefined) filterParams.min_confidence = body.min_confidence;
+  if (body.max_pay !== undefined) filterParams.max_pay = body.max_pay;
+  if (body.include_accessible !== undefined)
+    filterParams.include_accessible = body.include_accessible;
+  let pool = applyMockFilters(ZONES, filterParams);
+
+  // 2. Apply max_distance_to_destination_meters
+  const originLngLat: [number, number] = [body.origin.longitude, body.origin.latitude];
+  const destLngLat = body.destination
+    ? ([body.destination.longitude, body.destination.latitude] as [number, number])
+    : null;
+  if (destLngLat && body.max_distance_to_destination_meters !== undefined) {
+    const maxDist = body.max_distance_to_destination_meters;
+    pool = pool.filter((z) => haversineMeters(zoneCentroid(z), destLngLat) <= maxDist);
+  }
+
+  // 3. Score + rank (D-37)
+  const limit = body.limit ?? 20;
+  const useForecast = !!body.use_forecast;
+  const ranked = pool
+    .map((z, idx) => {
+      const distFromOrigin = haversineMeters(originLngLat, zoneCentroid(z));
+      const distToDest = destLngLat ? haversineMeters(zoneCentroid(z), destLngLat) : null;
+      const proxScore = Math.max(0, 1 - distFromOrigin / 2000);
+      const freeScore = Math.min(1, z.free_count / 5);
+      const confScore = z.confidence;
+      const priceScore = z.pay === 0 ? 1 : Math.max(0, 1 - z.pay / 500);
+      const score = 0.4 * proxScore + 0.25 * freeScore + 0.2 * confScore + 0.15 * priceScore;
+      return { z, idx, score, distFromOrigin, distToDest };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+
+  const candidates = ranked.map<RouteCandidatePayload>(
+    ({ z, idx, score, distFromOrigin, distToDest }, rankIdx) => {
+      const arrivalDate = useForecast ? new Date(Date.now() + (distFromOrigin / 6) * 1000) : null;
+      return {
+        zone_id: z.zone_id,
+        camera_id: idx + 1,
+        geometry: z.geometry,
+        zone_type: z.zone_type,
+        location_type: z.location_type,
+        is_accessible: z.is_accessible,
+        pay: z.pay,
+        capacity: z.capacity,
+        current_occupied: z.occupied,
+        current_free_count: z.free_count,
+        current_confidence: z.confidence,
+        predicted_for_arrival: arrivalDate ? arrivalDate.toISOString() : null,
+        predicted_occupied: useForecast
+          ? Math.max(0, z.occupied + Math.round((Math.random() - 0.5) * 2))
+          : null,
+        predicted_free_count: useForecast
+          ? Math.max(0, z.free_count + Math.round((Math.random() - 0.5) * 2))
+          : null,
+        probability_free_space: useForecast
+          ? Math.min(1, z.free_count / Math.max(1, z.capacity * 0.4))
+          : null,
+        forecast_confidence: useForecast ? Math.max(0, z.confidence - 0.15) : null,
+        distance_from_origin_meters: Math.round(distFromOrigin),
+        duration_from_origin_seconds: Math.round(distFromOrigin / 6),
+        distance_to_destination_meters: distToDest != null ? Math.round(distToDest) : null,
+        duration_to_destination_seconds: distToDest != null ? Math.round(distToDest / 6) : null,
+        score,
+        rank: rankIdx + 1,
+      };
+    },
+  );
+  return { candidates, total: pool.length };
+}
+
+function buildRoute(body: RoutingSearchBody & { selected_zone_id?: number }): RouteRecord | null {
+  const { candidates } = rankCandidates(body);
+  const selected =
+    body.selected_zone_id !== undefined
+      ? (candidates.find((c) => c.zone_id === body.selected_zone_id) ?? candidates[0])
+      : candidates[0];
+  if (!selected) return null;
+  const eta_seconds = selected.duration_from_origin_seconds;
+  const arrival_time = new Date(Date.now() + eta_seconds * 1000).toISOString();
+  const created_at = new Date().toISOString();
+  const route_id = ++nextRouteId;
+  const firstRing = selected.geometry.coordinates[0];
+  const latTo = firstRing[0][1];
+  const lonTo = firstRing[0][0];
+  const deeplink_url = `yandexnavi://build_route_on_map?lat_to=${latTo}&lon_to=${lonTo}&lat_from=${body.origin.latitude}&lon_from=${body.origin.longitude}`;
+  return {
+    route_id,
+    user_id: 1,
+    mode: body.mode,
+    provider: body.provider ?? 'yandex',
+    origin: body.origin,
+    destination: body.destination ?? null,
+    selected_zone_id: selected.zone_id,
+    selected_candidate: selected,
+    eta_seconds,
+    arrival_time,
+    polyline: null, // D-29: MVP — straight line на client
+    deeplink_url,
+    status: 'active',
+    created_at,
+    updated_at: created_at,
+  };
 }
 
 export const handlers = [
@@ -275,59 +456,95 @@ export const handlers = [
     return HttpResponse.json(generateForecasts(zones, new Date(at)));
   }),
 
-  // ---- Routing ----
+  // ---- Routing (Phase 4 / D-37/D-38/D-39) ----
+  // POST /routing/search per routing.mdx §8.6 — body {mode, origin, destination?, ...},
+  // response {mode, provider, generated_at, candidates, selected_zone_id, total_candidates}.
   http.post(`${baseUrl}/routing/search`, async ({ request }) => {
-    const body = (await request.json()) as { from?: [number, number] };
-    if (!body?.from || !Array.isArray(body.from) || body.from.length !== 2) {
+    const body = (await request.json()) as Partial<RoutingSearchBody>;
+    // 422 validation per §8.6
+    if (
+      !body?.mode ||
+      !body?.origin ||
+      typeof body.origin.latitude !== 'number' ||
+      typeof body.origin.longitude !== 'number'
+    ) {
       return HttpResponse.json(
-        { error_description: 'Validation error: body.from = [lon, lat] required' },
+        {
+          error_description: 'Validation error: mode + origin (latitude, longitude) required',
+        },
         { status: 422 },
       );
     }
-    const ranked = ZONES.filter((z) => z.is_active && z.free_count > 0)
-      .map((z, idx) => ({
-        z,
-        idx,
-        distance_m: haversineMeters(body.from!, zoneCentroid(z)),
-      }))
-      .sort((a, b) => a.distance_m - b.distance_m)
-      .slice(0, 5);
+    if (
+      body.mode === 'route_to_destination' &&
+      (!body.destination ||
+        typeof body.destination.latitude !== 'number' ||
+        typeof body.destination.longitude !== 'number')
+    ) {
+      return HttpResponse.json(
+        {
+          error_description: 'Validation error: destination required for mode=route_to_destination',
+        },
+        { status: 422 },
+      );
+    }
+    const { candidates, total } = rankCandidates(body as RoutingSearchBody);
     return HttpResponse.json({
-      candidates: ranked.map(({ z, idx, distance_m }) => ({
-        zone_id: z.zone_id,
-        distance_m: Math.round(distance_m),
-        free_count: z.free_count,
-        confidence: z.confidence,
-        eta_seconds: Math.round((distance_m / 6) * 1.4), // ~6 м/с в городе + коэф.
-        zone: toFullZone(z, idx),
-      })),
+      mode: body.mode,
+      provider: body.provider ?? 'yandex',
+      generated_at: new Date().toISOString(),
+      candidates,
+      selected_zone_id: candidates[0]?.zone_id ?? null,
+      total_candidates: total,
     });
   }),
 
+  // POST /routing/new per routing.mdx §8.7 — same body shape as search +
+  // optional selected_zone_id; persists to in-memory ROUTES Map (D-39 reload-recovery).
   http.post(`${baseUrl}/routing/new`, async ({ request }) => {
-    const body = (await request.json()) as {
-      from?: [number, number];
-      zone_id?: number;
-    };
-    if (!body?.from || typeof body?.zone_id !== 'number') {
+    const body = (await request.json()) as Partial<
+      RoutingSearchBody & { selected_zone_id?: number }
+    >;
+    if (
+      !body?.mode ||
+      !body?.origin ||
+      typeof body.origin.latitude !== 'number' ||
+      typeof body.origin.longitude !== 'number'
+    ) {
       return HttpResponse.json(
-        { error_description: 'Validation error: body.from + body.zone_id required' },
+        { error_description: 'Validation error: mode + origin required' },
         { status: 422 },
       );
     }
-    const z = getZoneById(ZONES, body.zone_id);
-    if (!z) {
-      return HttpResponse.json({ error_description: 'Zone not found' }, { status: 404 });
+    if (body.mode === 'route_to_destination' && !body.destination) {
+      return HttpResponse.json(
+        {
+          error_description: 'Validation error: destination required for mode=route_to_destination',
+        },
+        { status: 422 },
+      );
     }
-    const centroid = zoneCentroid(z);
-    const distance_m = Math.round(haversineMeters(body.from, centroid));
-    return HttpResponse.json({
-      selected_candidate: {
-        zone_id: z.zone_id,
-        eta_seconds: 600,
-        distance_m,
-        polyline: [body.from, centroid],
-      },
-    });
+    const route = buildRoute(body as RoutingSearchBody & { selected_zone_id?: number });
+    if (!route) {
+      return HttpResponse.json(
+        { error_description: 'Не удалось подобрать парковку под фильтры' },
+        { status: 422 },
+      );
+    }
+    ROUTES.set(route.route_id, route);
+    return HttpResponse.json(route, { status: 201 });
+  }),
+
+  // GET /routing/<id> per routing.mdx §8.9 — D-28 reload-recovery.
+  http.get(`${baseUrl}/routing/:id`, ({ params }) => {
+    const id = Number(params.id);
+    if (!Number.isInteger(id) || id <= 0) {
+      return HttpResponse.json({ error_description: 'Route not found' }, { status: 404 });
+    }
+    const route = ROUTES.get(id);
+    if (!route) {
+      return HttpResponse.json({ error_description: 'Route not found' }, { status: 404 });
+    }
+    return HttpResponse.json(route);
   }),
 ];
