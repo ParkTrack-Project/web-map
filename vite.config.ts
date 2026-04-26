@@ -27,6 +27,20 @@ export default defineConfig(({ mode }) => {
             });
           },
         },
+        // Phase 4 / Task 0 CORS fallback (D-01 research override): Yandex Suggest API
+        // returns 403 from non-allowlisted origins (apikey-level restriction). Proxying
+        // through Vite dev server bypasses browser CORS preflight; production uses
+        // matching nginx location block.
+        '/yandex-suggest': {
+          target: 'https://suggest-maps.yandex.ru',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/yandex-suggest/, ''),
+        },
+        '/yandex-geocode': {
+          target: 'https://geocode-maps.yandex.ru',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/yandex-geocode/, ''),
+        },
       },
     },
     test: {
