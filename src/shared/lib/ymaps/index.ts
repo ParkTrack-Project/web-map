@@ -34,11 +34,13 @@ export const {
   YMapControlButton,
 } = reactify.module(ymaps3);
 
-// Типы ymaps3.import не покрывают runtime-only пакет default-ui-theme — он установлен
-// как peer-зависимость и подгружается через ту же import-инфраструктуру.
-const themeModule = (await (
+// FIX 2026-04-25: пакет `@yandex/ymaps3-default-ui-theme` (бета-имя) больше не
+// признаётся Yandex v3 — bundle CDN явно whitelist'ит только `controls` (с версией).
+// YMapZoomControl/YMapGeolocationControl теперь живут в @yandex/ymaps3-controls@0.0.1.
+// Cast через unknown — runtime-shape пакета совпадает с типами default-ui-theme.
+const controlsModule = (await (
   ymaps3.import as (m: string) => Promise<typeof import('@yandex/ymaps3-default-ui-theme')>
-)('@yandex/ymaps3-default-ui-theme')) as typeof import('@yandex/ymaps3-default-ui-theme');
-export const { YMapZoomControl, YMapGeolocationControl } = reactify.module(themeModule);
+)('@yandex/ymaps3-controls@0.0.1')) as typeof import('@yandex/ymaps3-default-ui-theme');
+export const { YMapZoomControl, YMapGeolocationControl } = reactify.module(controlsModule);
 
 export const useDefault = reactify.useDefault;

@@ -23,12 +23,21 @@ import { useSelectedZone } from '@/features/select-zone';
 import { useFilters, useFilteredCandidates } from '@/features/filter-zones';
 import { useRoutingSearch } from '@/entities/zone';
 import { Spinner } from '@/shared/ui';
+import { useIsMobile } from '@/shared/lib/responsive';
 import { useRoutingSearchBody } from '../model/useRoutingSearchBody';
 import { useAutoSelectBestVariant } from '../model/useAutoSelectBestVariant';
 import { ResultsList } from './ResultsList';
 import { EmptyResultsState } from './EmptyResultsState';
 
-export function MobileResultsSheet() {
+interface MobileResultsSheetProps {
+  // Controlled — Layout owns mobileResultsSheetOpen state.
+  // Sheet auto-open removed по UX feedback («открывать только по нажатию»).
+  // User тапает MobileResultsButton чтобы открыть; X в header — sheet close + clear search.
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResultsSheetProps) {
   const body = useRoutingSearchBody();
   const { from, clearFromCoords } = useFromCoords();
   const { dest, clearDestination } = useDestination();
@@ -38,16 +47,22 @@ export function MobileResultsSheet() {
   const filtered = useFilteredCandidates(data?.candidates);
   useAutoSelectBestVariant(data?.selected_zone_id ?? null);
 
-  // CO-03 / W-1: open ТОЛЬКО когда ?from set (origin обязателен; ?dest без ?from → prompt).
+  // КРИТИЧНО: vaul Drawer.Root рендерит Portal в body и применяет body lock
+  // (`pointer-events: none` + `aria-hidden=true`) даже когда `lg:hidden` скрывает
+  // Drawer.Content. isMobile-гейт защищает desktop.
   // CO-02 mutual-exclusion: closed когда selectedZoneId !== null (ZoneCard takes focus).
-  const open = !!from && selectedZoneId === null;
+  // openProp от Layout: user должен явно тапнуть «N парковок рядом» (MobileResultsButton).
+  const isMobile = useIsMobile();
+  const open = isMobile && openProp && !!from && selectedZoneId === null;
   // CO-02: single-snap [0.92] — массив с одним элементом per vaul API.
   const [snap, setSnap] = useState<number | string | null>(0.92);
 
-  const handleClose = () => {
+  // X в header — clear search + close sheet полностью.
+  const handleCloseAndClear = () => {
     clearFromCoords();
     clearDestination();
     closeCard();
+    onOpenChange(false);
   };
 
   // CO-03: panel вообще не монтируется без ?from (даже если ?dest есть).
@@ -56,9 +71,7 @@ export function MobileResultsSheet() {
   return (
     <Drawer.Root
       open={open}
-      onOpenChange={(o) => {
-        if (!o) handleClose();
-      }}
+      onOpenChange={(o) => onOpenChange(o)}
       snapPoints={[0.92]}
       activeSnapPoint={snap}
       setActiveSnapPoint={setSnap}
@@ -84,14 +97,16 @@ export function MobileResultsSheet() {
             </h2>
             <button
               type="button"
-              onClick={handleClose}
+              onClick={handleCloseAndClear}
               aria-label="Закрыть результаты"
               className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-zinc-100"
             >
               <X size={18} aria-hidden />
             </button>
           </header>
-          <div className="flex-1 overflow-hidden">
+          {/* min-h-0 нужно для flex-child overflow scroll (overflow-hidden ломал ResultsList scroll).
+              ResultsList parent получит data-vaul-no-drag через prop, чтобы vaul не перехватывал touchmove. */}
+          <div className="flex min-h-0 flex-1 flex-col">
             {isFetching && !data && <Spinner label="Поиск парковок…" />}
             {isError && (
               <div role="alert" className="m-4 rounded bg-red-50 p-3 text-sm text-red-700">
@@ -105,7 +120,7 @@ export function MobileResultsSheet() {
               <EmptyResultsState
                 activeFiltersCount={activeCount}
                 onResetFilters={resetAll}
-                onCloseResults={handleClose}
+                onCloseResults={handleCloseAndClear}
               />
             )}
             {data && filtered.length > 0 && <ResultsList candidates={filtered} />}

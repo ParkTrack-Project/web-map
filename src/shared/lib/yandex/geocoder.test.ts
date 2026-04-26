@@ -4,7 +4,7 @@ import { geocodeByUri, GeocoderError } from './geocoder';
 describe('geocodeByUri (Pitfall 1 — Suggest НЕ возвращает coords inline)', () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>;
   beforeEach(() => {
-    fetchSpy = vi.spyOn(global, 'fetch');
+    fetchSpy = vi.spyOn(globalThis, 'fetch');
   });
   afterEach(() => {
     fetchSpy.mockRestore();

@@ -38,9 +38,9 @@ export function MobileSearchBar() {
     }
   };
 
-  // Top-bar (всегда видим)
+  // Top-bar (всегда видим). right-14 = 56px — место для круглой FiltersFAB (44px) + 12px gap.
   const topBar = (
-    <div className="absolute top-2 right-20 left-2 z-30 flex items-center gap-2 lg:hidden">
+    <div className="absolute top-2 right-14 left-2 z-30 flex items-center gap-2 lg:hidden">
       <div className="relative flex flex-1 items-center">
         <Search size={14} aria-hidden className="absolute left-3 text-zinc-400" />
         <input

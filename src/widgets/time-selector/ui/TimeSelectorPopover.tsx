@@ -29,7 +29,7 @@ export function TimeSelectorPopover() {
           type="button"
           aria-label={`Время: ${display}`}
           className={
-            'absolute top-4 left-4 z-30 hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium shadow-sm ring-1 transition-colors active:scale-[0.98] lg:inline-flex ' +
+            'hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium shadow-sm ring-1 transition-colors active:scale-[0.98] lg:inline-flex ' +
             (isActive
               ? 'bg-emerald-50 text-emerald-800 ring-emerald-200 hover:bg-emerald-100'
               : 'bg-white text-zinc-700 ring-zinc-200 hover:bg-zinc-50')

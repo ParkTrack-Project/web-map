@@ -1,26 +1,28 @@
 // Phase 4 / WTP-03 / D-10:
 // Mobile pre-flight через vaul Drawer — тот же текст и кнопки, что в Dialog.
 // Single-snap по умолчанию (Phase 3 pattern; Pitfall 11 — nested vaul / focus-trap conflict).
+// Pure presentational — request flow lifted to parent (WTPMobileFAB) per Permissions API skip-logic.
 import { Drawer } from 'vaul';
 import { Locate } from 'lucide-react';
-import { useGeolocationRequest, useFromCoords } from '@/features/request-geolocation';
 
 interface PreFlightDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAllow: () => Promise<void> | void;
   onManualEntry: () => void;
 }
 
 const EXPLAINER_TEXT =
   'Для поиска ближайших парковок нужен доступ к вашей геолокации. Координаты используются только для запроса к серверу и не сохраняются.';
 
-export function PreFlightDrawer({ open, onOpenChange, onManualEntry }: PreFlightDrawerProps) {
-  const { request } = useGeolocationRequest();
-  const { setFromCoords } = useFromCoords();
-
+export function PreFlightDrawer({
+  open,
+  onOpenChange,
+  onAllow,
+  onManualEntry,
+}: PreFlightDrawerProps) {
   const handleAllow = async () => {
-    const coords = await request();
-    if (coords) setFromCoords(coords);
+    await onAllow();
     onOpenChange(false);
   };
 

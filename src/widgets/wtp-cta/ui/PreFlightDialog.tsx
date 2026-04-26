@@ -1,28 +1,29 @@
 // Phase 4 / WTP-03 / D-10:
 // Desktop pre-flight modal через @radix-ui/react-dialog.
 // Текст из CONTEXT D-10 verbatim. Brand-green primary, secondary outline для manual entry.
+// Pure presentational — request flow lifted to parent (WTPCTAButton) чтобы Permissions API
+// мог пропустить pre-flight при state='granted' и переиспользовать тот же request handler.
 import * as Dialog from '@radix-ui/react-dialog';
 import { Locate } from 'lucide-react';
-import { useGeolocationRequest, useFromCoords } from '@/features/request-geolocation';
 
 interface PreFlightDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAllow: () => Promise<void> | void; // owned by parent (WTPCTAButton)
   onManualEntry: () => void; // closes dialog + focuses search-input в parent (D-10)
 }
 
 const EXPLAINER_TEXT =
   'Для поиска ближайших парковок нужен доступ к вашей геолокации. Координаты используются только для запроса к серверу и не сохраняются.';
 
-export function PreFlightDialog({ open, onOpenChange, onManualEntry }: PreFlightDialogProps) {
-  const { request } = useGeolocationRequest();
-  const { setFromCoords } = useFromCoords();
-
+export function PreFlightDialog({
+  open,
+  onOpenChange,
+  onAllow,
+  onManualEntry,
+}: PreFlightDialogProps) {
   const handleAllow = async () => {
-    const coords = await request();
-    if (coords) {
-      setFromCoords(coords);
-    }
+    await onAllow();
     // Close dialog независимо от исхода — denied/timeout state читается через banner.
     onOpenChange(false);
   };

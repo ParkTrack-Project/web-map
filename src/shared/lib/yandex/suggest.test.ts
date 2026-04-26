@@ -4,7 +4,7 @@ import { suggestAddresses, SuggestApiError, SuggestRateLimitedError } from './su
 describe('suggestAddresses (D-01 research override — HTTP API)', () => {
   let fetchSpy: ReturnType<typeof vi.spyOn>;
   beforeEach(() => {
-    fetchSpy = vi.spyOn(global, 'fetch');
+    fetchSpy = vi.spyOn(globalThis, 'fetch');
   });
   afterEach(() => {
     fetchSpy.mockRestore();

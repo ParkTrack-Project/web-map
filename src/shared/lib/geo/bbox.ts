@@ -18,10 +18,15 @@ export function roundBbox5(bbox: Bbox): Bbox {
   return bbox.map((v) => Math.round(v * FACTOR) / FACTOR) as Bbox;
 }
 
+// FIX 2026-04-25: ymaps3 v3 onUpdate `location.bounds` иногда возвращает пары как
+// `[topLeft, bottomRight]` (по экрану — северо-запад / юго-восток), а не как
+// документированные `[southWest, northEast]` (по географии). Это приводило к
+// инвертированному bbox (south > north) и пустому ответу /zones из MSW. Решение —
+// не доверять имени точки, а брать min/max по каждой координате.
 export function bboxFromBounds(bounds: MapBounds): Bbox {
-  const [w, s] = bounds.southWest;
-  const [e, n] = bounds.northEast;
-  return [w, s, e, n];
+  const [aLon, aLat] = bounds.southWest;
+  const [bLon, bLat] = bounds.northEast;
+  return [Math.min(aLon, bLon), Math.min(aLat, bLat), Math.max(aLon, bLon), Math.max(aLat, bLat)];
 }
 
 export function bboxToString(bbox: Bbox): string {

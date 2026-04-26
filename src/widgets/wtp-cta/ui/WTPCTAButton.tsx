@@ -1,13 +1,14 @@
 // Phase 4 / WTP-01 / D-08 / CO-01 (B-4 fix):
-// Desktop primary CTA. Размещение per CO-01: top-4 left-32 (справа от TimeSelectorPopover
-// в top-4 left-4); brand-green, lucide Locate, full label «Где припарковаться?».
-// CO-01 supersedes D-04 «search inside TimeSelector strip» — strip заменён на floating
-// popover в Phase 3, поэтому search/WTP/TimeSelector образуют единую top-4 строку.
-// State (open) lifted внутри widget'а — компактнее чем prop drilling в layout.
+// Desktop primary CTA. Inline-flex within parent flex-row in DesktopLayout (CO-01 fix).
+// Permissions API skip-logic: если user уже разрешил геолокацию ранее (state='granted'),
+// при click пропускаем pre-flight modal и сразу запрашиваем координаты — explainer
+// показывается ТОЛЬКО при первом запросе (когда state='prompt' или 'denied').
+// Request flow владеется здесь, передаётся в PreFlightDialog как onAllow prop.
 // НЕ вызывает getCurrentPosition при mount (WTP-02 enforcement).
 import { useState, useCallback } from 'react';
 import { Locate } from 'lucide-react';
 import { Z_INDEX } from '@/shared/config';
+import { useGeolocationRequest, useFromCoords } from '@/features/request-geolocation';
 import { PreFlightDialog } from './PreFlightDialog';
 
 interface WTPCTAButtonProps {
@@ -15,25 +16,55 @@ interface WTPCTAButtonProps {
   onManualEntry?: () => void;
 }
 
+async function isGeolocationAlreadyGranted(): Promise<boolean> {
+  if (typeof navigator === 'undefined' || !('permissions' in navigator)) return false;
+  try {
+    const status = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+    return status.state === 'granted';
+  } catch {
+    // Some browsers throw on geolocation permission name — treat as unknown.
+    return false;
+  }
+}
+
 export function WTPCTAButton({ onManualEntry }: WTPCTAButtonProps = {}) {
   const [open, setOpen] = useState(false);
+  const { request } = useGeolocationRequest();
+  const { setFromCoords } = useFromCoords();
   const handleManual = useCallback(() => onManualEntry?.(), [onManualEntry]);
+
+  const requestGeolocation = useCallback(async () => {
+    const coords = await request();
+    if (coords) setFromCoords(coords);
+  }, [request, setFromCoords]);
+
+  const handleClick = useCallback(async () => {
+    // Skip pre-flight when user already granted permission earlier in this origin.
+    if (await isGeolocationAlreadyGranted()) {
+      await requestGeolocation();
+      return;
+    }
+    setOpen(true);
+  }, [requestGeolocation]);
 
   return (
     <>
-      {/* CO-01: top-4 left-32 — справа от TimeSelectorPopover (top-4 left-4 ~120px wide).
-          SearchBar займёт top-4 left-72 справа от этой кнопки. */}
       <button
         type="button"
         aria-label="Где припарковаться?"
-        onClick={() => setOpen(true)}
+        onClick={handleClick}
         style={{ zIndex: Z_INDEX.wtpCtaDesktop }}
-        className="absolute top-4 left-32 hidden items-center gap-2 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:bg-emerald-700 active:scale-[0.98] lg:inline-flex"
+        className="hidden items-center gap-2 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:bg-emerald-700 active:scale-[0.98] lg:inline-flex"
       >
         <Locate size={16} aria-hidden />
         Где припарковаться?
       </button>
-      <PreFlightDialog open={open} onOpenChange={setOpen} onManualEntry={handleManual} />
+      <PreFlightDialog
+        open={open}
+        onOpenChange={setOpen}
+        onAllow={requestGeolocation}
+        onManualEntry={handleManual}
+      />
     </>
   );
 }
