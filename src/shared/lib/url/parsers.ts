@@ -104,3 +104,46 @@ export const parseAsTimeMode = createParser<TimeMode>({
 
 // Re-export commonly used nuqs parsers — чтобы виджеты импортили из одного barrel
 export { parseAsBoolean, parseAsFloat, parseAsInteger, parseAsString } from 'nuqs';
+
+// Phase 4 / URL-05 / URL-06 / D-17:
+// ?from=lat,lon  ?dest=lat,lon
+// - precision 5 знаков (5-digit toFixed при serialize; regex enforce'ит на parse)
+// - range guard: lat∈[-90,90], lon∈[-180,180]; out-of-range → null
+// - невалидное → null + console.warn (silent fallback, как parseAsTimeMode)
+// - eq для tuple [lat, lon] — element-wise equality
+const COORDS_RE = /^-?\d+\.\d{1,5},-?\d+\.\d{1,5}$/;
+const CoordsSchema = z.string().regex(COORDS_RE);
+
+export const parseAsCoords = createParser<[number, number]>({
+  parse: (v) => {
+    const r = CoordsSchema.safeParse(v);
+    if (!r.success) {
+      if (typeof window !== 'undefined') console.warn('[url] invalid coords:', v);
+      return null;
+    }
+    const [lat, lon] = v.split(',').map(Number);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      if (typeof window !== 'undefined') console.warn('[url] invalid coords:', v);
+      return null;
+    }
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      if (typeof window !== 'undefined') console.warn('[url] invalid coords:', v);
+      return null;
+    }
+    return [lat, lon];
+  },
+  serialize: ([lat, lon]) => `${lat.toFixed(5)},${lon.toFixed(5)}`,
+  eq: (a, b) => a[0] === b[0] && a[1] === b[1],
+});
+
+// Phase 4 / D-28: ?route=<int> — positive integer route_id для reload-восстановления.
+// Невалидный (float / negative / zero / non-numeric) → null.
+export const parseAsRouteId = createParser<number>({
+  parse: (v) => {
+    const n = Number(v);
+    if (!Number.isInteger(n) || n <= 0) return null;
+    return n;
+  },
+  serialize: (n) => String(n),
+  eq: (a, b) => a === b,
+});
