@@ -1,16 +1,12 @@
-// TIME-03 / D-03..D-10: shared body для desktop strip и mobile sheet.
-// B-2 (iter 2): UI-уровень out-of-range тест ДРОПНУТ.
-// Покрытие out-of-range applyPreset behavior находится в
-// `web-map/tests/unit/time-presets.spec.ts:440` («out-of-range past preset
-// (вне -7d) → clamp + outOfRangeMsg»), где мы напрямую exercise'им
-// applyPreset с bounds-violating preset и assert'им clamped/outOfRangeMsg.
+// TIME-03 / Quick task 260426-hhb (SUPERSEDES D-03):
+// Single picker — без segmented control.
+// - Один <input type="datetime-local"> всегда видим
+// - Объединённый chip-список (PRESETS) всегда видим
+// - Reset «Сейчас» CTA только когда mode != now
 //
-// Этот файл тестирует ТОЛЬКО UI-контракт TimeSelectorContent: рендер
-// segment'ов, появление/скрытие presets+input+reset, step=900, switch
-// segment'ов через клики. Out-of-range UI integration — out of scope здесь
-// (требовал бы ремоканья ../lib/presets через vi.mock на module load,
-// что нарушает самодостаточность теста — он бы тестировал сразу 2 слоя).
-import { describe, it, expect } from 'vitest';
+// Out-of-range UI integration purely state-driven; источник state — applyPreset,
+// покрытый отдельно в time-presets.spec.ts. Доп. UI-тест избыточен.
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
@@ -24,65 +20,96 @@ function wrap(initialUrl = '') {
   );
 }
 
-describe('<TimeSelectorContent /> (TIME-03, D-03..D-10)', () => {
-  it('default — segment «Сейчас» pressed, нет presets', () => {
+describe('<TimeSelectorContent /> (TIME-03, single-picker — quick 260426-hhb)', () => {
+  const NOW = new Date('2026-04-25T12:00:00.000Z').getTime();
+  beforeEach(() =>
+    vi.useFakeTimers({ shouldAdvanceTime: true, toFake: ['Date'] }).setSystemTime(NOW),
+  );
+  afterEach(() => vi.useRealTimers());
+
+  it('default (mode=now) — input + chips видны, Reset CTA отсутствует', () => {
     wrap('');
-    expect(screen.getByRole('button', { name: 'Сейчас' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.queryByRole('group', { name: 'Быстрый выбор времени' })).toBeNull();
+    expect(screen.getByLabelText('Выберите точное время')).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Быстрый выбор времени' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Вернуться к Сейчас/ })).toBeNull();
   });
 
-  it('click «Прошлое» → segment активируется + появляются presets + datetime-local + reset', async () => {
-    const user = userEvent.setup();
+  it('default — нет сегментированного контрола (past/now/future кнопки удалены)', () => {
     wrap('');
-    await user.click(screen.getByRole('button', { name: 'Прошлое' }));
-    expect(screen.getByRole('button', { name: 'Прошлое' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('group', { name: 'Быстрый выбор времени' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Выберите точное время')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Прошлое' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Будущее' })).toBeNull();
+    // «Сейчас» кнопка может быть в Reset CTA, но при mode=now её нет
+    expect(screen.queryByRole('button', { name: 'Сейчас' })).toBeNull();
+  });
+
+  it('PRESETS чип-список содержит 10 элементов (5 past + 5 future)', () => {
+    wrap('');
+    for (const lbl of [
+      'Час назад',
+      '3 часа назад',
+      'Вчера 09:00',
+      'Вчера 18:00',
+      'Неделю назад',
+      'Через час',
+      'Через 3 часа',
+      'Завтра 09:00',
+      'Завтра 18:00',
+      'Через 24 часа',
+    ]) {
+      expect(screen.getByRole('button', { name: lbl })).toBeInTheDocument();
+    }
+  });
+
+  it('past mode — Reset CTA появляется', () => {
+    const at = new Date(NOW - 3 * 3_600_000).toISOString();
+    wrap(`?t=${at}`);
     expect(screen.getByRole('button', { name: /Вернуться к Сейчас/ })).toBeInTheDocument();
   });
 
-  it('past mode — показываются 5 past-presets', () => {
-    wrap('?t=past:2026-04-22T09:00:00.000Z');
-    for (const lbl of ['Час назад', '3 часа назад', 'Вчера 09:00', 'Вчера 18:00', 'Неделю назад']) {
-      expect(screen.getByRole('button', { name: lbl })).toBeInTheDocument();
-    }
+  it('click chip «Час назад» → Reset CTA появляется', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    wrap('');
+    expect(screen.queryByRole('button', { name: /Вернуться к Сейчас/ })).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Час назад' }));
+    expect(screen.getByRole('button', { name: /Вернуться к Сейчас/ })).toBeInTheDocument();
   });
 
-  it('future mode — показываются 5 future-presets', () => {
-    wrap('?t=future:2026-04-25T17:00:00.000Z');
-    for (const lbl of ['Через час', 'Через 3 часа', 'Завтра 09:00', 'Завтра 18:00', 'Через 24 часа']) {
-      expect(screen.getByRole('button', { name: lbl })).toBeInTheDocument();
-    }
+  it('click chip «Через час» → Reset CTA появляется (future derive)', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    wrap('');
+    await user.click(screen.getByRole('button', { name: 'Через час' }));
+    expect(screen.getByRole('button', { name: /Вернуться к Сейчас/ })).toBeInTheDocument();
   });
 
-  it('Reset CTA → segment «Сейчас» снова активный + presets исчезают', async () => {
-    const user = userEvent.setup();
-    wrap('?t=past:2026-04-22T09:00:00.000Z');
+  it('Reset CTA → Reset исчезает + input очищается', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const at = new Date(NOW - 3 * 3_600_000).toISOString();
+    wrap(`?t=${at}`);
     await user.click(screen.getByRole('button', { name: /Вернуться к Сейчас/ }));
-    expect(screen.getByRole('button', { name: 'Сейчас' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.queryByRole('group', { name: 'Быстрый выбор времени' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Вернуться к Сейчас/ })).toBeNull();
+    const input = screen.getByLabelText('Выберите точное время') as HTMLInputElement;
+    expect(input.value).toBe('');
   });
 
-  it('datetime-local input имеет атрибут step=900 (15 минут)', () => {
-    wrap('?t=past:2026-04-22T09:00:00.000Z');
+  it('datetime-local input имеет step=900 (15 минут) + min/max', () => {
+    wrap('');
     const input = screen.getByLabelText('Выберите точное время') as HTMLInputElement;
     expect(input.step).toBe('900');
     expect(input.min).toBeTruthy();
     expect(input.max).toBeTruthy();
   });
 
-  it('B-2 iter 2: jsx содержит inline out-of-range узел (data-testid="out-of-range-msg") — рендерится по state.outOfRangeMsg', () => {
-    // Структурный assert: подтверждаем что компонент способен показать
-    // out-of-range message (data-testid присутствует в JSX). Реальное
-    // срабатывание (state.outOfRangeMsg !== null) покрыто на pure-уровне
-    // через applyPreset в time-presets.spec.ts. Здесь убеждаемся что когда
-    // mode=past, узел готов к рендеру — по умолчанию state=null → узла нет:
+  it('legacy URL ?t=past:ISO → input заполнен derived past mode (smoke)', () => {
     wrap('?t=past:2026-04-22T09:00:00.000Z');
+    const input = screen.getByLabelText('Выберите точное время') as HTMLInputElement;
+    // Легаси ?t=past:ISO должен парситься → derived past → input value заполнен
+    expect(input.value).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Вернуться к Сейчас/ })).toBeInTheDocument();
+  });
+
+  it('jsx содержит inline out-of-range узел (data-testid="out-of-range-msg") — рендерится по state.outOfRangeMsg', () => {
+    wrap('');
     // По дефолту outOfRangeMsg = null → элемент НЕ рендерится
     expect(screen.queryByTestId('out-of-range-msg')).toBeNull();
-    // Но контракт компонента гарантирует появление узла когда state != null
-    // (см. JSX: `{outOfRangeMsg && <p role="status" data-testid=... />}`).
-    // Поведение purely state-driven; источник state — applyPreset, покрытый
-    // отдельно. Доп. UI-тест избыточен.
   });
 });

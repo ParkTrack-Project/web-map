@@ -1,201 +1,154 @@
-// TIME-03 / D-03 / D-05/D-06/D-07/D-10:
-// Shared body для desktop strip и mobile sheet — единая визуальная композиция.
-// - 3 segment-buttons (mode kind switch)
-// - preset chips (past или future, в зависимости от текущего kind)
-// - datetime-local input с min/max/step (D-05)
-// - inline out-of-range message (D-10) — role="status" для SR
-// - Reset CTA «Вернуться к Сейчас» (D-03)
-// Apply кнопки нет (D-07) — изменения live.
+// TIME-03 / Quick task 260426-hhb (SUPERSEDES D-03):
+// Single picker — без segmented control past/now/future.
 //
-// B-4: input min/max/value мемоизируются по kind, чтобы избежать
-// controlled-value rebreak'а на каждый rerender (mobile webkit teardown).
+// Структура:
+//   - Один <input type="datetime-local"> ВСЕГДА видим (пустое значение когда mode=now)
+//   - Объединённый chip-список (PRESETS из Task 1) ВСЕГДА видим
+//   - Reset «Сейчас» CTA — conditional, появляется только когда mode != now
+//   - Inline out-of-range message (D-10) — role="status" data-testid="out-of-range-msg"
+//
+// Mode derivation: setMode принимает derived mode через deriveMode(at, Date.now()).
+// Tap по chip → applyPreset → setMode(deriveMode(at)).
+// Tap по input → onChange → inputValueToUtcIso → setMode(deriveMode(iso)).
+//
+// B-4 sustainability: input min/max мемоизированы по «mount-once» паттерну —
+// никаких new strings на каждый rerender (mobile webkit teardown'ит controlled input).
 import { useMemo, useState } from 'react';
-import type { ChangeEvent, ComponentType } from 'react';
-import { Clock, History, TrendingUp, RotateCcw } from 'lucide-react';
+import type { ChangeEvent } from 'react';
+import { Clock, X, CalendarClock } from 'lucide-react';
 import { useTimeMode } from '@/features/select-time-mode';
-import {
-  MAX_PAST_DAYS,
-  MAX_FUTURE_HOURS,
-  MIN_RESOLUTION_MINUTES,
-} from '@/shared/config';
+import { MAX_PAST_DAYS, MAX_FUTURE_HOURS, MIN_RESOLUTION_MINUTES } from '@/shared/config';
 import { inputValueToUtcIso, utcIsoToInputValue } from '@/shared/lib/i18n';
-import { PRESETS_PAST, PRESETS_FUTURE, applyPreset, type Preset } from '../lib/presets';
+import { deriveMode } from '@/shared/lib/url';
+import { PRESETS, applyPreset, type Preset } from '../lib/presets';
 import { formatBoundMessage } from '../lib/bounds';
-import type { TimeMode } from '@/entities/zone';
-
-function modeKind(mode: TimeMode): 'past' | 'now' | 'future' {
-  return mode.kind;
-}
-
-interface SegmentBtnProps {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-  Icon: ComponentType<{ size?: number; 'aria-hidden'?: boolean }>;
-}
-
-function SegmentBtn({ active, onClick, label, Icon }: SegmentBtnProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={
-        'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition ' +
-        (active
-          ? 'bg-emerald-600 font-semibold text-white'
-          : 'bg-white text-zinc-700 hover:bg-zinc-100')
-      }
-    >
-      <Icon size={14} aria-hidden />
-      {label}
-    </button>
-  );
-}
 
 export function TimeSelectorContent() {
   const { mode, setMode, setNow } = useTimeMode();
   const [outOfRangeMsg, setOutOfRangeMsg] = useState<string | null>(null);
+  // Active preset label — для визуальной подсветки выбранной chip-кнопки.
+  // Сбрасывается при ручном вводе времени или Reset (значит preset больше
+  // не отражает текущий mode.at).
+  const [activePresetLabel, setActivePresetLabel] = useState<string | null>(null);
 
-  const kind = modeKind(mode);
-  const isModeChosen = kind !== 'now';
-
-  const onSegment = (target: 'past' | 'now' | 'future') => {
-    setOutOfRangeMsg(null);
-    if (target === 'now') {
-      setNow();
-      return;
-    }
-    const now = Date.now();
-    const at = target === 'past' ? now - 3_600_000 : now + 3_600_000;
-    setMode({ kind: target, at: new Date(at).toISOString() });
-  };
+  const isModeChosen = mode.kind !== 'now';
 
   const onPreset = (preset: Preset) => {
-    if (kind === 'now') return;
-    const r = applyPreset(preset, kind);
-    setMode(r.mode);
+    const r = applyPreset(preset);
+    const next = deriveMode(r.at);
+    setMode(next);
     setOutOfRangeMsg(r.outOfRangeMsg);
+    setActivePresetLabel(preset.label);
   };
 
   const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (kind === 'now') return;
     const local = e.target.value;
-    if (!local) return;
+    if (!local) {
+      // Очистка input → возвращаем к now
+      setNow();
+      setOutOfRangeMsg(null);
+      setActivePresetLabel(null);
+      return;
+    }
     try {
       const iso = inputValueToUtcIso(local);
-      setMode({ kind, at: iso });
+      const next = deriveMode(iso);
+      setMode(next);
       setOutOfRangeMsg(null);
+      setActivePresetLabel(null);
     } catch {
-      setOutOfRangeMsg(formatBoundMessage(kind));
+      // Кинд для message: derived из текущего mode (если уже выбрано),
+      // иначе fallback к 'past' для bound-message (тривиальный edge case).
+      const k = mode.kind === 'future' ? 'future' : 'past';
+      setOutOfRangeMsg(formatBoundMessage(k));
     }
   };
 
-  // B-4: input bounds мемоизированы по kind — никаких new strings на каждый rerender
+  const onReset = () => {
+    setOutOfRangeMsg(null);
+    setActivePresetLabel(null);
+    setNow();
+  };
+
+  // B-4: input bounds мемоизированы — никаких new strings на каждый rerender
   // (mobile webkit teardown'ит controlled input при flux-strings).
-  // ESLint warns: kind не используется внутри. Это намеренно — мы хотим
-  // пересчитывать Date.now()-based bounds когда юзер переключает kind
-  // (свежий now), но не на каждый параентский render.
-  /* eslint-disable react-hooks/exhaustive-deps */
-  const { inputMin, inputMax, nowInput } = useMemo(() => {
+  // Mount-once: вычисляются единожды при первом рендере; deps пустые.
+  const { inputMin, inputMax } = useMemo(() => {
     const now = Date.now();
     return {
       inputMin: utcIsoToInputValue(new Date(now - MAX_PAST_DAYS * 86_400_000).toISOString()),
       inputMax: utcIsoToInputValue(new Date(now + MAX_FUTURE_HOURS * 3_600_000).toISOString()),
-      nowInput: utcIsoToInputValue(new Date(now).toISOString()),
     };
-  }, [kind]);
-  /* eslint-enable react-hooks/exhaustive-deps */
+  }, []);
 
-  const effectiveInputMin = kind === 'past' ? inputMin : nowInput;
-  const effectiveInputMax = kind === 'past' ? nowInput : inputMax;
   const inputValue = isModeChosen && 'at' in mode ? utcIsoToInputValue(mode.at) : '';
-  const presets = kind === 'past' ? PRESETS_PAST : kind === 'future' ? PRESETS_FUTURE : [];
 
   return (
     <div className="flex flex-col gap-3 p-4" data-testid="time-selector-content">
-      {/* Segmented control */}
-      <div
-        role="group"
-        aria-label="Режим времени"
-        className="flex items-center gap-1 rounded-lg bg-zinc-100 p-1"
-      >
-        <SegmentBtn
-          active={kind === 'past'}
-          onClick={() => onSegment('past')}
-          label="Прошлое"
-          Icon={History}
+      {/* DateTime input с calendar icon prefix */}
+      <div className="relative">
+        <CalendarClock
+          size={14}
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-zinc-400"
         />
-        <SegmentBtn
-          active={kind === 'now'}
-          onClick={() => onSegment('now')}
-          label="Сейчас"
-          Icon={Clock}
-        />
-        <SegmentBtn
-          active={kind === 'future'}
-          onClick={() => onSegment('future')}
-          label="Будущее"
-          Icon={TrendingUp}
+        <input
+          type="datetime-local"
+          value={inputValue}
+          min={inputMin}
+          max={inputMax}
+          step={MIN_RESOLUTION_MINUTES * 60}
+          onChange={onInputChange}
+          aria-label="Выберите точное время"
+          className="w-full rounded-lg border border-zinc-200 bg-white py-2 pr-3 pl-9 text-[13px] font-medium text-zinc-800 shadow-xs transition-colors focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 focus:outline-none"
         />
       </div>
 
-      {/* Preset chips + datetime input + reset (только когда mode != now) */}
-      {isModeChosen && (
-        <>
-          <div
-            role="group"
-            aria-label="Быстрый выбор времени"
-            className="flex flex-wrap gap-1.5"
-          >
-            {presets.map((p) => (
-              <button
-                key={p.label}
-                type="button"
-                onClick={() => onPreset(p)}
-                className="rounded-md border border-zinc-300 bg-white px-2.5 py-1 text-xs hover:border-emerald-500 hover:bg-emerald-50"
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-
-          <label className="flex flex-col gap-1 text-sm text-zinc-700">
-            Точное время
-            <input
-              type="datetime-local"
-              value={inputValue}
-              min={effectiveInputMin}
-              max={effectiveInputMax}
-              step={MIN_RESOLUTION_MINUTES * 60}
-              onChange={onInputChange}
-              aria-label="Выберите точное время"
-              className="rounded-md border border-zinc-300 px-2 py-1.5"
-            />
-          </label>
-
-          {outOfRangeMsg && (
-            <p
-              role="status"
-              className="text-xs text-amber-700"
-              data-testid="out-of-range-msg"
+      {/* Preset chips — всегда видим объединённый список (5 past + 5 future) */}
+      <div role="group" aria-label="Быстрый выбор времени" className="flex flex-wrap gap-1.5">
+        {PRESETS.map((p) => {
+          const isActivePreset = activePresetLabel === p.label;
+          return (
+            <button
+              key={p.label}
+              type="button"
+              onClick={() => onPreset(p)}
+              aria-pressed={isActivePreset}
+              className={
+                'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ' +
+                (isActivePreset
+                  ? 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-1 ring-emerald-500/40'
+                  : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900')
+              }
             >
-              {outOfRangeMsg}
-            </p>
-          )}
+              {p.label}
+            </button>
+          );
+        })}
+      </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setOutOfRangeMsg(null);
-              setNow();
-            }}
-            className="mt-1 inline-flex items-center justify-center gap-1.5 rounded-md border border-emerald-600 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
-          >
-            <RotateCcw size={14} aria-hidden />
-            Вернуться к Сейчас
-          </button>
-        </>
+      {/* Reset «Сейчас» CTA — только когда mode != now */}
+      {isModeChosen && (
+        <button
+          type="button"
+          onClick={onReset}
+          aria-label="Вернуться к Сейчас"
+          className="inline-flex items-center justify-center gap-1.5 self-start rounded-md px-2 py-1 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+        >
+          <Clock size={12} aria-hidden />
+          <X size={12} aria-hidden />
+          Вернуться к Сейчас
+        </button>
+      )}
+
+      {outOfRangeMsg && (
+        <p
+          role="status"
+          className="text-xs font-medium text-amber-600"
+          data-testid="out-of-range-msg"
+        >
+          {outOfRangeMsg}
+        </p>
       )}
     </div>
   );
