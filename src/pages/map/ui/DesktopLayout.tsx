@@ -22,6 +22,8 @@ import { DesktopSearchBar, DestPromptBanner } from '@/widgets/search-bar';
 import { WTPCTAButton } from '@/widgets/wtp-cta';
 // Phase 4 Plan 03: ResultsPanel — overlay LEFT side, not collide с TimeSelector top-4 cluster.
 import { DesktopResultsPanel } from '@/widgets/results-panel';
+// Phase 4 Plan 04 / ROUTE-04: FitToRouteButton — bottom-right map area, gates сам себя по ?route.
+import { FitToRouteButton } from '@/widgets/route-preview-summary';
 
 const MapCanvas = lazy(() =>
   import('@/widgets/map-canvas/ui/MapCanvas').then((m) => ({ default: m.MapCanvas })),
@@ -60,6 +62,8 @@ export function DesktopLayout() {
         {/* Phase 4 Plan 03: ResultsPanel — z-20 overlay LEFT side; ZoneCard z-30 RIGHT side. */}
         <DesktopResultsPanel />
         <ZoneCard />
+        {/* Phase 4 Plan 04: FitToRouteButton сам gates рендер по ?route */}
+        <FitToRouteButton />
       </div>
     </div>
   );
