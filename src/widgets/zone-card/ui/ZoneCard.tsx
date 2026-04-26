@@ -12,10 +12,18 @@
 //   (queryKey включает mode → smena ?t= → новый запрос /occupancy?view=card&...)
 // - is_active === false → empty-state «Зона неактивна в этот период»
 //   + CTA «Вернуться к Сейчас» (когда mode != now). Pattern из ZoneStateOverlay (Plan 04).
-import { X, Lock, Accessibility, Car, MapPin } from 'lucide-react';
+//
+// Phase 4 Plan 04 / D-27 / D-28:
+// - BuildRouteSection wires CARD-05 [Построить маршрут] → useCreateRouteMutation
+// - На success → setRouteId → ?route=<id> в URL → RouteSummaryCard renders inline
+// - Закрытие карточки (X / outside click) → clearRouteId + closeCard atomically
+import { useState } from 'react';
+import { X, Lock, Accessibility, Car, MapPin, Navigation } from 'lucide-react';
 import { useSelectedZone } from '@/features/select-zone';
 import { useTimeMode } from '@/features/select-time-mode';
-import { useZoneByIdQuery, type Zone } from '@/entities/zone';
+import { useZoneByIdQuery, useCreateRouteMutation, type Zone } from '@/entities/zone';
+import { useRoutingSearchBody } from '@/widgets/results-panel';
+import { useRouteId, RouteSummaryCard } from '@/widgets/route-preview-summary';
 import { pluralizeRu, formatRelativeRu } from '@/shared/lib/i18n';
 import { Spinner } from '@/shared/ui';
 
@@ -29,6 +37,12 @@ const LOCATION_TYPE_RU: Record<string, string> = {
 
 export function ZoneCard() {
   const { selectedZoneId, closeCard } = useSelectedZone();
+  // D-28: при закрытии карточки — atomic clear ?route + ?sel.
+  const { clearRouteId } = useRouteId();
+  const handleClose = () => {
+    clearRouteId();
+    closeCard();
+  };
   if (selectedZoneId == null) return null;
 
   return (
@@ -38,7 +52,7 @@ export function ZoneCard() {
     >
       {/* D-08a: key={selectedZoneId} — React reconciliation вместо unmount/remount
           при быстром перетыке зон (race-guard). */}
-      <ZoneCardContent key={selectedZoneId} zoneId={selectedZoneId} onClose={closeCard} />
+      <ZoneCardContent key={selectedZoneId} zoneId={selectedZoneId} onClose={handleClose} />
     </aside>
   );
 }
@@ -158,17 +172,73 @@ function ZoneCardBody({ zone }: { zone: Zone }) {
         )}
       </ul>
 
-      {/* CARD-05: кнопка маршрута — Phase 4 wires action (setDestination → /routing/new). */}
+      {/* CARD-05 / D-27: Build route mutation + RouteSummaryCard inline. */}
+      <BuildRouteSection zoneId={zone.zone_id} />
+    </>
+  );
+}
+
+/**
+ * Phase 4 / D-27 / ROUTE-01:
+ * Wires [Построить маршрут] → useCreateRouteMutation → setRouteId → RouteSummaryCard.
+ * - body берётся из useRoutingSearchBody (composes ?from + ?dest + filters + timeMode)
+ *   и расширяется selected_zone_id (текущая зона из карточки).
+ * - canBuildRoute: body !== null (т.е. есть ?from). Без ?from — prompt с инструкцией.
+ * - errorMsg: D-46 «Не удалось построить маршрут» + [Повторить].
+ * - После success: routeId set → render RouteSummaryCard, скрываем кнопку.
+ */
+function BuildRouteSection({ zoneId }: { zoneId: number }) {
+  const body = useRoutingSearchBody();
+  const { setRouteId, routeId } = useRouteId();
+  const createRoute = useCreateRouteMutation();
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const canBuildRoute = body !== null;
+
+  const handleBuildRoute = async () => {
+    if (!body) return;
+    setErrorMsg(null);
+    try {
+      const route = await createRoute.mutateAsync({
+        body: { ...body, selected_zone_id: zoneId },
+      });
+      setRouteId(route.route_id);
+    } catch (e) {
+      setErrorMsg('Не удалось построить маршрут');
+      console.warn('[zone-card] route create failed', e);
+    }
+  };
+
+  if (routeId !== null) {
+    return <RouteSummaryCard />;
+  }
+
+  return (
+    <>
+      {!canBuildRoute && (
+        <p className="text-xs text-zinc-500">
+          Чтобы построить маршрут, укажите стартовую точку: нажмите [Где припарковаться?] или
+          введите адрес.
+        </p>
+      )}
       <button
         type="button"
-        className="mt-2 rounded-md bg-emerald-600 px-4 py-2 font-semibold text-white hover:bg-emerald-700"
-        onClick={() => {
-          // TODO Phase 4: setDestination(zoneCentroid(zone.geometry)) → /routing/new
-          console.debug('[ptk] route to zone', zone.zone_id);
-        }}
+        disabled={!canBuildRoute || createRoute.isPending}
+        onClick={handleBuildRoute}
+        className="mt-2 inline-flex items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 py-2 font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
+        data-testid="build-route-button"
       >
+        {createRoute.isPending ? <Spinner /> : <Navigation size={16} aria-hidden />}
         Построить маршрут
       </button>
+      {errorMsg && (
+        <p role="alert" className="text-sm text-red-700">
+          {errorMsg}{' '}
+          <button onClick={handleBuildRoute} className="underline">
+            Повторить
+          </button>
+        </p>
+      )}
     </>
   );
 }
