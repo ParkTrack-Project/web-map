@@ -34,6 +34,7 @@ import { ZoneLayer } from './ZoneLayer';
 import { ParallelZoneLayer } from './ParallelZoneLayer';
 import { ZoneBadgesLayer } from './ZoneBadgesLayer';
 import { ZoneStateOverlay } from './ZoneStateOverlay';
+import { RoutePreviewLayer } from './RoutePreviewLayer';
 import { ModeTransitionOverlay } from '@/widgets/mode-transition-overlay';
 
 export function MapCanvas() {
@@ -72,6 +73,8 @@ export function MapCanvas() {
           <ZoneLayer />
           <ParallelZoneLayer />
           <ZoneBadgesLayer zoom={zoom} />
+          {/* Phase 4 / ROUTE-03: route preview как изолированный children — не сбрасывает viewport */}
+          <RoutePreviewLayer />
         </YMap>
         {/* Z_INDEX.zoneStateOverlay=20 — empty/error overlay (Phase 2: D-21/D-22/UX-02/UX-04) */}
         <ZoneStateOverlay />
