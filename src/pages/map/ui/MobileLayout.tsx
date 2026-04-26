@@ -11,20 +11,22 @@
 //
 // Phase 4 Plan 02 / D-05 + D-09 + CO-04:
 // - MobileSearchBar (top-2 left-2 right-20) — top-bar input
-// - WTPMobileFAB (bottom-4 right-4 z-20) — скрывается при ?from || ?dest (CO-04)
 // - DestPromptBanner — рендерится в top-bar когда ?dest && !?from (CO-03)
-// FAB collision-prevention (D-50): WTPMobileFAB z-20 ниже FiltersFAB z-30.
-import { lazy, Suspense, useState } from 'react';
+// - MobileResultsButton — unified entry-point chip (bottom-center): «Найти парковки рядом» →
+//   запрос геолокации → «N парковок рядом» → tap открывает sheet. Заменил отдельный WTPMobileFAB
+//   круглый FAB на компактный pill chip — single CTA для всего mobile-сценария.
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { MapErrorBoundary } from '@/app/errors';
 import { MapSkeleton } from '@/widgets/map-canvas/ui/MapSkeleton';
 import { FiltersFAB, MobileFiltersDrawer } from '@/widgets/filters-bar';
 import { Legend } from '@/widgets/legend';
 import { MobileZoneCard } from '@/widgets/zone-card';
+import { useSelectedZone } from '@/features/select-zone';
 import { TimeSelectorChip, MobileTimeSelectorSheet } from '@/widgets/time-selector';
 import { MobileSearchBar, DestPromptBanner } from '@/widgets/search-bar';
-import { WTPMobileFAB } from '@/widgets/wtp-cta';
 // Phase 4 Plan 03: MobileResultsSheet — vaul Drawer single-snap [0.92], mutually exclusive с MobileZoneCard.
-import { MobileResultsSheet } from '@/widgets/results-panel';
+// MobileResultsButton — unified chip (Найти/Поиск/N парковок), open sheet only by explicit click.
+import { MobileResultsSheet, MobileResultsButton } from '@/widgets/results-panel';
 // Phase 4 Plan 04 / ROUTE-04: FitToRouteButton — bottom-right map area, gates сам себя по ?route.
 import { FitToRouteButton } from '@/widgets/route-preview-summary';
 
@@ -35,6 +37,16 @@ const MapCanvas = lazy(() =>
 export function MobileLayout() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [timeSheetOpen, setTimeSheetOpen] = useState(false);
+  // ResultsSheet auto-open removed — user открывает через MobileResultsButton chip.
+  const [resultsSheetOpen, setResultsSheetOpen] = useState(false);
+  const { selectedZoneId } = useSelectedZone();
+  // Sync: при selectedZoneId set → закрыть results sheet immediate, чтобы vaul стартовал
+  // close-animation. MobileZoneCard ждёт 350ms перед opening — нет conflict двух body lock'ов.
+  useEffect(() => {
+    if (selectedZoneId !== null && resultsSheetOpen) {
+      setResultsSheetOpen(false);
+    }
+  }, [selectedZoneId, resultsSheetOpen]);
 
   // D-12 «Указать вручную» → focus search-input.
   const handleManualEntry = () => {
@@ -56,19 +68,26 @@ export function MobileLayout() {
         <Legend />
         {/* Phase 4: top-bar SearchBar (left side, FABs справа не пересекаются — right-20) */}
         <MobileSearchBar />
-        {/* Phase 4 / CO-03: DestPromptBanner ниже top-bar (top-14 чтобы под input) */}
-        <div className="absolute top-14 right-20 left-2 z-30">
+        {/* Phase 4 / CO-03: DestPromptBanner ниже top-bar (top-14 чтобы под input).
+            right-14 — синхронизировано с MobileSearchBar (44px FiltersFAB + gap). */}
+        <div className="absolute top-14 right-14 left-2 z-30">
           <DestPromptBanner />
         </div>
-        {/* Phase 4 / D-09 / CO-04: bottom-right FAB; auto-hide при results-active */}
-        <WTPMobileFAB onManualEntry={handleManualEntry} />
+        {/* Unified mobile entry-point: bottom-center chip «Найти парковки рядом» / «N парковок рядом».
+            Сам ведёт WTP flow (permissions check + pre-flight Drawer). При sheet open — скрывается. */}
+        <MobileResultsButton
+          hidden={resultsSheetOpen}
+          onOpenSheet={() => setResultsSheetOpen(true)}
+          onManualEntry={handleManualEntry}
+        />
         {/* Phase 4 Plan 04: FitToRouteButton сам gates рендер по ?route */}
         <FitToRouteButton />
       </div>
       <MobileFiltersDrawer open={filtersOpen} onOpenChange={setFiltersOpen} />
       <MobileTimeSelectorSheet open={timeSheetOpen} onOpenChange={setTimeSheetOpen} />
-      {/* Phase 4 Plan 03: ResultsSheet mutually exclusive с MobileZoneCard через selectedZoneId logic (CO-02) */}
-      <MobileResultsSheet />
+      {/* Phase 4 Plan 03: ResultsSheet mutually exclusive с MobileZoneCard через selectedZoneId logic (CO-02).
+          Open controlled by Layout — user тапает MobileResultsButton chip чтобы открыть. */}
+      <MobileResultsSheet open={resultsSheetOpen} onOpenChange={setResultsSheetOpen} />
       {/* Plan 02 mobile vaul + CARD-07 pan */}
       <MobileZoneCard />
     </div>

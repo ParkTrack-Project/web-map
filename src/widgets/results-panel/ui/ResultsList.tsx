@@ -22,7 +22,15 @@ export function ResultsList({ candidates }: ResultsListProps) {
   useResultsScrollSync(virtualizer, candidates);
 
   return (
-    <div ref={parentRef} className="h-full overflow-y-auto" data-testid="results-list">
+    // data-vaul-no-drag: vaul по умолчанию перехватывает touchmove в Drawer.Content для snap-drag
+    // — без этого флага скролл внутри Mobile sheet не работает (touch расценивается как drag-handle).
+    // overscroll-behavior:contain — не пробрасываем scroll наверх (на body) при достижении границы.
+    <div
+      ref={parentRef}
+      data-vaul-no-drag
+      className="h-full min-h-0 flex-1 overflow-y-auto overscroll-contain"
+      data-testid="results-list"
+    >
       <div
         role="listbox"
         aria-label="Парковки в результате поиска"

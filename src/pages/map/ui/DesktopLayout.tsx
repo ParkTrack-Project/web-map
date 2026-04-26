@@ -6,15 +6,18 @@
 // в floating popover (releases ~120px vertical space карты). Floating pill
 // в top-4 left-4 — зеркало FiltersFAB справа на mobile.
 //
-// Phase 4 Plan 02 / CO-01: SearchBar (top-4 left-72) и WTPCTAButton
-// (top-4 left-32) образуют единую горизонтальную строку поверх карты вместе
-// с TimeSelectorPopover (top-4 left-4). Mental model «когда → где → куда».
-// CO-03: DestPromptBanner монтируется ниже search input, появляется только
+// Phase 4 Plan 02 / CO-01: SearchBar, WTPCTAButton и TimeSelectorPopover
+// образуют единую горизонтальную строку поверх карты — обёрнуты в один
+// flex-row контейнер top-4 left-4 z-30 с gap-2. Flex auto-resolves widths
+// чтобы виджеты не наезжали друг на друга при динамическом тексте
+// (TimeSelector «Прогноз на 17:00 МСК», SearchBar focus → 480px).
+// Mental model «когда → где → куда».
+// CO-03: DestPromptBanner монтируется ниже flex-row, появляется только
 // при ?dest && !?from (никакого UI «всегда видим»).
 import { lazy, Suspense, useRef } from 'react';
 import { MapErrorBoundary } from '@/app/errors';
 import { MapSkeleton } from '@/widgets/map-canvas/ui/MapSkeleton';
-import { FiltersToolbar } from '@/widgets/filters-bar';
+import { DesktopFiltersPopover } from '@/widgets/filters-bar';
 import { Legend } from '@/widgets/legend';
 import { ZoneCard } from '@/widgets/zone-card';
 import { TimeSelectorPopover } from '@/widgets/time-selector';
@@ -40,22 +43,26 @@ export function DesktopLayout() {
 
   return (
     <div className="hidden h-screen w-screen flex-col lg:flex">
-      <FiltersToolbar />
       <div className="relative flex-1 overflow-hidden">
         <MapErrorBoundary>
           <Suspense fallback={<MapSkeleton />}>
             <MapCanvas />
           </Suspense>
         </MapErrorBoundary>
-        <TimeSelectorPopover />
-        {/* Phase 4 / CO-01: WTPCTAButton (top-4 left-32 inside widget) */}
-        <WTPCTAButton onManualEntry={handleManualEntry} />
-        {/* Phase 4 / CO-01: SearchBar справа от WTP — top-4 left-72 (~18rem) */}
-        <div ref={searchAnchorRef} className="absolute top-4 left-72 z-30">
-          <DesktopSearchBar />
+        {/* Phase 4 / CO-01: единый flex-row для TimeSelector + WTP + Search + Filters.
+            Flex gap разводит элементы по фактической ширине (нет наезда).
+            DesktopFiltersPopover заменил горизонтальный FiltersToolbar — освобождает
+            ~50px vertical space карты, единый pattern с mobile FiltersFAB. */}
+        <div className="absolute top-4 left-4 z-30 flex items-start gap-2">
+          <TimeSelectorPopover />
+          <WTPCTAButton onManualEntry={handleManualEntry} />
+          <div ref={searchAnchorRef}>
+            <DesktopSearchBar />
+          </div>
+          <DesktopFiltersPopover />
         </div>
-        {/* Phase 4 / CO-03: DestPromptBanner — ниже search input */}
-        <div className="absolute top-16 left-72 z-30 max-w-[480px]">
+        {/* Phase 4 / CO-03: DestPromptBanner — ниже flex-row */}
+        <div className="absolute top-16 left-4 z-30 max-w-[480px]">
           <DestPromptBanner />
         </div>
         <Legend />

@@ -21,7 +21,7 @@ function wrap(children: ReactNode) {
 describe('WTPCTAButton (WTP-01 / WTP-02 enforcement)', () => {
   it('renders с aria-label «Где припарковаться?»', () => {
     const getCurrentPositionMock = vi.fn();
-    Object.defineProperty(global.navigator, 'geolocation', {
+    Object.defineProperty(globalThis.navigator, 'geolocation', {
       value: { getCurrentPosition: getCurrentPositionMock },
       configurable: true,
       writable: true,

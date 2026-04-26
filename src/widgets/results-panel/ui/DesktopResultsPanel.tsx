@@ -37,9 +37,12 @@ export function DesktopResultsPanel() {
     closeCard();
   };
 
+  // top-16 bottom-0 оставляет место для top-row (TimeSelector / WTP / Search / Filters
+  // в top-4 left-4 z-30) выше — раньше results-panel начиналась с top-0 и её header
+  // прятался под top-row кнопками (z-30 поверх z-20).
   return (
     <aside
-      className="absolute top-0 left-0 hidden h-full overflow-hidden bg-white shadow-2xl lg:flex lg:flex-col"
+      className="absolute top-16 bottom-0 left-0 hidden overflow-hidden bg-white shadow-2xl lg:flex lg:flex-col"
       style={{ width: RESULTS_PANEL_WIDTH_PX, zIndex: Z_INDEX.resultsPanel }}
       aria-label="Результаты поиска парковок"
       data-testid="desktop-results-panel"
@@ -62,7 +65,9 @@ export function DesktopResultsPanel() {
           <X size={18} aria-hidden />
         </button>
       </header>
-      <div className="flex-1 overflow-hidden">
+      {/* min-h-0 нужно для flex-child overflow-scroll (overflow-hidden ломал ResultsList scroll
+          точно так же, как на mobile MobileResultsSheet — единый fix). */}
+      <div className="flex min-h-0 flex-1 flex-col">
         {isFetching && !data && <Spinner label="Поиск парковок…" />}
         {isError && (
           <div role="alert" className="m-4 rounded bg-red-50 p-3 text-sm text-red-700">

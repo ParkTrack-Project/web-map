@@ -7,7 +7,7 @@ import { useGeolocationRequest } from './useGeolocationRequest';
 describe('useGeolocationRequest (D-11..D-13 / WTP-02 / Pitfall 4)', () => {
   const getCurrentPositionMock = vi.fn();
   beforeEach(() => {
-    Object.defineProperty(global.navigator, 'geolocation', {
+    Object.defineProperty(globalThis.navigator, 'geolocation', {
       value: { getCurrentPosition: getCurrentPositionMock },
       configurable: true,
       writable: true,
@@ -15,7 +15,7 @@ describe('useGeolocationRequest (D-11..D-13 / WTP-02 / Pitfall 4)', () => {
     getCurrentPositionMock.mockReset();
   });
   afterEach(() => {
-    Reflect.deleteProperty(global.navigator, 'geolocation');
+    Reflect.deleteProperty(globalThis.navigator, 'geolocation');
   });
 
   it('initial status = idle', () => {

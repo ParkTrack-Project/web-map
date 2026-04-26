@@ -81,14 +81,27 @@ describe('<TimeSelectorContent /> (TIME-03, single-picker — quick 260426-hhb)'
     expect(screen.getByRole('button', { name: /Вернуться к Сейчас/ })).toBeInTheDocument();
   });
 
-  it('Reset CTA → Reset исчезает + input очищается', async () => {
+  it('Reset CTA → Reset исчезает + input возвращается к default-now', async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     const at = new Date(NOW - 3 * 3_600_000).toISOString();
     wrap(`?t=${at}`);
+    const input = screen.getByLabelText('Выберите точное время') as HTMLInputElement;
+    const valueBefore = input.value;
     await user.click(screen.getByRole('button', { name: /Вернуться к Сейчас/ }));
     expect(screen.queryByRole('button', { name: /Вернуться к Сейчас/ })).toBeNull();
+    // После Reset: mode=now → input показывает default-now (закешированный
+    // на момент монтирования), не пустую строку. Значение должно отличаться
+    // от past-фикстуры выше.
+    expect(input.value).not.toBe('');
+    expect(input.value).not.toBe(valueBefore);
+  });
+
+  it('default (mode=now) — input показывает текущее время (не пустой)', () => {
+    wrap('');
     const input = screen.getByLabelText('Выберите точное время') as HTMLInputElement;
-    expect(input.value).toBe('');
+    expect(input.value).not.toBe('');
+    // datetime-local format YYYY-MM-DDTHH:mm — должен матчить шаблон
+    expect(input.value).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
   });
 
   it('datetime-local input имеет step=900 (15 минут) + min/max', () => {

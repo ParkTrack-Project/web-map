@@ -24,12 +24,12 @@ export function RoutePreviewLayer() {
   // W-4 fix: zoneCentroid из @/shared/lib/geo принимает minimal { type:'Polygon'; coordinates } — cast не нужен.
   const zoneCenter = zoneCentroid(route.selected_candidate.geometry);
 
-  let lineCoordinates: number[][] = [originLngLat, zoneCenter];
+  let lineCoordinates: [number, number][] = [originLngLat, zoneCenter];
   if (route.polyline) {
     try {
       const parsed = JSON.parse(route.polyline);
       if (Array.isArray(parsed?.coordinates)) {
-        lineCoordinates = parsed.coordinates as number[][];
+        lineCoordinates = parsed.coordinates as [number, number][];
       }
     } catch {
       // fallback straight line — silent per D-29

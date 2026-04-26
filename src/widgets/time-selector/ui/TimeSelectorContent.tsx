@@ -70,18 +70,21 @@ export function TimeSelectorContent() {
     setNow();
   };
 
-  // B-4: input bounds мемоизированы — никаких new strings на каждый rerender
+  // B-4: input bounds + default-now мемоизированы — никаких new strings на каждый rerender
   // (mobile webkit teardown'ит controlled input при flux-strings).
   // Mount-once: вычисляются единожды при первом рендере; deps пустые.
-  const { inputMin, inputMax } = useMemo(() => {
+  // defaultNowValue показывается в input когда mode=now — UX-affordance, чтобы
+  // пользователь сразу видел «вот моё текущее время, могу его подвинуть».
+  const { inputMin, inputMax, defaultNowValue } = useMemo(() => {
     const now = Date.now();
     return {
       inputMin: utcIsoToInputValue(new Date(now - MAX_PAST_DAYS * 86_400_000).toISOString()),
       inputMax: utcIsoToInputValue(new Date(now + MAX_FUTURE_HOURS * 3_600_000).toISOString()),
+      defaultNowValue: utcIsoToInputValue(new Date(now).toISOString()),
     };
   }, []);
 
-  const inputValue = isModeChosen && 'at' in mode ? utcIsoToInputValue(mode.at) : '';
+  const inputValue = isModeChosen && 'at' in mode ? utcIsoToInputValue(mode.at) : defaultNowValue;
 
   return (
     <div className="flex flex-col gap-3 p-4" data-testid="time-selector-content">

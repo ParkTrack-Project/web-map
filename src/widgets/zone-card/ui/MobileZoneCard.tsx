@@ -17,6 +17,7 @@ import { useSelectedZone } from '@/features/select-zone';
 import { useTimeMode } from '@/features/select-time-mode';
 import { useZoneByIdQuery } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
+import { useIsMobile } from '@/shared/lib/responsive';
 import { MapRefContext } from '@/widgets/map-canvas';
 import { useRouteId } from '@/widgets/route-preview-summary';
 import { ZoneCardContent } from './ZoneCard';
@@ -30,7 +31,26 @@ export function MobileZoneCard() {
     closeCard();
   };
   const [snap, setSnap] = useState<number | string | null>(0.4);
-  const isOpen = selectedZoneId != null;
+  // КРИТИЧНО: vaul Drawer.Root рендерит Portal в body и применяет
+  // `pointer-events: none` + `aria-hidden=true` ко ВСЕМУ остальному DOM.
+  // Гейт isMobile защищает desktop.
+  const isMobile = useIsMobile();
+  // Race-fix: при click на ResultItem MobileResultsSheet начинает close-animation (~500ms vaul).
+  // Если MobileZoneCard.Drawer.Root mountится сразу — два body lock'а одновременно,
+  // второй Drawer не получает focus и зрительно «пропадает». Ждём cleanup первого.
+  const wantsOpen = isMobile && selectedZoneId != null;
+  const [delayedOpen, setDelayedOpen] = useState(false);
+  useEffect(() => {
+    if (wantsOpen) {
+      // 600ms — превышает vaul Drawer.Content close transition (CSS 0.5s cubic-bezier).
+      // 350ms раньше было недостаточно: vaul body lock не успевал освободиться.
+      const t = setTimeout(() => setDelayedOpen(true), 600);
+      return () => clearTimeout(t);
+    }
+    setDelayedOpen(false);
+    return;
+  }, [wantsOpen]);
+  const isOpen = delayedOpen;
   const mapRefHolder = useContext(MapRefContext);
 
   // Plan 05 / TIME-07: mode → useZoneByIdQuery (тот же key, что и в ZoneCardContent
