@@ -4,6 +4,10 @@
 // I-5: optional `now` param чтобы applyPreset мог передать свой Date.now()
 // — одна точка времени на cycle (иначе isWithinBounds и applyPreset
 // считают разные now с расхождением в ms).
+//
+// Quick task 260426-hhb note: kind теперь derived caller'ом через
+// `at < now ? 'past' : 'future'` — сами bound-helpers сигнатуру не меняют,
+// продолжают принимать explicit kind для clarity.
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { MAX_PAST_DAYS, MAX_FUTURE_HOURS } from '@/shared/config';
@@ -32,10 +36,7 @@ export function clampToBounds(
   return Math.max(now, Math.min(hi, at));
 }
 
-export function formatBoundMessage(
-  kind: 'past' | 'future',
-  now: number = Date.now(),
-): string {
+export function formatBoundMessage(kind: 'past' | 'future', now: number = Date.now()): string {
   if (kind === 'past') {
     const lo = new Date(now - MAX_PAST_DAYS * 86_400_000);
     return `История доступна только с ${format(lo, 'd MMM HH:mm', { locale: ru })}`;
