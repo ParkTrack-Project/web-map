@@ -25,6 +25,8 @@ import { MobileSearchBar, DestPromptBanner } from '@/widgets/search-bar';
 import { WTPMobileFAB } from '@/widgets/wtp-cta';
 // Phase 4 Plan 03: MobileResultsSheet — vaul Drawer single-snap [0.92], mutually exclusive с MobileZoneCard.
 import { MobileResultsSheet } from '@/widgets/results-panel';
+// Phase 4 Plan 04 / ROUTE-04: FitToRouteButton — bottom-right map area, gates сам себя по ?route.
+import { FitToRouteButton } from '@/widgets/route-preview-summary';
 
 const MapCanvas = lazy(() =>
   import('@/widgets/map-canvas/ui/MapCanvas').then((m) => ({ default: m.MapCanvas })),
@@ -60,6 +62,8 @@ export function MobileLayout() {
         </div>
         {/* Phase 4 / D-09 / CO-04: bottom-right FAB; auto-hide при results-active */}
         <WTPMobileFAB onManualEntry={handleManualEntry} />
+        {/* Phase 4 Plan 04: FitToRouteButton сам gates рендер по ?route */}
+        <FitToRouteButton />
       </div>
       <MobileFiltersDrawer open={filtersOpen} onOpenChange={setFiltersOpen} />
       <MobileTimeSelectorSheet open={timeSheetOpen} onOpenChange={setTimeSheetOpen} />
