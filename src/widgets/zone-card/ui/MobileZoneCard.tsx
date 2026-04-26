@@ -18,10 +18,17 @@ import { useTimeMode } from '@/features/select-time-mode';
 import { useZoneByIdQuery } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { MapRefContext } from '@/widgets/map-canvas';
+import { useRouteId } from '@/widgets/route-preview-summary';
 import { ZoneCardContent } from './ZoneCard';
 
 export function MobileZoneCard() {
   const { selectedZoneId, closeCard } = useSelectedZone();
+  // Phase 4 / D-28: atomic clear ?route + ?sel при закрытии карточки.
+  const { clearRouteId } = useRouteId();
+  const handleClose = () => {
+    clearRouteId();
+    closeCard();
+  };
   const [snap, setSnap] = useState<number | string | null>(0.4);
   const isOpen = selectedZoneId != null;
   const mapRefHolder = useContext(MapRefContext);
@@ -61,7 +68,7 @@ export function MobileZoneCard() {
     <Drawer.Root
       open={isOpen}
       onOpenChange={(open) => {
-        if (!open) closeCard();
+        if (!open) handleClose();
       }}
       snapPoints={[0.4, 0.85]}
       activeSnapPoint={snap}
@@ -91,7 +98,7 @@ export function MobileZoneCard() {
             </div>
           ) : (
             selectedZoneId != null && (
-              <ZoneCardContent key={selectedZoneId} zoneId={selectedZoneId} onClose={closeCard} />
+              <ZoneCardContent key={selectedZoneId} zoneId={selectedZoneId} onClose={handleClose} />
             )
           )}
         </Drawer.Content>
