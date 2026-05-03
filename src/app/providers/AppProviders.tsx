@@ -15,6 +15,7 @@ import { Toaster } from 'sonner';
 import type { PropsWithChildren } from 'react';
 import { QueryProvider } from './QueryProvider';
 import { AuthListener } from './AuthListener';
+import { OfflineBanner } from './OfflineBanner';
 import { RootErrorBoundary } from '@/app/errors';
 import { AuthReady } from '@/shared/auth';
 
@@ -34,6 +35,9 @@ export function AppProviders({ children }: PropsWithChildren) {
               closeButton
               toastOptions={{ style: { zIndex: 100 } }}
             />
+            {/* D-34 NFR-07: OfflineBanner via TanStack onlineManager
+                (Pitfall 8 — navigator.onLine залипает в Chrome). */}
+            <OfflineBanner />
             <AuthReady>{children}</AuthReady>
           </AuthListener>
         </QueryProvider>
