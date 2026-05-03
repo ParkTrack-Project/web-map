@@ -110,8 +110,15 @@ function rankCandidates(body: RoutingSearchBody): {
   candidates: RouteCandidatePayload[];
   total: number;
 } {
-  // 1. Apply server-side filters (analogous /zones)
-  const filterParams: MockFilterParams = {};
+  // 1. Apply server-side filters (analogous /zones).
+  // Phase 5 hot-fix: ranking ВСЕГДА исключает inactive + private — server design
+  // assumption per applyClientCandidateFilters comment («RouteCandidate не имеет
+  // is_active — server возвращает только active»). Без этого user может тапнуть
+  // парковку из ranked-списка → ZoneCard показывает «Зона неактивна в этот период».
+  const filterParams: MockFilterParams = {
+    is_active: true,
+    include_private: false,
+  };
   if (body.min_free_count !== undefined) filterParams.min_free_count = body.min_free_count;
   if (body.min_confidence !== undefined) filterParams.min_confidence = body.min_confidence;
   if (body.max_pay !== undefined) filterParams.max_pay = body.max_pay;
