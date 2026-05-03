@@ -1,6 +1,11 @@
-// CARD-01 / D-06: Mobile vaul bottom sheet snap [0.4, 0.85].
-// Открытие зоны → snap 0.4 (preview); drag-up → 0.85 (full); drag-down → close.
-// vaul даёт focus trap + Esc handling из коробки (Radix Dialog inside).
+// CARD-01 / D-06 / Phase 5 hot-fix: Mobile vaul bottom sheet single-snap [0.92].
+// Phase 2 D-06 originally specified snapPoints={[0.4, 0.85]}, но vaul snap math
+// требует drawer высотой >= largestSnap × viewport (≥792px на iPhone 14 Pro Max).
+// Реальный content (header+tags+button ~408px) намного меньше → vaul применяет
+// transform translateY(559px) который пушит drawer ENTIRELY off-screen (карточка
+// не видна вообще). Тот же баг был в Phase 4 MobileResultsSheet → решился single-
+// snap [0.92] (CO-02). Применяем тот же pattern: drawer открывается на 92% экрана,
+// drag-down dismiss; preview-режим [0.4] deferred to v1.x design pass.
 //
 // CARD-07 mobile (D-07): при open зоны карта слегка панорамируется вверх
 // (offset -20% от viewport height) с easing 300ms — чтобы зона не оказалась под
@@ -36,7 +41,7 @@ export function MobileZoneCard() {
     clearRouteId();
     closeCard();
   };
-  const [snap, setSnap] = useState<number | string | null>(0.4);
+  const [snap, setSnap] = useState<number | string | null>(0.92);
   // КРИТИЧНО: vaul Drawer.Root рендерит Portal в body и применяет
   // `pointer-events: none` + `aria-hidden=true` ко ВСЕМУ остальному DOM.
   // Гейт isMobile защищает desktop.
@@ -96,7 +101,7 @@ export function MobileZoneCard() {
       onOpenChange={(open) => {
         if (!open) handleClose();
       }}
-      snapPoints={[0.4, 0.85]}
+      snapPoints={[0.92]}
       activeSnapPoint={snap}
       setActiveSnapPoint={setSnap}
       dismissible
