@@ -8,6 +8,7 @@
 //
 // Plan 02-02 wiring: клик → setSelectedZone(z.zone_id), выбранная зона получает
 // stroke-width 8 (вместо 6) для визуального отличия (D-08 для LineString-варианта).
+import { memo } from 'react';
 import type { LngLat } from '@yandex/ymaps3-types/common/types/lng-lat';
 import { YMapFeature, YMapFeatureDataSource, YMapLayer } from '@/shared/lib/ymaps';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
@@ -15,7 +16,10 @@ import { useSelectedZone } from '@/features/select-zone';
 import { polygonToParallelLine } from '@/shared/lib/geo';
 import { computeZoneStyle } from '../model/zone-style';
 
-export function ParallelZoneLayer() {
+// Phase 5 D-31 (NFR-03 — I-3): React.memo — parallel-зон может быть >100 при
+// больших viewport'ах; ParallelZoneLayer subscriber на same useFilteredZones как
+// ZoneLayer, поэтому без memo каждый ZoneLayer rerender триггерит cascade.
+function ParallelZoneLayerInner() {
   // Phase 2 Plan 03: переключено на useFilteredZones (фильтры применены).
   // useSelectedZone wiring (Plan 02) сохранён.
   const { data, isPending, isError } = useFilteredZones();
@@ -59,3 +63,5 @@ export function ParallelZoneLayer() {
     </>
   );
 }
+
+export const ParallelZoneLayer = memo(ParallelZoneLayerInner);
