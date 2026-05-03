@@ -21,6 +21,8 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
+      // Phase 5 D-29 NFR-01: блокирует `any` в новом коде. Существующие any → unknown / explicit.
+      '@typescript-eslint/no-explicit-any': 'error',
       'no-restricted-imports': [
         'error',
         {

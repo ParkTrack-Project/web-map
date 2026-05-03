@@ -63,7 +63,7 @@ export function ModeTransitionOverlay() {
 
   // Soft exit: fetchingCount → 0 + минимум 200мс показа → hide + clear hard timeout
   useEffect(() => {
-    if (!shouldShow) return;
+    if (!shouldShow) return undefined;
     if (fetchingCount === 0 && showSinceRef.current) {
       const elapsed = Date.now() - showSinceRef.current;
       const remaining = Math.max(0, 200 - elapsed);
@@ -77,6 +77,7 @@ export function ModeTransitionOverlay() {
       }, remaining);
       return () => clearTimeout(t);
     }
+    return undefined;
   }, [fetchingCount, shouldShow]);
 
   // Cleanup on unmount

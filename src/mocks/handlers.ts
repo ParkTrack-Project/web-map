@@ -195,9 +195,10 @@ function buildRoute(body: RoutingSearchBody & { selected_zone_id?: number }): Ro
   const arrival_time = new Date(Date.now() + eta_seconds * 1000).toISOString();
   const created_at = new Date().toISOString();
   const route_id = ++nextRouteId;
-  const firstRing = selected.geometry.coordinates[0];
-  const latTo = firstRing[0][1];
-  const lonTo = firstRing[0][0];
+  const firstRing = selected.geometry.coordinates[0]!;
+  const firstPoint = firstRing[0]!;
+  const latTo = firstPoint[1]!;
+  const lonTo = firstPoint[0]!;
   const deeplink_url = `yandexnavi://build_route_on_map?lat_to=${latTo}&lon_to=${lonTo}&lat_from=${body.origin.latitude}&lon_from=${body.origin.longitude}`;
   return {
     route_id,
@@ -334,7 +335,7 @@ export const handlers = [
         return HttpResponse.json({ error_description: 'Zone not found' }, { status: 404 });
       }
       const idx = ZONES.indexOf(z);
-      const skewed = generateOccupancyZoneSnapshot([z], new Date(at))[0];
+      const skewed = generateOccupancyZoneSnapshot([z], new Date(at))[0]!;
       const fullBase = toFullZone(z, idx);
       return HttpResponse.json({
         ...fullBase,
@@ -425,7 +426,7 @@ export const handlers = [
         return HttpResponse.json({ error_description: 'Zone not found' }, { status: 404 });
       }
       const idx = ZONES.indexOf(z);
-      const skewed = generateForecastZoneSnapshot([z], new Date(at))[0];
+      const skewed = generateForecastZoneSnapshot([z], new Date(at))[0]!;
       const fullBase = toFullZone(z, idx);
       return HttpResponse.json({
         ...fullBase,

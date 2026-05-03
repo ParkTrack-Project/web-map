@@ -87,7 +87,7 @@ describe('buildServerQuery (D-12)', () => {
   it('locationType=[street,yard] → hide_location_types содержит остальные 3 (инверсия)', () => {
     const q = buildServerQuery({ ...DEFAULT_FILTERS, locationType: ['street', 'yard'] });
     expect(q.hide_location_types).toBeDefined();
-    const hidden = q.hide_location_types.split(',');
+    const hidden = q.hide_location_types!.split(',');
     expect(hidden).toContain('open_lot');
     expect(hidden).toContain('underground');
     expect(hidden).toContain('multilevel');

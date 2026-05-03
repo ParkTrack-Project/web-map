@@ -43,6 +43,6 @@ export async function geocodeByUri(uri: string, signal: AbortSignal): Promise<[n
   if (parts.length !== 2 || !Number.isFinite(parts[0]) || !Number.isFinite(parts[1])) {
     throw new GeocoderError(0, `pos malformed: "${pos}"`);
   }
-  const [lon, lat] = parts;
+  const [lon, lat] = parts as [number, number];
   return [lat, lon];
 }

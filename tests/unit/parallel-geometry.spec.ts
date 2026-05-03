@@ -19,7 +19,7 @@ describe('polygonToParallelLine', () => {
     };
     const line = polygonToParallelLine(poly);
     expect(line).not.toBeNull();
-    const [a, b] = line!.coordinates;
+    const [a, b] = line!.coordinates as [[number, number], [number, number]];
     // Линия идёт midpoint(0-3 ребро: X=0,Y=2.5) → midpoint(1-2 ребро: X=30,Y=2.5).
     const dx = Math.abs(b[0] - a[0]);
     const dy = Math.abs(b[1] - a[1]);
