@@ -11,10 +11,16 @@ import {
 } from '@/features/address-search';
 import { useSelectedZone } from '@/features/select-zone';
 import { MapRefContext } from '@/widgets/map-canvas';
+import { useVisualViewportHeight } from '@/shared/lib/dom';
 import type { SuggestResult } from '@/shared/lib/yandex';
 import { SuggestionsList } from './SuggestionsList';
 
 export function MobileSearchBar() {
+  // Phase 5 D-03 (RESP-05): главный driver — search input открывает on-screen
+  // keyboard, suggestions list ниже него должен помещаться в visible-viewport.
+  // Side-effect устанавливает --keyboard-aware-height на :root; suggestions
+  // wrapper ниже читает её через CSS calc().
+  useVisualViewportHeight();
   const { text, setText, results, isFetching, error } = useAddressSuggest();
   const { resolve } = useResolveCoordinates();
   const { setDestination } = useDestination();
@@ -60,9 +66,13 @@ export function MobileSearchBar() {
     </div>
   );
 
-  // Full-screen overlay при focus (D-05)
+  // Full-screen overlay при focus (D-05). Phase 5 D-03: keyboard-aware height —
+  // suggestions list внутри scroll-container получает honest visible-viewport.
   const overlay = overlayOpen ? (
-    <div className="fixed inset-0 z-[55] flex flex-col bg-white lg:hidden">
+    <div
+      className="fixed inset-0 z-[55] flex flex-col bg-white lg:hidden"
+      style={{ height: 'var(--keyboard-aware-height, 100dvh)' }}
+    >
       <div className="flex items-center gap-2 border-b border-zinc-200 px-3 py-2">
         <button
           type="button"

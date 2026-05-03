@@ -18,11 +18,17 @@ import { useTimeMode } from '@/features/select-time-mode';
 import { useZoneByIdQuery } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { useIsMobile } from '@/shared/lib/responsive';
+import { useVisualViewportHeight } from '@/shared/lib/dom';
 import { MapRefContext } from '@/widgets/map-canvas';
 import { useRouteId } from '@/widgets/route-preview-summary';
 import { ZoneCardContent } from './ZoneCard';
 
 export function MobileZoneCard() {
+  // Phase 5 D-03: keyboard-aware sizing — ZoneCardContent сам по себе input'ов
+  // не имеет, но карточка может остаться открытой пока user typing в SearchBar
+  // overlay (z=55 поверх). visualViewport-aware max-height гарантирует, что
+  // sheet content не уходит под keyboard.
+  useVisualViewportHeight();
   const { selectedZoneId, closeCard } = useSelectedZone();
   // Phase 4 / D-28: atomic clear ?route + ?sel при закрытии карточки.
   const { clearRouteId } = useRouteId();
@@ -100,6 +106,7 @@ export function MobileZoneCard() {
         <Drawer.Content
           className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[95dvh] flex-col rounded-t-2xl bg-white outline-none lg:hidden"
           aria-describedby={undefined}
+          style={{ maxHeight: 'calc(var(--keyboard-aware-height, 100dvh) - 80px)' }}
         >
           <Drawer.Title className="sr-only">Карточка парковки</Drawer.Title>
           <div className="mx-auto my-2 h-1.5 w-12 rounded-full bg-zinc-300" aria-hidden />

@@ -42,7 +42,7 @@ export function DesktopLayout() {
   };
 
   return (
-    <div className="hidden h-screen w-screen flex-col lg:flex">
+    <div className="hidden h-dvh w-screen flex-col lg:flex">
       <div className="relative flex-1 overflow-hidden">
         <MapErrorBoundary>
           <Suspense fallback={<MapSkeleton />}>
