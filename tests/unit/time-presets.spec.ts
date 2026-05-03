@@ -35,17 +35,19 @@ describe('time presets (D-06, B-1: discriminated union, quick 260426-hhb merged 
 
   it('B-1: type discriminant — static vs daily', () => {
     // index 0 = «Час назад» — static
-    expect(PRESETS[0].type).toBe('static');
+    const p0 = PRESETS[0]!;
+    const p2 = PRESETS[2]!;
+    expect(p0.type).toBe('static');
     // index 2 = «Вчера 09:00» — daily
-    expect(PRESETS[2].type).toBe('daily');
-    if (PRESETS[2].type === 'daily') {
-      expect(PRESETS[2].hour).toBe(9);
-      expect(PRESETS[2].dayOffset).toBe(-1);
+    expect(p2.type).toBe('daily');
+    if (p2.type === 'daily') {
+      expect(p2.hour).toBe(9);
+      expect(p2.dayOffset).toBe(-1);
     }
   });
 
   it('applyPreset «Час назад» (static past) → at = now - 3600000', () => {
-    const r = applyPreset(PRESETS[0], NOW);
+    const r = applyPreset(PRESETS[0]!, NOW);
     expect(r.at).toBe(new Date(NOW - 3_600_000).toISOString());
     expect(r.outOfRangeMsg).toBeNull();
     expect(r.clamped).toBe(false);
@@ -53,13 +55,13 @@ describe('time presets (D-06, B-1: discriminated union, quick 260426-hhb merged 
 
   it('applyPreset «Через час» (static future) → at = now + 3600000', () => {
     // index 5 = «Через час» (первый future после 5 past'ов)
-    const r = applyPreset(PRESETS[5], NOW);
+    const r = applyPreset(PRESETS[5]!, NOW);
     expect(r.at).toBe(new Date(NOW + 3_600_000).toISOString());
     expect(r.outOfRangeMsg).toBeNull();
   });
 
   it('applyPreset «Вчера 09:00» (daily past) → at = вчера 09:00 LOCAL', () => {
-    const r = applyPreset(PRESETS[2], NOW);
+    const r = applyPreset(PRESETS[2]!, NOW);
     const expected = new Date(NOW - 86_400_000);
     expected.setHours(9, 0, 0, 0);
     expect(r.at).toBe(expected.toISOString());
@@ -67,7 +69,7 @@ describe('time presets (D-06, B-1: discriminated union, quick 260426-hhb merged 
 
   it('applyPreset «Завтра 18:00» (daily future) → at = завтра 18:00 LOCAL (или clamp в UTC TZ)', () => {
     // index 8 = «Завтра 18:00»
-    const r = applyPreset(PRESETS[8], NOW);
+    const r = applyPreset(PRESETS[8]!, NOW);
     const rawTarget = new Date(NOW + 86_400_000);
     rawTarget.setHours(18, 0, 0, 0);
     const upperBound = NOW + 24 * 3_600_000;
@@ -82,14 +84,14 @@ describe('time presets (D-06, B-1: discriminated union, quick 260426-hhb merged 
 
   it('«Неделю назад» именно ровно −7 дней (на границе)', () => {
     // index 4 = «Неделю назад»
-    const r = applyPreset(PRESETS[4], NOW);
+    const r = applyPreset(PRESETS[4]!, NOW);
     expect(r.at).toBe(new Date(NOW - 7 * 86_400_000).toISOString());
     expect(r.clamped).toBe(false);
   });
 
   it('«Через 24 часа» ровно 24h в future — на границе', () => {
     // index 9 = «Через 24 часа»
-    const r = applyPreset(PRESETS[9], NOW);
+    const r = applyPreset(PRESETS[9]!, NOW);
     expect(r.at).toBe(new Date(NOW + 24 * 3_600_000).toISOString());
     expect(r.clamped).toBe(false);
   });

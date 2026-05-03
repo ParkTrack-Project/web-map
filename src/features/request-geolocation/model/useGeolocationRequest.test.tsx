@@ -81,7 +81,7 @@ describe('useGeolocationRequest (D-11..D-13 / WTP-02 / Pitfall 4)', () => {
     await act(async () => {
       await result.current.request();
     });
-    const options = getCurrentPositionMock.mock.calls[0][2];
+    const options = getCurrentPositionMock.mock.calls[0]![2];
     expect(options.enableHighAccuracy).toBe(false);
     expect(options.timeout).toBe(10000);
     expect(options.maximumAge).toBe(30000);

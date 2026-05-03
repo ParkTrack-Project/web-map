@@ -5,7 +5,7 @@ import { useAutoSelectBestVariant } from './useAutoSelectBestVariant';
 
 function wrap(searchParams: string, onUrlUpdate?: (s: { queryString: string }) => void) {
   return ({ children }: { children: React.ReactNode }) => (
-    <NuqsTestingAdapter searchParams={searchParams} onUrlUpdate={onUrlUpdate}>
+    <NuqsTestingAdapter searchParams={searchParams} {...(onUrlUpdate ? { onUrlUpdate } : {})}>
       {children}
     </NuqsTestingAdapter>
   );

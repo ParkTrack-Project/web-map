@@ -37,7 +37,7 @@ export function ResultsList({ candidates }: ResultsListProps) {
         style={{ height: virtualizer.getTotalSize(), position: 'relative' }}
       >
         {virtualizer.getVirtualItems().map((vi) => {
-          const c = candidates[vi.index];
+          const c = candidates[vi.index]!;
           return (
             <div
               key={c.zone_id}

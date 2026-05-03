@@ -22,7 +22,9 @@ export async function searchRouting(
 
 /** §8.7: создание маршрута + сохранение. Возвращает полный Route с route_id. */
 export async function createRoute(body: RoutingNewBody, signal?: AbortSignal): Promise<Route> {
-  const res = await apiClient.post<Route>('/routing/new', body, { signal });
+  // exactOptionalPropertyTypes: AxiosRequestConfig.signal не принимает undefined,
+  // поэтому conditionally-spread.
+  const res = await apiClient.post<Route>('/routing/new', body, signal ? { signal } : {});
   return res.data;
 }
 

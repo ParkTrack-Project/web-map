@@ -34,8 +34,8 @@ describe('Q1 Schema Fix: /occupancy и /forecasts → ZoneMapItem[]', () => {
   it('generateOccupancyZoneSnapshot mutates ТОЛЬКО occupied/free/confidence/updated_at', () => {
     const at = new Date('2026-04-22T09:00:00.000Z');
     const out = generateOccupancyZoneSnapshot(zones, at);
-    const z0in = zones[0];
-    const z0out = out[0];
+    const z0in = zones[0]!;
+    const z0out = out[0]!;
     // Preserved fields:
     expect(z0out.zone_id).toBe(z0in.zone_id);
     expect(z0out.geometry).toEqual(z0in.geometry);
@@ -72,8 +72,8 @@ describe('Q1 Schema Fix: /occupancy и /forecasts → ZoneMapItem[]', () => {
   it('generateForecastZoneSnapshot mutates ТОЛЬКО occupied/free/confidence/updated_at', () => {
     const at = new Date(Date.now() + 3_600_000);
     const out = generateForecastZoneSnapshot(zones, at);
-    const z0in = zones[0];
-    const z0out = out[0];
+    const z0in = zones[0]!;
+    const z0out = out[0]!;
     expect(z0out.zone_id).toBe(z0in.zone_id);
     expect(z0out.geometry).toEqual(z0in.geometry);
     expect(z0out.pay).toBe(z0in.pay);

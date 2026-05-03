@@ -37,8 +37,10 @@ export function polygonToParallelLine(poly: PolygonRing): LineGeometry | null {
     { a: p3, b: p0, len: distSq(p3, p0) },
   ];
   const sorted = [...edges].sort((x, y) => x.len - y.len);
+  const e0 = sorted[0]!;
+  const e1 = sorted[1]!;
   return {
     type: 'LineString',
-    coordinates: [midpoint(sorted[0].a, sorted[0].b), midpoint(sorted[1].a, sorted[1].b)],
+    coordinates: [midpoint(e0.a, e0.b), midpoint(e1.a, e1.b)],
   };
 }
