@@ -27,3 +27,20 @@
   bottom: var(--bottom-sheet-offset, 20px) !important;
   transition: bottom 200ms ease;
 }
+
+/* Phase 5 D-12 (INTEG-04): Tailwind 4 native @theme directive.
+   Превращает brand hex'ы из shared/config/brand-tokens.ts в utility classes
+   (bg-brand-green-500, text-brand-amber-400 etc.). Single source of truth.
+   Когда Misha published UI-kit → заменить значения здесь + в brand-tokens.ts. */
+@theme {
+  --color-brand-green-50: #f0fdf4;
+  --color-brand-green-500: #16a34a;
+  --color-brand-green-600: #15803d;
+  --color-brand-green-900: #14532d;
+  --color-brand-amber-400: #fbbf24;
+  --color-brand-amber-500: #f59e0b;
+  --color-brand-neutral-50: #f9fafb;
+  --color-brand-neutral-200: #e5e7eb;
+  --color-brand-neutral-700: #374151;
+  --color-brand-neutral-900: #111827;
+}
