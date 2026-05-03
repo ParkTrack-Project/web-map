@@ -49,7 +49,13 @@ export function MapCanvas() {
 
   return (
     <MapRefContext.Provider value={mapRef}>
-      <div className="relative h-full w-full">
+      {/* Phase 5 D-05 (RESP-07): класс `map-controls-shifted-container` берёт
+          ymaps3 controls (рендерятся внутри Yandex DOM подграфа с
+          class*=ymaps3-controls) и сдвигает их вверх через CSS-переменную
+          --bottom-sheet-offset, выставляемую MobileLayout useEffect'ом.
+          YMapControls не принимает className prop (typed reactify обёртка),
+          поэтому селектор-fallback выбран явно. */}
+      <div className="map-controls-shifted-container relative h-full w-full">
         <YMap ref={mapRef} location={initialLocation} mode="vector">
           <YMapDefaultSchemeLayer />
           {/* MAP-03: встроенный парковочный слой Yandex входит в default features layer */}

@@ -15,3 +15,15 @@
     outline-offset: 2px;
   }
 }
+
+/* Phase 5 D-05 (RESP-07): map controls offset выше открытого bottom-sheet'а.
+   --bottom-sheet-offset устанавливается MobileLayout useEffect'ом в
+   зависимости от состояния sheets (filters/time/results/selectedZone).
+   Default 20px когда все sheets закрыты. Селектор-fallback ниже целит
+   ymaps3 controls внутри map-controls-shifted-container, потому что
+   YMapControls сам не принимает className prop (typed reactify
+   обёртка из @yandex/ymaps3-types). */
+.map-controls-shifted-container [class*='ymaps3-controls'] {
+  bottom: var(--bottom-sheet-offset, 20px) !important;
+  transition: bottom 200ms ease;
+}
