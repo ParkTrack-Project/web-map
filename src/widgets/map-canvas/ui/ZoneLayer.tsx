@@ -19,13 +19,17 @@
 // Геометрия zone.geometry.coordinates: number[][][] — наш внутренний формат
 // (PolygonGeometry в entities/zone). ymaps3 ожидает LngLat[][] = [number,
 // number][][]. Cast безопасен: MSW-генератор всегда даёт пары [lon, lat].
+import { memo } from 'react';
 import type { LngLat } from '@yandex/ymaps3-types/common/types/lng-lat';
 import { YMapFeature, YMapFeatureDataSource, YMapLayer } from '@/shared/lib/ymaps';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { useSelectedZone } from '@/features/select-zone';
 import { computeZoneStyle, toDrawingStyle } from '../model/zone-style';
 
-export function ZoneLayer() {
+// Phase 5 D-31 (NFR-03): React.memo для тяжёлых widgets — рендерит 200+ features.
+// Inner function не имеет props (state из hooks), поэтому memo() предотвращает
+// rerender при изменении parent state, не относящегося к зонам.
+function ZoneLayerInner() {
   // Phase 2 Plan 03: переключено с useViewportZones на useFilteredZones —
   // тот же data shape, но с server-side + client-side фильтрами применёнными.
   // useSelectedZone wiring (Plan 02) сохранён ниже без изменений.
@@ -66,3 +70,5 @@ export function ZoneLayer() {
     </>
   );
 }
+
+export const ZoneLayer = memo(ZoneLayerInner);
