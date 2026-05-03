@@ -5,6 +5,7 @@
 import { Drawer } from 'vaul';
 import { useFiltersHydration, useFilters } from '@/features/filter-zones';
 import { ALL_LOCATION_TYPES, type LocationType } from '@/entities/filters';
+import { useVisualViewportHeight } from '@/shared/lib/dom';
 
 const LOC_LABEL: Record<LocationType, string> = {
   street: 'Улица',
@@ -21,6 +22,9 @@ interface Props {
 
 export function MobileFiltersDrawer({ open, onOpenChange }: Props) {
   useFiltersHydration();
+  // Phase 5 D-03: side-effect — sets --keyboard-aware-height на :root, чтобы
+  // sheet content не уходил под on-screen keyboard на iOS Safari.
+  useVisualViewportHeight();
   const f = useFilters();
 
   const toggleLoc = (t: LocationType) => {
@@ -34,7 +38,10 @@ export function MobileFiltersDrawer({ open, onOpenChange }: Props) {
     <Drawer.Root open={open} onOpenChange={onOpenChange} snapPoints={[0.95]} dismissible>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
-        <Drawer.Content className="fixed inset-x-0 bottom-0 z-50 flex max-h-[95dvh] flex-col rounded-t-2xl bg-white outline-none lg:hidden">
+        <Drawer.Content
+          className="fixed inset-x-0 bottom-0 z-50 flex max-h-[95dvh] flex-col rounded-t-2xl bg-white outline-none lg:hidden"
+          style={{ maxHeight: 'calc(var(--keyboard-aware-height, 100dvh) - 80px)' }}
+        >
           <Drawer.Title className="px-5 pt-4 text-lg font-semibold">Фильтры парковок</Drawer.Title>
           <div className="mx-auto my-2 h-1.5 w-12 rounded-full bg-zinc-300" aria-hidden />
           <div className="flex flex-col gap-4 overflow-y-auto p-5">

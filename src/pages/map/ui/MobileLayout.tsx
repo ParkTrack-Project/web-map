@@ -55,7 +55,7 @@ export function MobileLayout() {
   };
 
   return (
-    <div className="relative flex h-screen w-screen flex-col lg:hidden">
+    <div className="relative flex h-dvh w-screen flex-col lg:hidden">
       <div className="relative flex-1 overflow-hidden">
         <MapErrorBoundary>
           <Suspense fallback={<MapSkeleton />}>
