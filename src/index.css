@@ -1,59 +1,46 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
+/* A11Y-04 / D-18: глобальный focus-ring для всех :focus-visible элементов.
+   Никакого outline:none без замены — все интерактивные кастомные компоненты
+   используют semantic HTML и наследуют этот ring.
 
-:root {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
-    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+   A11Y-05 / D-20 contrast verification — auto-mode pre-estimate (4 элемента) +
+   manual measurement deferred to HUMAN-UAT (см. .planning/phases/
+   02-zones-card-filters-url-baseline/02-03-VERIFICATION-NOTES.md).
+   Потенциальный fail: chip-toggle active state (text-white на bg-emerald-600)
+   ≈ 3:1 для small text — fix в Phase 5 polish (bg-emerald-700/800 или font-bump). */
+@layer base {
+  :focus-visible {
+    outline: 2px solid #16a34a;
+    outline-offset: 2px;
+  }
 }
 
-* {
-  box-sizing: border-box;
+/* Phase 5 D-05 (RESP-07): map controls offset выше открытого bottom-sheet'а.
+   --bottom-sheet-offset устанавливается MobileLayout useEffect'ом в
+   зависимости от состояния sheets (filters/time/results/selectedZone).
+   Default 20px когда все sheets закрыты. Селектор-fallback ниже целит
+   ymaps3 controls внутри map-controls-shifted-container, потому что
+   YMapControls сам не принимает className prop (typed reactify
+   обёртка из @yandex/ymaps3-types). */
+.map-controls-shifted-container [class*='ymaps3-controls'] {
+  bottom: var(--bottom-sheet-offset, 20px) !important;
+  transition: bottom 200ms ease;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-  background-color: #f9fafb;
-  color: #111827;
-}
-
-#root {
-  height: 100%;
-  width: 100%;
-}
-
-/* Focus styles for accessibility */
-button:focus-visible,
-input:focus-visible {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
-
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+/* Phase 5 D-12 (INTEG-04): Tailwind 4 native @theme directive.
+   Превращает brand hex'ы из shared/config/brand-tokens.ts в utility classes
+   (bg-brand-green-500, text-brand-amber-400 etc.). Single source of truth.
+   Когда Misha published UI-kit → заменить значения здесь + в brand-tokens.ts. */
+@theme {
+  --color-brand-green-50: #f0fdf4;
+  --color-brand-green-500: #16a34a;
+  --color-brand-green-600: #15803d;
+  --color-brand-green-900: #14532d;
+  --color-brand-amber-400: #fbbf24;
+  --color-brand-amber-500: #f59e0b;
+  --color-brand-neutral-50: #f9fafb;
+  --color-brand-neutral-200: #e5e7eb;
+  --color-brand-neutral-700: #374151;
+  --color-brand-neutral-900: #111827;
 }
