@@ -1,25 +1,16 @@
 # Build stage
-FROM node:20-alpine as build
+FROM node:18-alpine as build
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --legacy-peer-deps
+RUN npm ci
 
 COPY . .
 
 # Accept API URL at build time
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-
-# Yandex Maps API key (referer-restricted на parktrack.live + localhost)
-ARG VITE_YMAP_KEY
-ENV VITE_YMAP_KEY=$VITE_YMAP_KEY
-
-# Auth mode: 'mock' включает MSW worker в prod-build для demo/staging без реального api-server.
-# Для real-API integration пробросить 'shared' (или не пробрасывать — MSW отключён).
-ARG VITE_AUTH_MODE=mock
-ENV VITE_AUTH_MODE=$VITE_AUTH_MODE
 
 RUN npm run build
 
