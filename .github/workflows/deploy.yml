@@ -2,7 +2,7 @@ name: Deploy Vite site to Nginx
 
 on:
   push:
-    branches: [ main, deploy-test ]
+    branches: [main, deploy-test]
 
 env:
   NODE_VERSION: '20'
