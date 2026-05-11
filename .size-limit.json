@@ -1,0 +1,27 @@
+[
+  { "name": "Initial app code", "path": "dist/assets/index-*.js", "limit": "250 KB", "gzip": true },
+  {
+    "name": "vendor-react chunk",
+    "path": "dist/assets/vendor-react-*.js",
+    "limit": "100 KB",
+    "gzip": true
+  },
+  {
+    "name": "vendor-tanstack chunk",
+    "path": "dist/assets/vendor-tanstack-*.js",
+    "limit": "60 KB",
+    "gzip": true
+  },
+  {
+    "name": "vendor-ui chunk (vaul + radix)",
+    "path": "dist/assets/vendor-ui-*.js",
+    "limit": "50 KB",
+    "gzip": true
+  },
+  {
+    "name": "vendor-icons chunk (lucide-react)",
+    "path": "dist/assets/vendor-icons-*.js",
+    "limit": "30 KB",
+    "gzip": true
+  }
+]

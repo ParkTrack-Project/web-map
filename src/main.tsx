@@ -5,11 +5,19 @@ import { AppProviders } from '@/app/providers';
 import { MapPage } from '@/pages/map';
 import '@/index.css';
 
-// MSW поднимаем только в DEV или при VITE_AUTH_MODE='mock' (preview/CI staging).
-// В production-сборке shouldMock=false → service-worker не регистрируется,
-// network идёт реально на api.parktrack.live.
+// Phase 5 D-15: VITE_API_MODE controls MSW registration independently of VITE_AUTH_MODE.
+// - 'mock' (default in DEV/test/staging without real backend) → MSW handles
+//   /zones, /occupancy, /forecasts, /routing/*, /auth/me
+// - 'real' (production or staging-with-real-backend) → MSW skipped, requests hit
+//   env.VITE_API_BASE_URL (api.parktrack.live)
+// Default behaviour: in DEV without explicit VITE_API_MODE → mock (preserve dev UX).
+// In production builds without explicit VITE_API_MODE → also mock (safe default until
+// staging build pins VITE_API_MODE=real). Independent from VITE_AUTH_MODE: enables
+// 4-combo testing (mock-API+mock-auth, mock-API+shared-auth, real-API+mock-auth,
+// real-API+shared-auth).
 async function enableMocking() {
-  const shouldMock = import.meta.env.DEV || import.meta.env.VITE_AUTH_MODE === 'mock';
+  const apiMode = import.meta.env.VITE_API_MODE ?? 'mock';
+  const shouldMock = apiMode === 'mock' || (import.meta.env.DEV && !import.meta.env.VITE_API_MODE);
   if (!shouldMock) return;
   const { worker } = await import('@/mocks/browser');
   await worker.start({

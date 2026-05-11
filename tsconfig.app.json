@@ -23,6 +23,11 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
+    /* Phase 5 D-29 NFR-01 — enabled AFTER dry-run + batch fixes (107 → 0 errors) */
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
 
     /* Path aliases */
     "baseUrl": ".",

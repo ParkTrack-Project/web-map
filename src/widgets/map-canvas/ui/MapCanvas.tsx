@@ -16,10 +16,10 @@
 // Phase 2 Plan 03 (URL-01): zoom поднят в URL-state ?z=N через nuqs внутри
 // useBboxTracking. Локальный useState удалён; ZoneBadgesLayer читает зум из
 // единого источника (URL или DEFAULT_ZOOM как fallback при пустом URL).
-import { useRef } from 'react';
+import { useRef, type ComponentType } from 'react';
 import type { YMap as YMapInstance } from '@yandex/ymaps3-types';
 import {
-  YMap,
+  YMap as YMapRaw,
   YMapDefaultSchemeLayer,
   YMapDefaultFeaturesLayer,
   YMapListener,
@@ -27,6 +27,16 @@ import {
   YMapZoomControl,
   useDefault,
 } from '@/shared/lib/ymaps';
+
+// reactify-обёртка YMap теряет тип props после union с ProviderProps<unknown>
+// при exactOptionalPropertyTypes — runtime shape совпадает с reactify.module(ymaps3).
+// Cast через unknown чтобы TS принял ref+location+mode props.
+const YMap = YMapRaw as unknown as ComponentType<{
+  ref?: React.Ref<YMapInstance | null>;
+  location: { center: [number, number]; zoom: number };
+  mode?: string;
+  children?: React.ReactNode;
+}>;
 import { ITMO_CENTER, DEFAULT_ZOOM } from '@/shared/config';
 import { useBboxTracking } from '../model/useBboxTracking';
 import { MapRefContext } from '../model/map-ref-context';
@@ -49,7 +59,13 @@ export function MapCanvas() {
 
   return (
     <MapRefContext.Provider value={mapRef}>
-      <div className="relative h-full w-full">
+      {/* Phase 5 D-05 (RESP-07): класс `map-controls-shifted-container` берёт
+          ymaps3 controls (рендерятся внутри Yandex DOM подграфа с
+          class*=ymaps3-controls) и сдвигает их вверх через CSS-переменную
+          --bottom-sheet-offset, выставляемую MobileLayout useEffect'ом.
+          YMapControls не принимает className prop (typed reactify обёртка),
+          поэтому селектор-fallback выбран явно. */}
+      <div className="map-controls-shifted-container relative h-full w-full">
         <YMap ref={mapRef} location={initialLocation} mode="vector">
           <YMapDefaultSchemeLayer />
           {/* MAP-03: встроенный парковочный слой Yandex входит в default features layer */}

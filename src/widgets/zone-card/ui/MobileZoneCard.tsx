@@ -1,6 +1,11 @@
-// CARD-01 / D-06: Mobile vaul bottom sheet snap [0.4, 0.85].
-// Открытие зоны → snap 0.4 (preview); drag-up → 0.85 (full); drag-down → close.
-// vaul даёт focus trap + Esc handling из коробки (Radix Dialog inside).
+// CARD-01 / D-06 / Phase 5 hot-fix: Mobile vaul bottom sheet single-snap [0.92].
+// Phase 2 D-06 originally specified snapPoints={[0.4, 0.85]}, но vaul snap math
+// требует drawer высотой >= largestSnap × viewport (≥792px на iPhone 14 Pro Max).
+// Реальный content (header+tags+button ~408px) намного меньше → vaul применяет
+// transform translateY(559px) который пушит drawer ENTIRELY off-screen (карточка
+// не видна вообще). Тот же баг был в Phase 4 MobileResultsSheet → решился single-
+// snap [0.92] (CO-02). Применяем тот же pattern: drawer открывается на 92% экрана,
+// drag-down dismiss; preview-режим [0.4] deferred to v1.x design pass.
 //
 // CARD-07 mobile (D-07): при open зоны карта слегка панорамируется вверх
 // (offset -20% от viewport height) с easing 300ms — чтобы зона не оказалась под
@@ -18,11 +23,17 @@ import { useTimeMode } from '@/features/select-time-mode';
 import { useZoneByIdQuery } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { useIsMobile } from '@/shared/lib/responsive';
+import { useVisualViewportHeight } from '@/shared/lib/dom';
 import { MapRefContext } from '@/widgets/map-canvas';
 import { useRouteId } from '@/widgets/route-preview-summary';
 import { ZoneCardContent } from './ZoneCard';
 
 export function MobileZoneCard() {
+  // Phase 5 D-03: keyboard-aware sizing — ZoneCardContent сам по себе input'ов
+  // не имеет, но карточка может остаться открытой пока user typing в SearchBar
+  // overlay (z=55 поверх). visualViewport-aware max-height гарантирует, что
+  // sheet content не уходит под keyboard.
+  useVisualViewportHeight();
   const { selectedZoneId, closeCard } = useSelectedZone();
   // Phase 4 / D-28: atomic clear ?route + ?sel при закрытии карточки.
   const { clearRouteId } = useRouteId();
@@ -30,7 +41,6 @@ export function MobileZoneCard() {
     clearRouteId();
     closeCard();
   };
-  const [snap, setSnap] = useState<number | string | null>(0.4);
   // КРИТИЧНО: vaul Drawer.Root рендерит Portal в body и применяет
   // `pointer-events: none` + `aria-hidden=true` ко ВСЕМУ остальному DOM.
   // Гейт isMobile защищает desktop.
@@ -90,37 +100,45 @@ export function MobileZoneCard() {
       onOpenChange={(open) => {
         if (!open) handleClose();
       }}
-      snapPoints={[0.4, 0.85]}
-      activeSnapPoint={snap}
-      setActiveSnapPoint={setSnap}
       dismissible
     >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
         <Drawer.Content
-          className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[95dvh] flex-col rounded-t-2xl bg-white outline-none lg:hidden"
+          className="fixed inset-x-0 bottom-0 z-50 mx-auto flex flex-col rounded-t-2xl bg-white outline-none lg:hidden"
           aria-describedby={undefined}
+          // Phase 5 hot-fix: drawer auto-fit to content height (без snapPoints).
+          // pb-[15px] добавляет 15px отступа после кнопки «Построить маршрут» —
+          // user-requested whitespace under primary CTA. max-height ограничивает
+          // экстремальные случаи (длинные адреса) до safe-area viewport.
+          style={{ maxHeight: 'calc(var(--keyboard-aware-height, 100dvh) - 80px)' }}
         >
           <Drawer.Title className="sr-only">Карточка парковки</Drawer.Title>
-          <div className="mx-auto my-2 h-1.5 w-12 rounded-full bg-zinc-300" aria-hidden />
-          {renderInactive ? (
-            <div role="status" data-testid="mobile-zone-card-inactive" className="p-4">
-              <p className="text-sm text-zinc-700">Зона неактивна в этот период</p>
-              {mode.kind !== 'now' && (
-                <button
-                  type="button"
-                  onClick={setNow}
-                  className="mt-3 inline-flex items-center justify-center rounded-md border border-emerald-600 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
-                >
-                  Вернуться к Сейчас
-                </button>
-              )}
-            </div>
-          ) : (
-            selectedZoneId != null && (
-              <ZoneCardContent key={selectedZoneId} zoneId={selectedZoneId} onClose={handleClose} />
-            )
-          )}
+          <div className="mx-auto my-2 h-1.5 w-12 shrink-0 rounded-full bg-zinc-300" aria-hidden />
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[15px]">
+            {renderInactive ? (
+              <div role="status" data-testid="mobile-zone-card-inactive" className="p-4">
+                <p className="text-sm text-zinc-700">Зона неактивна в этот период</p>
+                {mode.kind !== 'now' && (
+                  <button
+                    type="button"
+                    onClick={setNow}
+                    className="mt-3 inline-flex items-center justify-center rounded-md border border-emerald-600 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
+                  >
+                    Вернуться к Сейчас
+                  </button>
+                )}
+              </div>
+            ) : (
+              selectedZoneId != null && (
+                <ZoneCardContent
+                  key={selectedZoneId}
+                  zoneId={selectedZoneId}
+                  onClose={handleClose}
+                />
+              )
+            )}
+          </div>
         </Drawer.Content>
       </Drawer.Portal>
     </Drawer.Root>

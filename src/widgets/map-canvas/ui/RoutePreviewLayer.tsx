@@ -6,13 +6,16 @@
 // - НЕ изменяет viewport (ROUTE-04 Fit-to-route — отдельный user-initiated)
 // - key={routeId} для clean reconciliation
 // - CO-05 / W-2: useRouteSelSync для reload-recovery (?route=N без ?sel → ?sel=route.selected_zone_id)
+import { memo } from 'react';
 import { Locate, Target } from 'lucide-react';
 import { YMapFeature, YMapMarker } from '@/shared/lib/ymaps';
 import { useRouteByIdQuery } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { useRouteId, useRouteSelSync } from '@/widgets/route-preview-summary';
 
-export function RoutePreviewLayer() {
+// Phase 5 D-31 (NFR-03): React.memo — RoutePreview перерисовка при каждом
+// MapCanvas rerender лишняя; route reference из useQuery стабилен между fetches.
+function RoutePreviewLayerInner() {
   const { routeId } = useRouteId();
   const { data: route } = useRouteByIdQuery(routeId);
   // CO-05 / W-2: reverse sync route → ?sel для reload-recovery (?route=N без ?sel).
@@ -56,3 +59,5 @@ export function RoutePreviewLayer() {
     </>
   );
 }
+
+export const RoutePreviewLayer = memo(RoutePreviewLayerInner);
