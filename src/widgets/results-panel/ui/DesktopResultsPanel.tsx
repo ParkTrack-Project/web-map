@@ -3,6 +3,7 @@
 // CO-03 / W-1: ОТКРЫТА ТОЛЬКО когда ?from set (origin обязателен per D-15 mode dispatch).
 // ?dest без ?from → inline prompt в SearchBar (widgets/search-bar/DestPromptBanner).
 // НЕ ужимает карту — overlay поверх (пользователь видит и list, и map, и ZoneCard).
+import { memo } from 'react';
 import { X } from 'lucide-react';
 import { useFromCoords } from '@/features/request-geolocation';
 import { useDestination } from '@/features/address-search';
@@ -16,7 +17,9 @@ import { useAutoSelectBestVariant } from '../model/useAutoSelectBestVariant';
 import { ResultsList } from './ResultsList';
 import { EmptyResultsState } from './EmptyResultsState';
 
-export function DesktopResultsPanel() {
+// Phase 5 D-31 (NFR-03): React.memo — react-virtual handles internal virtualization,
+// но wrapper memo предотвращает rerender DesktopResultsPanel при unrelated parent state changes.
+function DesktopResultsPanelInner() {
   const body = useRoutingSearchBody();
   const { from, clearFromCoords } = useFromCoords();
   const { dest, clearDestination } = useDestination();
@@ -89,3 +92,5 @@ export function DesktopResultsPanel() {
     </aside>
   );
 }
+
+export const DesktopResultsPanel = memo(DesktopResultsPanelInner);

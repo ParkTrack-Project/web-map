@@ -54,7 +54,7 @@ function mulberry32(seed: number): () => number {
 }
 
 function pick<T>(rnd: () => number, items: readonly T[]): T {
-  return items[Math.floor(rnd() * items.length)];
+  return items[Math.floor(rnd() * items.length)]!;
 }
 
 function confidenceLevelFromValue(c: number): ZoneMapItem['confidence_level'] {
@@ -158,7 +158,7 @@ export function parseBbox(raw: string | null): Bbox | null {
   if (!raw) return null;
   const parts = raw.split(',').map(Number);
   if (parts.length !== 4 || parts.some(Number.isNaN)) return null;
-  const [w, s, e, n] = parts;
+  const [w, s, e, n] = parts as [number, number, number, number];
   return { w, s, e, n };
 }
 
@@ -166,9 +166,13 @@ export function filterByBbox(zones: ZoneMapItem[], bbox: Bbox): ZoneMapItem[] {
   return zones.filter((z) => {
     // bbox теста — пересекает ли любая вершина зоны прямоугольник.
     const ring = z.geometry.coordinates[0];
-    return ring.some(
-      ([lon, lat]) => lon >= bbox.w && lon <= bbox.e && lat >= bbox.s && lat <= bbox.n,
-    );
+    if (!ring) return false;
+    return ring.some((pair) => {
+      const lon = pair[0];
+      const lat = pair[1];
+      if (lon === undefined || lat === undefined) return false;
+      return lon >= bbox.w && lon <= bbox.e && lat >= bbox.s && lat <= bbox.n;
+    });
   });
 }
 
@@ -222,10 +226,11 @@ export function toFullZone(map: ZoneMapItem, idx = 0): Zone {
 // Центроид зоны (для маршрутизации).
 export function zoneCentroid(z: ZoneMapItem): [number, number] {
   const ring = z.geometry.coordinates[0];
+  if (!ring || ring.length === 0) return [0, 0];
   // Без последней (замыкающей) точки.
   const points = ring.slice(0, -1);
   const sum = points.reduce<[number, number]>(
-    (acc, [lon, lat]) => [acc[0] + lon, acc[1] + lat],
+    (acc, pair) => [acc[0] + (pair[0] ?? 0), acc[1] + (pair[1] ?? 0)],
     [0, 0],
   );
   return [sum[0] / points.length, sum[1] / points.length];

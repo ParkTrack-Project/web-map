@@ -24,6 +24,7 @@ import { useFilters, useFilteredCandidates } from '@/features/filter-zones';
 import { useRoutingSearch } from '@/entities/zone';
 import { Spinner } from '@/shared/ui';
 import { useIsMobile } from '@/shared/lib/responsive';
+import { useVisualViewportHeight } from '@/shared/lib/dom';
 import { useRoutingSearchBody } from '../model/useRoutingSearchBody';
 import { useAutoSelectBestVariant } from '../model/useAutoSelectBestVariant';
 import { ResultsList } from './ResultsList';
@@ -38,6 +39,10 @@ interface MobileResultsSheetProps {
 }
 
 export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResultsSheetProps) {
+  // Phase 5 D-03: keyboard-aware. ResultsList не имеет input'ов, но ResultItem'ы
+  // с длинным title могут переехать под keyboard если pop'ится из soft-keyboard
+  // event (например, user открыл sheet поверх focused MobileSearchBar).
+  useVisualViewportHeight();
   const body = useRoutingSearchBody();
   const { from, clearFromCoords } = useFromCoords();
   const { dest, clearDestination } = useDestination();
@@ -83,6 +88,7 @@ export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResul
           className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[95dvh] flex-col rounded-t-2xl bg-white outline-none lg:hidden"
           aria-describedby={undefined}
           data-testid="mobile-results-sheet"
+          style={{ maxHeight: 'calc(var(--keyboard-aware-height, 100dvh) - 80px)' }}
         >
           <Drawer.Title className="sr-only">Результаты поиска парковок</Drawer.Title>
           <div className="mx-auto my-2 h-1.5 w-12 rounded-full bg-zinc-300" aria-hidden />

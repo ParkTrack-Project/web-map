@@ -110,8 +110,15 @@ function rankCandidates(body: RoutingSearchBody): {
   candidates: RouteCandidatePayload[];
   total: number;
 } {
-  // 1. Apply server-side filters (analogous /zones)
-  const filterParams: MockFilterParams = {};
+  // 1. Apply server-side filters (analogous /zones).
+  // Phase 5 hot-fix: ranking ВСЕГДА исключает inactive + private — server design
+  // assumption per applyClientCandidateFilters comment («RouteCandidate не имеет
+  // is_active — server возвращает только active»). Без этого user может тапнуть
+  // парковку из ranked-списка → ZoneCard показывает «Зона неактивна в этот период».
+  const filterParams: MockFilterParams = {
+    is_active: true,
+    include_private: false,
+  };
   if (body.min_free_count !== undefined) filterParams.min_free_count = body.min_free_count;
   if (body.min_confidence !== undefined) filterParams.min_confidence = body.min_confidence;
   if (body.max_pay !== undefined) filterParams.max_pay = body.max_pay;
@@ -195,9 +202,10 @@ function buildRoute(body: RoutingSearchBody & { selected_zone_id?: number }): Ro
   const arrival_time = new Date(Date.now() + eta_seconds * 1000).toISOString();
   const created_at = new Date().toISOString();
   const route_id = ++nextRouteId;
-  const firstRing = selected.geometry.coordinates[0];
-  const latTo = firstRing[0][1];
-  const lonTo = firstRing[0][0];
+  const firstRing = selected.geometry.coordinates[0]!;
+  const firstPoint = firstRing[0]!;
+  const latTo = firstPoint[1]!;
+  const lonTo = firstPoint[0]!;
   const deeplink_url = `yandexnavi://build_route_on_map?lat_to=${latTo}&lon_to=${lonTo}&lat_from=${body.origin.latitude}&lon_from=${body.origin.longitude}`;
   return {
     route_id,
@@ -334,7 +342,7 @@ export const handlers = [
         return HttpResponse.json({ error_description: 'Zone not found' }, { status: 404 });
       }
       const idx = ZONES.indexOf(z);
-      const skewed = generateOccupancyZoneSnapshot([z], new Date(at))[0];
+      const skewed = generateOccupancyZoneSnapshot([z], new Date(at))[0]!;
       const fullBase = toFullZone(z, idx);
       return HttpResponse.json({
         ...fullBase,
@@ -425,7 +433,7 @@ export const handlers = [
         return HttpResponse.json({ error_description: 'Zone not found' }, { status: 404 });
       }
       const idx = ZONES.indexOf(z);
-      const skewed = generateForecastZoneSnapshot([z], new Date(at))[0];
+      const skewed = generateForecastZoneSnapshot([z], new Date(at))[0]!;
       const fullBase = toFullZone(z, idx);
       return HttpResponse.json({
         ...fullBase,

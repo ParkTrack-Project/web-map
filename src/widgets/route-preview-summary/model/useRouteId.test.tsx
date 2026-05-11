@@ -8,7 +8,7 @@ import { useRouteId } from './useRouteId';
 
 function wrap(searchParams: string, onUrlUpdate?: (s: { queryString: string }) => void) {
   return ({ children }: { children: ReactNode }) => (
-    <NuqsTestingAdapter searchParams={searchParams} onUrlUpdate={onUrlUpdate}>
+    <NuqsTestingAdapter searchParams={searchParams} {...(onUrlUpdate ? { onUrlUpdate } : {})}>
       {children}
     </NuqsTestingAdapter>
   );

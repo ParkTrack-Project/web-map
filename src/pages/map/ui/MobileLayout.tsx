@@ -48,6 +48,18 @@ export function MobileLayout() {
     }
   }, [selectedZoneId, resultsSheetOpen]);
 
+  // Phase 5 D-05 (RESP-07): map controls сдвигаются выше любого открытого
+  // bottom-sheet'а. Single-snap [0.92] (CO-02) → 92vh + 20px gap.
+  // ZoneCard sheet mutually exclusive с ResultsSheet (Phase 4 CO-02), но
+  // отдельно учитываем selectedZoneId — MobileZoneCard монтируется напрямую.
+  useEffect(() => {
+    const SHEET_SNAP_VH = 0.92;
+    const anySheetOpen =
+      filtersOpen || timeSheetOpen || resultsSheetOpen || selectedZoneId !== null;
+    const offset = anySheetOpen ? `calc(${SHEET_SNAP_VH * 100}vh + 20px)` : '20px';
+    document.documentElement.style.setProperty('--bottom-sheet-offset', offset);
+  }, [filtersOpen, timeSheetOpen, resultsSheetOpen, selectedZoneId]);
+
   // D-12 «Указать вручную» → focus search-input.
   const handleManualEntry = () => {
     const input = document.querySelector<HTMLInputElement>('input[role="searchbox"]');
@@ -55,7 +67,7 @@ export function MobileLayout() {
   };
 
   return (
-    <div className="relative flex h-screen w-screen flex-col lg:hidden">
+    <div className="relative flex h-dvh w-screen flex-col lg:hidden">
       <div className="relative flex-1 overflow-hidden">
         <MapErrorBoundary>
           <Suspense fallback={<MapSkeleton />}>

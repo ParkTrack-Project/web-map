@@ -85,7 +85,7 @@ export const parseAsTimeMode = createParser<TimeMode>({
     // Legacy backward-compat: silently strip past:/future: prefix.
     // Новые ссылки используют чистый ISO; старые расшаренные URL продолжают работать.
     const legacyMatch = v.match(/^(past|future):(.+)$/);
-    const iso = legacyMatch ? legacyMatch[2] : v;
+    const iso = legacyMatch ? (legacyMatch[2] ?? v) : v;
 
     if (!ISO_RE.test(iso) || Number.isNaN(Date.parse(iso))) {
       if (typeof window !== 'undefined') console.warn('[url] invalid t param:', v);
@@ -121,7 +121,13 @@ export const parseAsCoords = createParser<[number, number]>({
       if (typeof window !== 'undefined') console.warn('[url] invalid coords:', v);
       return null;
     }
-    const [lat, lon] = v.split(',').map(Number);
+    const [latRaw, lonRaw] = v.split(',').map(Number);
+    if (latRaw === undefined || lonRaw === undefined) {
+      if (typeof window !== 'undefined') console.warn('[url] invalid coords:', v);
+      return null;
+    }
+    const lat = latRaw;
+    const lon = lonRaw;
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
       if (typeof window !== 'undefined') console.warn('[url] invalid coords:', v);
       return null;
