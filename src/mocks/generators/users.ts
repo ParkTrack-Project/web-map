@@ -1,14 +1,4 @@
-// Mock-пользователь для /auth/me и /users/me. Форма соответствует
-// docs-website/docs/api/auth.mdx §1.7 и users.mdx §2.4.
-export interface MockAuthMe {
-  user_id: number;
-  email: string;
-  full_name: string | null;
-  global_roles: string[];
-  permissions: string[];
-  partner_memberships: never[];
-}
-
+// Mock-пользователь для /users/me. Форма соответствует docs-website/docs/api/users.mdx §2.4.
 export interface MockUserProfile {
   user: {
     user_id: number;
@@ -22,25 +12,6 @@ export interface MockUserProfile {
     updated_at: string;
   };
   partner_memberships: never[];
-}
-
-export function generateMockAuthMe(): MockAuthMe {
-  return {
-    user_id: 1,
-    email: 'test@parktrack.live',
-    full_name: 'Тестовый пользователь',
-    global_roles: ['user'],
-    permissions: [
-      'users.me.view',
-      'users.me.update',
-      'map.view',
-      'zones.view',
-      'occupancy.view',
-      'forecasts.view',
-      'routing.create',
-    ],
-    partner_memberships: [],
-  };
 }
 
 export function generateMockUserProfile(): MockUserProfile {

@@ -5,7 +5,7 @@ Tick each step that PASSES on the device. Note failures with screenshot/log refe
 
 ## Pre-test setup
 
-- Build deployed to staging.parktrack.live OR Vercel/Netlify preview URL with `VITE_AUTH_MODE=mock` `VITE_API_MODE=mock`
+- Build deployed to staging.parktrack.live OR Vercel/Netlify preview URL with `VITE_API_MODE=mock`
 - Build deployed second time with `VITE_API_MODE=real` for INTEG-04 verification (after Никита confirms endpoint availability)
 
 ## Flows (10 steps)

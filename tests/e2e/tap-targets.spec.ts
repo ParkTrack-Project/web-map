@@ -20,8 +20,8 @@ test.describe('RESP-06: tap targets >= 44x44 on mobile', () => {
   test('all buttons and links meet WCAG 2.5.5 minimum size', async ({ page }) => {
     await page.goto('/').catch(() => {});
 
-    // FiltersFAB — sibling MapCanvas Suspense, должен монтироваться сразу после
-    // AuthReady (~500мс mock). Если за 10с ничего → ymaps3 CDN broke page.
+    // FiltersFAB — sibling MapCanvas Suspense, должен смонтироваться быстро.
+    // Если за 10с ничего → ymaps3 CDN broke page.
     const fabFound = await page
       .waitForSelector('button[aria-label*="Открыть фильтры"]', { timeout: 10_000 })
       .catch(() => null);

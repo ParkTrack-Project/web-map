@@ -37,14 +37,17 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
   const handleClick = () => {
     onClick?.(c);
     setSelectedZone(c.zone_id);
+    console.log('[results] handleClick mapRef=', mapRef, 'current=', mapRef?.current);
     if (mapRef?.current) {
-      // W-4 fix: minimal-shape принимается напрямую (centroid.ts: { type:'Polygon'; coordinates }).
       const center = zoneCentroid(c.geometry);
+      console.log('[results] calling setLocation center=', center, 'zoom=17');
       try {
-        mapRef.current.setLocation({ center, duration: 300 });
+        mapRef.current.setLocation({ center, zoom: 17, duration: 300 });
       } catch (e) {
         console.warn('[results] pan failed', e);
       }
+    } else {
+      console.warn('[results] mapRef is null or current is null — zoom skipped');
     }
   };
 
@@ -88,7 +91,7 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
       )}
       <div className="flex items-center gap-1 text-xs text-zinc-600">
         <MapPin size={12} aria-hidden />
-        {c.distance_from_origin_meters} м ({distanceMin} {minutePlural} пешком)
+        {c.distance_from_origin_meters} м ({distanceMin} {minutePlural} на машине)
       </div>
       {c.distance_to_destination_meters !== null && (
         <div className="flex items-center gap-1 text-xs text-zinc-600">
