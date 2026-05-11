@@ -8,7 +8,7 @@
  * primitives, Tailwind theme через @theme в index.css, inline styles в widgets)
  * автоматически подхватят. Когда Misha published `@parktrack/ui-kit`:
  *   1. Заменить эти значения на re-export из ui-kit
- *   2. Заменить shared/ui/Toast,Banner,StubHeader → импорт из ui-kit
+ *   2. Заменить shared/ui/Toast,Banner → импорт из ui-kit
  *   3. Готово — no cascading rewrites в widgets/features.
  *
  * Tailwind 4 native: `index.css` содержит соответствующий @theme directive,

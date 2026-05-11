@@ -1,9 +1,8 @@
 // MSW handlers для всех endpoint'ов Phase 1-4.
 // baseUrl берётся из env.VITE_API_BASE_URL (axios с adapter:'fetch' эмитит абсолютные URL).
-// /auth/me с задержкой 500мс в DEV — подсвечивает race-condition (Pitfall #7).
-import { http, HttpResponse, delay } from 'msw';
+import { http, HttpResponse } from 'msw';
 import { env, MAX_PAST_DAYS, MAX_FUTURE_HOURS } from '@/shared/config';
-import { generateMockAuthMe, generateMockUserProfile } from './generators/users';
+import { generateMockUserProfile } from './generators/users';
 import {
   generateMockZones,
   parseBbox,
@@ -153,9 +152,14 @@ function rankCandidates(body: RoutingSearchBody): {
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
 
+  // Городская средняя скорость на машине ~30 км/ч = 8.33 м/с — используется для
+  // duration_from_origin_seconds / duration_to_destination_seconds в mock.
+  const DRIVE_SPEED_MPS = 8.33;
   const candidates = ranked.map<RouteCandidatePayload>(
     ({ z, idx, score, distFromOrigin, distToDest }, rankIdx) => {
-      const arrivalDate = useForecast ? new Date(Date.now() + (distFromOrigin / 6) * 1000) : null;
+      const arrivalDate = useForecast
+        ? new Date(Date.now() + (distFromOrigin / DRIVE_SPEED_MPS) * 1000)
+        : null;
       return {
         zone_id: z.zone_id,
         camera_id: idx + 1,
@@ -180,9 +184,10 @@ function rankCandidates(body: RoutingSearchBody): {
           : null,
         forecast_confidence: useForecast ? Math.max(0, z.confidence - 0.15) : null,
         distance_from_origin_meters: Math.round(distFromOrigin),
-        duration_from_origin_seconds: Math.round(distFromOrigin / 6),
+        duration_from_origin_seconds: Math.round(distFromOrigin / DRIVE_SPEED_MPS),
         distance_to_destination_meters: distToDest != null ? Math.round(distToDest) : null,
-        duration_to_destination_seconds: distToDest != null ? Math.round(distToDest / 6) : null,
+        duration_to_destination_seconds:
+          distToDest != null ? Math.round(distToDest / DRIVE_SPEED_MPS) : null,
         score,
         rank: rankIdx + 1,
       };
@@ -227,12 +232,6 @@ function buildRoute(body: RoutingSearchBody & { selected_zone_id?: number }): Ro
 }
 
 export const handlers = [
-  // ---- Auth ----
-  http.get(`${baseUrl}/auth/me`, async () => {
-    if (import.meta.env.DEV) await delay(500);
-    return HttpResponse.json(generateMockAuthMe());
-  }),
-
   // ---- Users ----
   http.get(`${baseUrl}/users/me`, () => {
     return HttpResponse.json(generateMockUserProfile());

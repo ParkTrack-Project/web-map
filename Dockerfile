@@ -16,10 +16,10 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 ARG VITE_YMAP_KEY
 ENV VITE_YMAP_KEY=$VITE_YMAP_KEY
 
-# Auth mode: 'mock' включает MSW worker в prod-build для demo/staging без реального api-server.
-# Для real-API integration пробросить 'shared' (или не пробрасывать — MSW отключён).
-ARG VITE_AUTH_MODE=mock
-ENV VITE_AUTH_MODE=$VITE_AUTH_MODE
+# API mode: 'mock' включает MSW worker в prod-build для demo/staging без реального api-server.
+# Для real-API integration пробросить 'real'.
+ARG VITE_API_MODE=mock
+ENV VITE_API_MODE=$VITE_API_MODE
 
 RUN npm run build
 

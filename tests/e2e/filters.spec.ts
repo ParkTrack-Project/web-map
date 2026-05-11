@@ -15,7 +15,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Phase 2 filters — URL serialization (FILTER-12)', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    // AuthReady ~500мс + FiltersToolbar mount
+    // ждём mount FiltersToolbar
     await expect(page.getByRole('toolbar', { name: 'Фильтры парковок' })).toBeVisible({
       timeout: 10_000,
     });
