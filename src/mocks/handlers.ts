@@ -197,10 +197,13 @@ function rankCandidates(body: RoutingSearchBody): {
 }
 
 function buildRoute(body: RoutingSearchBody & { selected_zone_id?: number }): RouteRecord | null {
+  // Ищем по всем зонам без лимита, чтобы selected_zone_id мог быть любой зоной,
+  // а не только из топ-20 кандидатов поиска.
   const { candidates } = rankCandidates(body);
+  const { candidates: allCandidates } = rankCandidates({ ...body, limit: ZONES.length });
   const selected =
     body.selected_zone_id !== undefined
-      ? (candidates.find((c) => c.zone_id === body.selected_zone_id) ?? candidates[0])
+      ? (allCandidates.find((c) => c.zone_id === body.selected_zone_id) ?? candidates[0])
       : candidates[0];
   if (!selected) return null;
   const eta_seconds = selected.duration_from_origin_seconds;

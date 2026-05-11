@@ -2,14 +2,14 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router';
 import { AppProviders } from '@/app/providers';
+import { AuthGuard } from '@/app/providers/AuthGuard';
 import { MapPage } from '@/pages/map';
+import { LoginPage } from '@/pages/login';
 import '@/index.css';
 
 // VITE_API_MODE controls MSW registration.
-// - 'mock' (default in DEV/test/staging without real backend) → MSW handles
-//   /zones, /occupancy, /forecasts, /routing/*
-// - 'real' (production or staging-with-real-backend) → MSW skipped, requests hit
-//   env.VITE_API_BASE_URL (api.parktrack.live)
+// - 'mock' (default в DEV/test/staging without real backend) → MSW handles all API
+// - 'real' (production or staging-with-real-backend) → MSW skipped, requests hit VITE_API_BASE_URL
 async function enableMocking() {
   const apiMode = import.meta.env.VITE_API_MODE ?? 'mock';
   const shouldMock = apiMode === 'mock' || (import.meta.env.DEV && !import.meta.env.VITE_API_MODE);
@@ -27,8 +27,23 @@ enableMocking().then(() => {
       <BrowserRouter>
         <AppProviders>
           <Routes>
-            <Route path="/map" element={<MapPage />} />
-            <Route path="/" element={<MapPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/"
+              element={
+                <AuthGuard>
+                  <MapPage />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/map"
+              element={
+                <AuthGuard>
+                  <MapPage />
+                </AuthGuard>
+              }
+            />
           </Routes>
         </AppProviders>
       </BrowserRouter>
