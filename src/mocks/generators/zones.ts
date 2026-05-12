@@ -101,9 +101,9 @@ export function generateMockZones(opts: GenerateMockZonesOptions = {}): ZoneMapI
     const cLon = centerLon + dxMeters * LON_PER_M;
     const cLat = centerLat + dyMeters * LAT_PER_M;
 
-    // Прямоугольник 10-30м × 5-15м
-    const halfW = (5 + rnd() * 10) * LON_PER_M;
-    const halfH = (2.5 + rnd() * 5) * LAT_PER_M;
+    // Прямоугольник 30-90м × 15-45м (300% от базового 10-30м × 5-15м)
+    const halfW = (5 + rnd() * 10) * LON_PER_M * 3;
+    const halfH = (2.5 + rnd() * 5) * LAT_PER_M * 3;
     const ring: number[][] = [
       [cLon - halfW, cLat - halfH],
       [cLon + halfW, cLat - halfH],

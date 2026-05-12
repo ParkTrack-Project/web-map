@@ -15,8 +15,10 @@
 // CO-03: DestPromptBanner монтируется ниже flex-row, появляется только
 // при ?dest && !?from (никакого UI «всегда видим»).
 import { lazy, Suspense, useRef } from 'react';
+import type { YMap as YMapInstance } from '@yandex/ymaps3-types';
 import { MapErrorBoundary } from '@/app/errors';
 import { MapSkeleton } from '@/widgets/map-canvas/ui/MapSkeleton';
+import { MapRefContext } from '@/widgets/map-canvas';
 import { DesktopFiltersPopover } from '@/widgets/filters-bar';
 import { Legend } from '@/widgets/legend';
 import { ZoneCard } from '@/widgets/zone-card';
@@ -33,6 +35,7 @@ const MapCanvas = lazy(() =>
 );
 
 export function DesktopLayout() {
+  const mapRef = useRef<YMapInstance | null>(null);
   // D-12 «Указать вручную» → focus search-input (передаётся через WTPCTAButton.onManualEntry).
   const searchAnchorRef = useRef<HTMLDivElement>(null);
   const handleManualEntry = () => {
@@ -42,11 +45,12 @@ export function DesktopLayout() {
   };
 
   return (
+    <MapRefContext.Provider value={mapRef}>
     <div className="hidden h-dvh w-screen flex-col lg:flex">
       <div className="relative flex-1 overflow-hidden">
         <MapErrorBoundary>
           <Suspense fallback={<MapSkeleton />}>
-            <MapCanvas />
+            <MapCanvas mapRef={mapRef} />
           </Suspense>
         </MapErrorBoundary>
         {/* Phase 4 / CO-01: единый flex-row для TimeSelector + WTP + Search + Filters.
@@ -73,5 +77,6 @@ export function DesktopLayout() {
         <FitToRouteButton />
       </div>
     </div>
+    </MapRefContext.Provider>
   );
 }
