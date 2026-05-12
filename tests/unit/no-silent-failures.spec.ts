@@ -1,5 +1,4 @@
 // Phase 5 D-21 (UX-05): every useQuery/useMutation must have onError or throwOnError.
-// Auth queries are whitelisted (handled by AuthListener via 401 interceptor).
 import { describe, expect, it } from 'vitest';
 import { Project, SyntaxKind, type CallExpression } from 'ts-morph';
 
@@ -56,7 +55,6 @@ describe('No silent failures (D-21)', () => {
     const missing = calls.filter((c) => !c.hasError);
 
     // Whitelist — queries that intentionally don't raise/handle errors:
-    // - auth adapters: errors handled centrally by AuthListener (parktrack:unauthorized event)
     // - useAddressSuggest: error прокидывается через query.error в caller widget (toast там)
     // - useResolveCoordinates: mutation.error прокидывается, обрабатывается в caller
     // - useZonesQuery / useZoneByIdQuery: throw'ит TimeModeUnavailableError synchronous,
@@ -64,10 +62,8 @@ describe('No silent failures (D-21)', () => {
     // - useRoutingSearch / useRouteByIdQuery: error прокидывается в DesktopResultsPanel
     //   (refetch button) и RoutePreviewLayer (silent fallback on parse fail)
     // - useCreateRouteMutation: caller (ZoneCard) wraps в try/catch + toast
-    // - useUserProfile: useAuth integration; errors handled by AuthListener
+    // - useUserProfile: профиль из /users/me; not wired в UI, error безмолвный
     const allowlist: RegExp[] = [
-      /auth[\\/]mock-adapter\.ts$/,
-      /auth[\\/]shared-adapter\.ts$/,
       /entities[\\/]user[\\/]queries[\\/]user\.queries\.ts$/,
       /entities[\\/]zone[\\/]queries[\\/]zone\.queries\.ts$/,
       /entities[\\/]zone[\\/]queries[\\/]routing\.queries\.ts$/,
