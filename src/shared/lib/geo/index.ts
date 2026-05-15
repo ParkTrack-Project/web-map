@@ -3,6 +3,8 @@ export {
   bboxFromBounds,
   bboxToString,
   bboxFromString,
+  centerFromBbox,
+  bboxFromCenterZoom,
   type Bbox,
   type MapBounds,
 } from './bbox';

@@ -22,7 +22,10 @@ import { X, Lock, Accessibility, Car, MapPin, Navigation } from 'lucide-react';
 import { useSelectedZone } from '@/features/select-zone';
 import { useTimeMode } from '@/features/select-time-mode';
 import { useZoneByIdQuery, useCreateRouteMutation, type Zone } from '@/entities/zone';
-import { useRoutingSearchBody } from '@/widgets/results-panel';
+import { buildRoutingBody } from '@/widgets/results-panel';
+import { useFromCoords, useGeolocationRequest } from '@/features/request-geolocation';
+import { useDestination } from '@/features/address-search';
+import { useFilters } from '@/features/filter-zones';
 import { useRouteId, RouteSummaryCard } from '@/widgets/route-preview-summary';
 import { pluralizeRu, formatRelativeRu } from '@/shared/lib/i18n';
 import { Spinner } from '@/shared/ui';
@@ -179,25 +182,45 @@ function ZoneCardBody({ zone }: { zone: Zone }) {
 }
 
 /**
- * Phase 4 / D-27 / ROUTE-01:
- * Wires [Построить маршрут] → useCreateRouteMutation → setRouteId → RouteSummaryCard.
- * - body берётся из useRoutingSearchBody (composes ?from + ?dest + filters + timeMode)
- *   и расширяется selected_zone_id (текущая зона из карточки).
- * - canBuildRoute: body !== null (т.е. есть ?from). Без ?from — prompt с инструкцией.
- * - errorMsg: D-46 «Не удалось построить маршрут» + [Повторить].
- * - После success: routeId set → render RouteSummaryCard, скрываем кнопку.
+ * Phase 4 / D-27 / ROUTE-01 + Quick-fix 2026-05-16 (п.6):
+ * Кнопка [Построить маршрут] теперь ВСЕГДА активна. Раньше она была disabled
+ * без ?from (требовала заранее нажать «Где припарковаться?»). Теперь по клику:
+ *  - если ?from уже есть — строим маршрут сразу;
+ *  - если нет — запрашиваем геолокацию прямо здесь, пишем ?from и строим
+ *    маршрут от текущего местоположения до этой парковки.
+ * body собираем чистым buildRoutingBody с только что полученными координатами
+ * (внутри handler'а обновлённый useRoutingSearchBody прочитать нельзя).
+ * После success: routeId set → render RouteSummaryCard (с deeplink в навигатор).
  */
 function BuildRouteSection({ zoneId }: { zoneId: number }) {
-  const body = useRoutingSearchBody();
+  const { from, setFromCoords } = useFromCoords();
+  const { dest } = useDestination();
+  const { filters } = useFilters();
+  const { mode } = useTimeMode();
+  const geo = useGeolocationRequest();
   const { setRouteId, routeId } = useRouteId();
   const createRoute = useCreateRouteMutation();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const canBuildRoute = body !== null;
+  const busy = createRoute.isPending || geo.state.status === 'requesting';
+  // geo.state.error реактивно показывает точную причину (отказ/таймаут) после
+  // неудачного request() — читать его синхронно в handler ненадёжно (setState async).
+  const shownError = errorMsg ?? geo.state.error;
 
   const handleBuildRoute = async () => {
-    if (!body) return;
     setErrorMsg(null);
+    let origin = from;
+    if (!origin) {
+      const coords = await geo.request(); // [lat, lon] | null
+      if (!coords) return; // geo.state.error выставлен → отрисуется реактивно
+      setFromCoords(coords); // пишем ?from для будущих построений/деплинков
+      origin = coords;
+    }
+    const body = buildRoutingBody({ from: origin, dest, filters, mode });
+    if (!body) {
+      setErrorMsg('Не удалось построить маршрут');
+      return;
+    }
     try {
       const route = await createRoute.mutateAsync({
         body: { ...body, selected_zone_id: zoneId },
@@ -215,25 +238,19 @@ function BuildRouteSection({ zoneId }: { zoneId: number }) {
 
   return (
     <>
-      {!canBuildRoute && (
-        <p className="text-xs text-zinc-500">
-          Чтобы построить маршрут, укажите стартовую точку: нажмите [Где припарковаться?] или
-          введите адрес.
-        </p>
-      )}
       <button
         type="button"
-        disabled={!canBuildRoute || createRoute.isPending}
+        disabled={busy}
         onClick={handleBuildRoute}
         className="mt-2 inline-flex items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 py-2 font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
         data-testid="build-route-button"
       >
-        {createRoute.isPending ? <Spinner /> : <Navigation size={16} aria-hidden />}
-        Построить маршрут
+        {busy ? <Spinner /> : <Navigation size={16} aria-hidden />}
+        {geo.state.status === 'requesting' ? 'Определяем геолокацию…' : 'Построить маршрут'}
       </button>
-      {errorMsg && (
+      {shownError && (
         <p role="alert" className="text-sm text-red-700">
-          {errorMsg}{' '}
+          {shownError}{' '}
           <button onClick={handleBuildRoute} className="underline">
             Повторить
           </button>
