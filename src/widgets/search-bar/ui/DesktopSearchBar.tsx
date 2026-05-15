@@ -28,6 +28,7 @@ export function DesktopSearchBar() {
   const { closeCard } = useSelectedZone();
   const mapRef = useContext(MapRefContext);
   const inputRef = useRef<HTMLInputElement>(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
 
   // D-07: 4 одновременных side-effects ВНУТРИ одного handler — НЕ через useEffect chains.
@@ -51,12 +52,12 @@ export function DesktopSearchBar() {
   };
 
   return (
-    <Popover.Root
-      open={open && (results.length > 0 || isFetching || !!error || text.length === 0)}
-      onOpenChange={setOpen}
-    >
+    // Fix 2026-05-16: open был завязан на наличие results → во время 300ms
+    // debounce popover схлопывался («появляется и сразу пропадает»). Теперь
+    // открыт пока инпут в фокусе; контент сам показывает loading/подсказки/ошибку.
+    <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Anchor asChild>
-        <div className="relative flex items-center">
+        <div ref={anchorRef} className="relative flex items-center">
           <Search size={14} aria-hidden className="absolute left-3 text-zinc-400" />
           <input
             ref={inputRef}
@@ -67,7 +68,7 @@ export function DesktopSearchBar() {
             value={text}
             onChange={(e) => setText(e.target.value)}
             onFocus={() => setOpen(true)}
-            className="h-9 w-[360px] rounded-full border border-zinc-200 bg-white pr-9 pl-9 text-sm shadow-sm focus:w-[480px] focus:border-emerald-300 focus:ring-1 focus:ring-emerald-200 focus:outline-none"
+            className="h-9 w-[420px] rounded-full border border-zinc-200 bg-white pr-9 pl-9 text-sm shadow-sm focus:border-emerald-300 focus:ring-1 focus:ring-emerald-200 focus:outline-none"
             autoComplete="off"
           />
           {text && (
@@ -89,6 +90,15 @@ export function DesktopSearchBar() {
         align="start"
         sideOffset={4}
         onOpenAutoFocus={(e) => e.preventDefault()}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+        // Fix 2026-05-16: инпут лежит в Anchor (вне Content) и Trigger'а нет,
+        // поэтому Radix считал клик/фокус в поле «interact outside» и закрывал
+        // popover — гонка с onFocus давала «список через раз». Исключаем сам
+        // блок поиска из outside-закрытия; клики реально снаружи закрывают как и были.
+        onInteractOutside={(e) => {
+          const t = e.detail.originalEvent.target as Node | null;
+          if (t && anchorRef.current?.contains(t)) e.preventDefault();
+        }}
         className="z-50 w-[480px] rounded-xl border border-zinc-200 bg-white shadow-md outline-none"
       >
         {(isFetching || isResolving) && (

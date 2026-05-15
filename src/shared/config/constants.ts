@@ -10,6 +10,13 @@ export const BBOX_ROUND_DECIMALS = 5;
 // карту в шум; сами полигоны зон остаются видимы.
 export const ZONE_BADGE_MIN_ZOOM = 14;
 
+// Quick-fix 2026-05-16 (п.7): ниже этого зума зоны схлопываются в кластеры —
+// агрегированные цветные кружки со счётчиком свободных мест, чтобы обзорная
+// карта не превращалась в кашу из ~200 крошечных полигонов. >= порога —
+// обычные полигоны + бейджи. Совпадает с ZONE_BADGE_MIN_ZOOM: единая граница
+// «детально / обзорно».
+export const CLUSTER_ZOOM_THRESHOLD = 14;
+
 // D-11 (Phase 2): namespace для sessionStorage-ключей фильтров. Версионирование
 // «v1» позволяет bump'нуть до v2 при schema-bump (Phase 3+) без collision'ов.
 export const FILTER_STORAGE_PREFIX = 'parktrack:f:v1:';
