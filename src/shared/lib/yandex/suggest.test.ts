@@ -1,81 +1,64 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { suggestAddresses, SuggestApiError, SuggestRateLimitedError } from './suggest';
+// Quick-fix 2026-05-16 (п.4): suggestAddresses теперь поверх ymaps3.search
+// (JS-API), а не HTTP suggest-maps. @/shared/lib/ymaps глобально замокан в
+// tests/setup.ts (searchGeo: vi.fn) — переопределяем per-case.
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { searchGeo } from '@/shared/lib/ymaps';
+import { suggestAddresses, SuggestApiError } from './suggest';
 
-describe('suggestAddresses (D-01 research override — HTTP API)', () => {
-  let fetchSpy: ReturnType<typeof vi.spyOn>;
+const mockedSearchGeo = vi.mocked(searchGeo);
+
+describe('suggestAddresses (Quick-fix п.4 — ymaps3.search JS-API)', () => {
   beforeEach(() => {
-    fetchSpy = vi.spyOn(globalThis, 'fetch');
-  });
-  afterEach(() => {
-    fetchSpy.mockRestore();
+    mockedSearchGeo.mockReset();
+    mockedSearchGeo.mockResolvedValue([]);
   });
 
-  it('returns [] for empty string без fetch', async () => {
+  it('returns [] for empty string без вызова searchGeo', async () => {
     const ctrl = new AbortController();
     await expect(suggestAddresses('', ctrl.signal)).resolves.toEqual([]);
-    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(mockedSearchGeo).not.toHaveBeenCalled();
   });
 
   it('returns [] для query length < SUGGEST_MIN_QUERY_LENGTH', async () => {
     const ctrl = new AbortController();
     await expect(suggestAddresses('К', ctrl.signal)).resolves.toEqual([]);
-    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(mockedSearchGeo).not.toHaveBeenCalled();
   });
 
-  it('hits suggest endpoint с правильными query params', async () => {
-    fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({ results: [] }), { status: 200 }));
+  it('маппит hits searchGeo → SuggestResult (title/subtitle/uri/coords)', async () => {
+    mockedSearchGeo.mockResolvedValueOnce([
+      { title: 'Кронверкский пр.', subtitle: 'Санкт-Петербург', coords: [59.95598, 30.30943] },
+    ]);
     const ctrl = new AbortController();
-    await suggestAddresses('Кронверкский', ctrl.signal);
-    const callUrl = fetchSpy.mock.calls[0][0] as string;
-    expect(callUrl).toContain('suggest-maps.yandex.ru/v1/suggest');
-    expect(callUrl).toContain('apikey=');
-    expect(callUrl).toContain(
-      'text=%D0%9A%D1%80%D0%BE%D0%BD%D0%B2%D0%B5%D1%80%D0%BA%D1%81%D0%BA%D0%B8%D0%B9',
-    );
-    expect(callUrl).toContain('lang=ru_RU');
-    expect(callUrl).toContain('print_address=1');
-    expect(callUrl).toContain('results=7');
-  });
-
-  it('возвращает results массив из response', async () => {
-    const fakeResults = [
+    const out = await suggestAddresses('Кронверкский', ctrl.signal);
+    expect(mockedSearchGeo).toHaveBeenCalledWith('Кронверкский');
+    expect(out).toEqual([
       {
         title: { text: 'Кронверкский пр.' },
         subtitle: { text: 'Санкт-Петербург' },
-        uri: 'ymapsbm1://geo?...',
+        uri: 'Кронверкский пр.',
+        coords: [59.95598, 30.30943],
       },
-    ];
-    fetchSpy.mockResolvedValueOnce(
-      new Response(JSON.stringify({ results: fakeResults }), { status: 200 }),
-    );
-    const ctrl = new AbortController();
-    const out = await suggestAddresses('Кронверкский', ctrl.signal);
-    expect(out).toEqual(fakeResults);
+    ]);
   });
 
-  it('throws SuggestRateLimitedError on 429', async () => {
-    fetchSpy.mockResolvedValueOnce(new Response('Too Many Requests', { status: 429 }));
+  it('пустой subtitle → поле subtitle отсутствует', async () => {
+    mockedSearchGeo.mockResolvedValueOnce([{ title: 'X', subtitle: '', coords: [1, 2] }]);
     const ctrl = new AbortController();
-    await expect(suggestAddresses('Кронверкский', ctrl.signal)).rejects.toBeInstanceOf(
-      SuggestRateLimitedError,
-    );
+    const out = await suggestAddresses('Кронв', ctrl.signal);
+    expect(out[0]?.subtitle).toBeUndefined();
   });
 
-  it('throws SuggestApiError on non-2xx', async () => {
-    fetchSpy.mockResolvedValueOnce(
-      new Response('Internal', { status: 500, statusText: 'Internal Server Error' }),
-    );
+  it('aborted signal → [] (результаты отбрасываются)', async () => {
+    mockedSearchGeo.mockResolvedValueOnce([{ title: 'X', subtitle: '', coords: [1, 2] }]);
     const ctrl = new AbortController();
-    await expect(suggestAddresses('Кронверкский', ctrl.signal)).rejects.toBeInstanceOf(
-      SuggestApiError,
-    );
+    ctrl.abort();
+    await expect(suggestAddresses('Кронв', ctrl.signal)).resolves.toEqual([]);
   });
 
-  it('передаёт AbortSignal в fetch', async () => {
-    fetchSpy.mockResolvedValueOnce(new Response(JSON.stringify({ results: [] }), { status: 200 }));
+  it('searchGeo throws → SuggestApiError (ошибка видна, не глотается)', async () => {
+    mockedSearchGeo.mockRejectedValueOnce(new Error('403 Forbidden'));
     const ctrl = new AbortController();
-    await suggestAddresses('Кронверкский', ctrl.signal);
-    const opts = fetchSpy.mock.calls[0][1] as RequestInit;
-    expect(opts.signal).toBe(ctrl.signal);
+    await expect(suggestAddresses('Кронв', ctrl.signal)).rejects.toBeInstanceOf(SuggestApiError);
   });
 });

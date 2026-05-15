@@ -22,9 +22,10 @@ import { computeZoneStyle } from '../model/zone-style';
 function ParallelZoneLayerInner() {
   // Phase 2 Plan 03: переключено на useFilteredZones (фильтры применены).
   // useSelectedZone wiring (Plan 02) сохранён.
-  const { data, isPending, isError } = useFilteredZones();
+  const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
-  if (isPending || isError || !data) return null;
+  // Quick-fix 2026-05-16 (п.1): см. ZoneLayer — не гасим на транзиентной ошибке.
+  if (!data) return null;
 
   const parallel = data.filter((z) => z.zone_type === 'parallel');
 

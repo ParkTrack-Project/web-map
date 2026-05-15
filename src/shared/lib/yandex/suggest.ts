@@ -1,8 +1,14 @@
-// Phase 4 / D-01 (research override) / SEARCH-01 / Pitfall 1 + 5:
-// Yandex Geosuggest HTTP API wrapper. NPM package @yandex/ymaps3-suggest НЕ существует
-// (research §"Yandex Suggest API"); используем direct HTTP API.
-// Координаты suggest НЕ возвращает — для резолва вызывать geocodeByUri (geocoder.ts) с suggestion.uri.
-import { env, SUGGEST_MIN_QUERY_LENGTH } from '@/shared/config';
+// Phase 4 / SEARCH-01 + Quick-fix 2026-05-16 (п.4):
+// Раньше — прямой HTTP-вызов suggest-maps.yandex.ru (отдельный платный продукт
+// Yandex; прод-ключ к нему НЕ подключён → 403/пустой ответ → «поиск ничего не
+// находит»). Теперь — через встроенный `ymaps3.search` (JS-API, авторизуется
+// тем же ключом, что грузит карту). Он сразу отдаёт координаты, поэтому
+// отдельный Geocoder-резолв больше не обязателен (coords едут в SuggestResult).
+//
+// Публичный контракт (SuggestResult / классы ошибок) сохранён, чтобы не ломать
+// useAddressSuggest / SuggestionsList / useResolveCoordinates / barrel-реэкспорт.
+import { searchGeo } from '@/shared/lib/ymaps';
+import { SUGGEST_MIN_QUERY_LENGTH } from '@/shared/config';
 
 export interface SuggestResult {
   title: { text: string; hl?: { begin: number; end: number }[] };
@@ -10,52 +16,52 @@ export interface SuggestResult {
   tags?: string[];
   distance?: { text: string; value: number };
   address?: { formatted_address: string };
-  uri?: string; // CRITICAL: для follow-up Geocoder call
-}
-
-interface SuggestApiResponse {
-  results: SuggestResult[];
+  uri?: string; // искомый текст — вход для useResolveCoordinates → geocodeByUri
+  coords?: [number, number]; // [lat, lon] — ymaps3.search отдаёт сразу
 }
 
 export class SuggestApiError extends Error {
   readonly status: number;
   readonly statusText: string;
   constructor(status: number, statusText: string) {
-    super(`Yandex Suggest API ${status}: ${statusText}`);
+    super(`Yandex Search API ${status}: ${statusText}`);
     this.name = 'SuggestApiError';
     this.status = status;
     this.statusText = statusText;
   }
 }
 
+// Сохранён для обратной совместимости barrel-экспорта (HTTP 429 больше не
+// возникает — JS-API сам троттлит). Не выбрасывается, но тип остаётся public.
 export class SuggestRateLimitedError extends Error {
   constructor() {
-    super('Yandex Suggest API rate-limited (HTTP 429)');
+    super('Yandex Search API rate-limited');
     this.name = 'SuggestRateLimitedError';
   }
 }
 
 /**
- * D-01 / SEARCH-01: HTTP Geosuggest API call с AbortSignal.
- * - debounce 300ms — caller responsibility (use-debounce в feature/address-search)
- * - min length 2 — Pitfall 5 (avoid quota burn на single-letter)
- * - на 429 throw'им specific error для toast/auto-retry в feature layer
+ * SEARCH-01: подсказки адресов. debounce 300ms — на стороне caller'а
+ * (use-debounce в feature/address-search). min length 2 — Pitfall 5.
+ * Ошибку НЕ глотаем: пробрасываем SuggestApiError → SuggestionsList покажет
+ * «Яндекс Search недоступен», в консоль уходит реальная причина (диагностика).
  */
 export async function suggestAddresses(
   text: string,
   signal: AbortSignal,
 ): Promise<SuggestResult[]> {
   if (text.trim().length < SUGGEST_MIN_QUERY_LENGTH) return [];
-  const url = new URL('https://suggest-maps.yandex.ru/v1/suggest');
-  url.searchParams.set('apikey', env.VITE_YMAP_KEY);
-  url.searchParams.set('text', text);
-  url.searchParams.set('lang', 'ru_RU');
-  url.searchParams.set('print_address', '1');
-  url.searchParams.set('types', 'geo,biz');
-  url.searchParams.set('results', '7');
-  const res = await fetch(url.toString(), { signal });
-  if (res.status === 429) throw new SuggestRateLimitedError();
-  if (!res.ok) throw new SuggestApiError(res.status, res.statusText);
-  const data = (await res.json()) as SuggestApiResponse;
-  return data.results ?? [];
+  try {
+    const hits = await searchGeo(text);
+    if (signal.aborted) return [];
+    return hits.map((h) => ({
+      title: { text: h.title },
+      ...(h.subtitle ? { subtitle: { text: h.subtitle } } : {}),
+      uri: h.title, // useResolveCoordinates(uri) → geocodeByUri → searchGeo
+      coords: h.coords,
+    }));
+  } catch (e) {
+    console.warn('[search] ymaps3.search failed:', e);
+    throw new SuggestApiError(0, e instanceof Error ? e.message : 'search failed');
+  }
 }
