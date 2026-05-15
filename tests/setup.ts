@@ -18,6 +18,9 @@ vi.mock('@/shared/lib/ymaps', () => ({
   YMapGeolocationControl: () => null,
   reactify: { useDefault: <T>(v: T): T => v },
   useDefault: <T>(v: T): T => v,
+  // Quick-fix 2026-05-16 (п.4): suggest.ts/geocoder.ts теперь импортят searchGeo
+  // из этого barrel'а. Дефолт — пустой результат; тесты переопределяют per-case.
+  searchGeo: vi.fn(async () => []),
 }));
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
