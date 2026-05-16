@@ -60,7 +60,7 @@ describe('No silent failures (D-21)', () => {
     // - useZonesQuery / useZoneByIdQuery: throw'ит TimeModeUnavailableError synchronous,
     //   ZoneStateOverlay показывает it через isError; no per-query handler нужен
     // - useRoutingSearch / useRouteByIdQuery: error прокидывается в DesktopResultsPanel
-    //   (refetch button) и RoutePreviewLayer (silent fallback on parse fail)
+    //   (refetch button); RouteSummaryCard сбрасывает ?route на isError
     // - useCreateRouteMutation: caller (ZoneCard) wraps в try/catch + toast
     // - useUserProfile: профиль из /users/me; not wired в UI, error безмолвный
     const allowlist: RegExp[] = [
