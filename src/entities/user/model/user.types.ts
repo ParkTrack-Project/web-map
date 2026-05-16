@@ -1,9 +1,9 @@
 // Профиль пользователя из GET /users/me (раздел 2.4 docs api/users.mdx).
-// User совпадает по форме с типом из shared/auth/AuthAdapter (id/display_name/email),
-// но UserProfile добавляет поля, специфичные для будущего личного кабинета.
-import type { User } from '@/shared/auth';
-
-export type { User };
+export interface User {
+  id: string;
+  display_name: string;
+  email: string;
+}
 
 export interface PartnerMembership {
   partner_id: number;

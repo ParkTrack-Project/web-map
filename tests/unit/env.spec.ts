@@ -9,7 +9,6 @@ describe('EnvSchema (tests/unit/env.spec.ts)', () => {
   it('parses a well-formed config', () => {
     const r = EnvSchema.parse({
       VITE_YMAP_KEY: 'k',
-      VITE_AUTH_MODE: 'mock',
       VITE_API_BASE_URL: 'https://x.example.com',
     });
     expect(r.VITE_YMAP_KEY).toBe('k');
@@ -19,13 +18,13 @@ describe('EnvSchema (tests/unit/env.spec.ts)', () => {
     expect(() => EnvSchema.parse({ VITE_YMAP_KEY: '' })).toThrow();
   });
 
-  it('defaults VITE_AUTH_MODE to mock', () => {
-    const r = EnvSchema.parse({ VITE_YMAP_KEY: 'k' });
-    expect(r.VITE_AUTH_MODE).toBe('mock');
-  });
-
   it('defaults VITE_API_BASE_URL', () => {
     const r = EnvSchema.parse({ VITE_YMAP_KEY: 'k' });
     expect(r.VITE_API_BASE_URL).toBe('https://api.parktrack.live');
+  });
+
+  it('defaults VITE_API_MODE to mock', () => {
+    const r = EnvSchema.parse({ VITE_YMAP_KEY: 'k' });
+    expect(r.VITE_API_MODE).toBe('mock');
   });
 });

@@ -1,9 +1,9 @@
-// Phase 4 / D-01 (research override) / SEARCH-03 / Pitfall 1:
-// Yandex Geocoder HTTP API — резолв координат по uri из Geosuggest result.
-// Path к координатам: response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos
-// pos format: "lon lat" (lon first per Yandex/GeoJSON convention).
-// ВАЖНО: возвращаем [lat, lon] (lat first per CONTEXT D-17 и URL ?from/?dest convention).
-import { env } from '@/shared/config';
+// Phase 4 / SEARCH-03 + Quick-fix 2026-05-16 (п.4):
+// Резолв координат через встроенный `ymaps3.search` (JS-API, тот же ключ, что
+// грузит карту) вместо HTTP geocode-maps.yandex.ru (отдельный продукт → 403).
+// `uri` здесь — искомый текст адреса: suggestAddresses кладёт title в .uri,
+// useResolveCoordinates передаёт его сюда. Возвращаем [lat, lon] (URL-05/06).
+import { searchGeo } from '@/shared/lib/ymaps';
 
 export class GeocoderError extends Error {
   readonly status: number;
@@ -17,32 +17,19 @@ export class GeocoderError extends Error {
 }
 
 /**
- * D-01 / SEARCH-03: резолв координат для выбранного suggestion.uri.
- * Returns [lat, lon] tuple — same convention как parseAsCoords (URL-05/06).
+ * SEARCH-03: резолв координат для выбранной подсказки.
+ * Returns [lat, lon] tuple — та же конвенция, что parseAsCoords (URL-05/06).
  */
 export async function geocodeByUri(uri: string, signal: AbortSignal): Promise<[number, number]> {
-  const url = new URL('https://geocode-maps.yandex.ru/1.x/');
-  url.searchParams.set('apikey', env.VITE_YMAP_KEY);
-  url.searchParams.set('uri', uri);
-  url.searchParams.set('format', 'json');
-  url.searchParams.set('lang', 'ru_RU');
-  const res = await fetch(url.toString(), { signal });
-  if (!res.ok) throw new GeocoderError(res.status, `non-2xx: ${res.statusText}`);
-  const data = (await res.json()) as {
-    response?: {
-      GeoObjectCollection?: {
-        featureMember?: { GeoObject?: { Point?: { pos?: string } } }[];
-      };
-    };
-  };
-  const pos = data?.response?.GeoObjectCollection?.featureMember?.[0]?.GeoObject?.Point?.pos;
-  if (!pos) {
-    throw new GeocoderError(0, 'GeoObjectCollection.featureMember[0].GeoObject.Point.pos missing');
+  try {
+    const hits = await searchGeo(uri);
+    if (signal.aborted) throw new GeocoderError(0, 'aborted');
+    const first = hits[0];
+    if (!first) throw new GeocoderError(0, `no result for "${uri}"`);
+    return first.coords;
+  } catch (e) {
+    if (e instanceof GeocoderError) throw e;
+    console.warn('[search] ymaps3.search (resolve) failed:', e);
+    throw new GeocoderError(0, e instanceof Error ? e.message : 'resolve failed');
   }
-  const parts = pos.split(' ').map(Number);
-  if (parts.length !== 2 || !Number.isFinite(parts[0]) || !Number.isFinite(parts[1])) {
-    throw new GeocoderError(0, `pos malformed: "${pos}"`);
-  }
-  const [lon, lat] = parts as [number, number];
-  return [lat, lon];
 }
