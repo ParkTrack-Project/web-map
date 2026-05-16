@@ -7,7 +7,7 @@
 // - arrival_time → Intl.DateTimeFormat HH:MM с timeZone:'Europe/Moscow' → «Прибытие в HH:MM МСК»
 // - coordsValid := isValidCoords(from) && isValidCoords([zoneLat, zoneLon])
 //   зашит в DesktopDeeplinkPopover/MobileDeeplinkSheet (disabled trigger при !coordsValid).
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Clock, Ruler } from 'lucide-react';
 import { useRouteByIdQuery } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
@@ -17,9 +17,15 @@ import { DesktopDeeplinkPopover, MobileDeeplinkSheet } from '@/widgets/deeplink-
 import { useRouteId } from '../model/useRouteId';
 
 export function RouteSummaryCard() {
-  const { routeId } = useRouteId();
+  const { routeId, clearRouteId } = useRouteId();
   const { data: route, isPending, isError } = useRouteByIdQuery(routeId);
   const { from } = useFromCoords();
+
+  // Маршрут не найден (404 после перезапуска сервера) — сбрасываем ?route из URL,
+  // чтобы BuildRouteSection снова показал кнопку «Построить маршрут».
+  useEffect(() => {
+    if (isError) clearRouteId();
+  }, [isError, clearRouteId]);
 
   const zoneCenterLatLon = useMemo<[number, number] | null>(() => {
     if (!route) return null;

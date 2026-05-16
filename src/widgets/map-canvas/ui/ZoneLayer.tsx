@@ -33,9 +33,11 @@ function ZoneLayerInner() {
   // Phase 2 Plan 03: переключено с useViewportZones на useFilteredZones —
   // тот же data shape, но с server-side + client-side фильтрами применёнными.
   // useSelectedZone wiring (Plan 02) сохранён ниже без изменений.
-  const { data, isPending, isError } = useFilteredZones();
+  const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
-  if (isPending || isError || !data) return null;
+  // Quick-fix 2026-05-16 (п.1): рендерим, пока есть данные (keepPreviousData),
+  // не гасим зоны на транзиентной ошибке/pending — иначе они «пропадают до F5».
+  if (!data) return null;
 
   const standard = data.filter((z) => z.zone_type === 'standard');
 

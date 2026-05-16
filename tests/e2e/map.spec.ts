@@ -1,5 +1,5 @@
 // Playwright smoke для Plan 03 + Plan 02-01: реальный браузер, реальный Vite
-// dev-server, MSW в режиме mock через VITE_AUTH_MODE='mock' (см. main.tsx).
+// dev-server, MSW в режиме mock через VITE_API_MODE='mock' (см. main.tsx).
 // Yandex CDN тянется живьём — на CI понадобится сетевой доступ, иначе тест
 // упадёт и должен быть skipped manual'но.
 //
@@ -11,9 +11,8 @@ import { test, expect } from '@playwright/test';
 
 test('карта монтируется и показывает зоны (badges visible at zoom >= 14)', async ({ page }) => {
   await page.goto('/');
-  // AuthReady даёт ~500мс mock-задержки, затем рендерится MapPage → MapCanvas →
-  // ZoneLayer (после первого ответа /zones) + ZoneBadgesLayer. Таймаут с запасом
-  // под загрузку ymaps3-CDN на медленных машинах.
+  // MapPage → MapCanvas → ZoneLayer (после первого ответа /zones) + ZoneBadgesLayer.
+  // Таймаут с запасом под загрузку ymaps3-CDN на медленных машинах.
   const firstBadge = page.getByTestId('zone-badge').first();
   await expect(firstBadge).toBeVisible({ timeout: 15_000 });
 });

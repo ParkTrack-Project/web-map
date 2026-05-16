@@ -14,6 +14,19 @@
     outline: 2px solid #16a34a;
     outline-offset: 2px;
   }
+
+  /* SEARCH-06 fix: <input type="search"> рисует НАТИВНЫЙ крестик очистки
+     (WebKit ::-webkit-search-cancel-button / IE ::-ms-clear). В SearchBar'ах
+     уже есть кастомная кнопка очистки (она ещё и возвращает фокус в input),
+     поэтому нативный дублирующий крестик убираем — иначе видно два «X». */
+  input[type='search']::-webkit-search-cancel-button,
+  input[type='search']::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input[type='search']::-ms-clear {
+    display: none;
+  }
 }
 
 /* Phase 5 D-05 (RESP-07): map controls offset выше открытого bottom-sheet'а.
@@ -26,6 +39,21 @@
 .map-controls-shifted-container [class*='ymaps3-controls'] {
   bottom: var(--bottom-sheet-offset, 20px) !important;
   transition: bottom 200ms ease;
+}
+
+/* Fix 2026-05-16: +/- зум-контрол должен уходить ЗА мобильную карточку.
+   Попытка через z-index на самом контроле ([class*='ymaps3-controls'])
+   НЕ сработала: имя класса контрола в текущей сборке Yandex другое, а ymaps3
+   держит контролы в своём высоком stacking-контексте, который per-element
+   z-index не пробивает (карточка — body-portal vaul, z 50).
+
+   Робастное решение, не зависящее от внутренних классов ymaps3: сам
+   контейнер карты делаем ИЗОЛИРОВАННЫМ stacking-контекстом. isolation:isolate
+   не меняет порядок самого контейнера в потоке (он остаётся фоном под FAB'ами/
+   панелями), но «запирает» ВЕСЬ map-subtree — любой внутренний z-index
+   контролов больше не может всплыть выше карточки. */
+.map-controls-shifted-container {
+  isolation: isolate;
 }
 
 /* Phase 5 D-12 (INTEG-04): Tailwind 4 native @theme directive.

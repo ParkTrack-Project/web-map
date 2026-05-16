@@ -8,7 +8,7 @@
 // - CO-05 / W-2: useRouteSelSync для reload-recovery (?route=N без ?sel → ?sel=route.selected_zone_id)
 import { memo } from 'react';
 import { Locate, Target } from 'lucide-react';
-import { YMapFeature, YMapMarker } from '@/shared/lib/ymaps';
+import { YMapFeature, YMapFeatureDataSource, YMapLayer, YMapMarker } from '@/shared/lib/ymaps';
 import { useRouteByIdQuery } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { useRouteId, useRouteSelSync } from '@/widgets/route-preview-summary';
@@ -41,8 +41,12 @@ function RoutePreviewLayerInner() {
 
   return (
     <>
+      <YMapFeatureDataSource id="ptk-route" />
+      <YMapLayer source="ptk-route" type="features" zIndex={2100} />
       <YMapFeature
         key={`route-${routeId}`}
+        id={`route-line-${routeId}`}
+        source="ptk-route"
         geometry={{ type: 'LineString', coordinates: lineCoordinates }}
         style={{ stroke: [{ color: '#16a34a', width: 4, opacity: 0.85 }] }}
       />

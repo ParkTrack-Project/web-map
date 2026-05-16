@@ -15,11 +15,12 @@
 // - MobileResultsButton — unified entry-point chip (bottom-center): «Найти парковки рядом» →
 //   запрос геолокации → «N парковок рядом» → tap открывает sheet. Заменил отдельный WTPMobileFAB
 //   круглый FAB на компактный pill chip — single CTA для всего mobile-сценария.
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import type { YMap as YMapInstance } from '@yandex/ymaps3-types';
 import { MapErrorBoundary } from '@/app/errors';
 import { MapSkeleton } from '@/widgets/map-canvas/ui/MapSkeleton';
+import { MapRefContext } from '@/widgets/map-canvas';
 import { FiltersFAB, MobileFiltersDrawer } from '@/widgets/filters-bar';
-import { Legend } from '@/widgets/legend';
 import { MobileZoneCard } from '@/widgets/zone-card';
 import { useSelectedZone } from '@/features/select-zone';
 import { TimeSelectorChip, MobileTimeSelectorSheet } from '@/widgets/time-selector';
@@ -35,6 +36,7 @@ const MapCanvas = lazy(() =>
 );
 
 export function MobileLayout() {
+  const mapRef = useRef<YMapInstance | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [timeSheetOpen, setTimeSheetOpen] = useState(false);
   // ResultsSheet auto-open removed — user открывает через MobileResultsButton chip.
@@ -67,17 +69,17 @@ export function MobileLayout() {
   };
 
   return (
+    <MapRefContext.Provider value={mapRef}>
     <div className="relative flex h-dvh w-screen flex-col lg:hidden">
       <div className="relative flex-1 overflow-hidden">
         <MapErrorBoundary>
           <Suspense fallback={<MapSkeleton />}>
-            <MapCanvas />
+            <MapCanvas mapRef={mapRef} />
           </Suspense>
         </MapErrorBoundary>
         {/* I-1: FiltersFAB top-4 right-4 z-30; TimeSelectorChip top-16 right-4 z-30 — стек ПОД FAB */}
         <FiltersFAB onClick={() => setFiltersOpen(true)} />
         <TimeSelectorChip onClick={() => setTimeSheetOpen(true)} />
-        <Legend />
         {/* Phase 4: top-bar SearchBar (left side, FABs справа не пересекаются — right-20) */}
         <MobileSearchBar />
         {/* Phase 4 / CO-03: DestPromptBanner ниже top-bar (top-14 чтобы под input).
@@ -103,5 +105,6 @@ export function MobileLayout() {
       {/* Plan 02 mobile vaul + CARD-07 pan */}
       <MobileZoneCard />
     </div>
+    </MapRefContext.Provider>
   );
 }
