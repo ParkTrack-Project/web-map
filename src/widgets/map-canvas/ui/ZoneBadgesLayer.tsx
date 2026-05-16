@@ -10,9 +10,28 @@
 //
 // pointer-events-none: бейдж не перехватывает клики — клик проходит сквозь
 // бейдж в polygon под ним → срабатывает onClick из ZoneLayer (Plan 02 wiring).
+//
+// Fix 2026-05-16: бейдж стоял на zoneCentroid (среднее вершин) — точка «гуляла».
+// Теперь привязан к правому-нижнему УГЛУ зоны (zoneBottomRight = ближайшая
+// реальная вершина полигона к углу его bbox; для повёрнутых прямоугольников-
+// парковок угол bbox лежит сбоку от фигуры, поэтому снэп к вершине).
+//
+// Fix 2026-05-16 (4): хватит гадать про якорь ymaps3 (top-left vs center).
+// Бейдж в обёртке 0×0: у элемента нулевого размера top-left == center, поэтому
+// ymaps3 ставит его origin в координату ОДИНАКОВО при любой своей конвенции.
+// Сам pill абсолютно позиционируется в этом origin (left/top:0) и центрируется
+// translate(-50%,-50%) → центр pill ровно на угловой вершине полигона при
+// любом дефолте ymaps3. Вершина лежит НА границе зоны (доказано: mock-генератор
+// даёт axis-aligned прямоугольник, zoneBottomRight = точная SE-вершина), точка
+// географическая → зум-инвариантно.
+//
+// ПРИМ.: cyan-прямоугольник на карте — ВСТРОЕННЫЙ парковочный слой Yandex
+// (YMapDefaultFeaturesLayer), другой датасет. Наши zone-полигоны —
+// зелёный/янтарный/красный/серый (zone-palette), и бейдж сидит на углу
+// ИМЕННО нашего полигона, а не Yandex-овского cyan.
 import { YMapMarker } from '@/shared/lib/ymaps';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
-import { zoneCentroid } from '@/shared/lib/geo';
+import { zoneBottomRight } from '@/shared/lib/geo';
 import { ZONE_BADGE_MIN_ZOOM } from '@/shared/config';
 import { computeZoneStyle } from '../model/zone-style';
 
@@ -32,7 +51,7 @@ export function ZoneBadgesLayer({ zoom }: Props) {
   return (
     <>
       {data.map((z) => {
-        const c = zoneCentroid(z.geometry);
+        const c = zoneBottomRight(z.geometry);
         // Семантический цвет = тот же, что у полигона зоны (палитра D-01).
         // Берём solid stroke-цвет (без альфы) — контрастен с белым текстом.
         const { stroke } = computeZoneStyle({
@@ -45,13 +64,21 @@ export function ZoneBadgesLayer({ zoom }: Props) {
         });
         return (
           <YMapMarker key={`badge-${z.zone_id}`} coordinates={c} zIndex={2000}>
-            <span
-              data-testid="zone-badge"
-              className="pointer-events-none rounded-full px-1.5 py-0.5 text-xs font-semibold text-white shadow"
-              style={{ backgroundColor: stroke }}
-            >
-              {z.free_count}
-            </span>
+            {/* 0×0 anchor — делает центрирование независимым от дефолта ymaps3 */}
+            <div style={{ position: 'relative', width: 0, height: 0 }}>
+              <span
+                data-testid="zone-badge"
+                className="pointer-events-none absolute whitespace-nowrap rounded-full px-1.5 py-0.5 text-xs font-semibold text-white shadow"
+                style={{
+                  left: 0,
+                  top: 0,
+                  transform: 'translate(-50%, -50%)',
+                  backgroundColor: stroke,
+                }}
+              >
+                {z.free_count}
+              </span>
+            </div>
           </YMapMarker>
         );
       })}
