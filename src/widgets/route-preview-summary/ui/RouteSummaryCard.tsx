@@ -2,8 +2,8 @@
 // ETA + distance + arrival summary + [В путь] CTA → opens deeplink menu.
 // Mounted parent'ом когда ?route присутствует (parent ZoneCardBody уже gates).
 //
-// - eta_seconds → «N мин (S сек)» через ceil/60
-// - distance → Intl.NumberFormat ru-RU unit:meter
+// - eta_seconds → «N мин» через ceil/60 (минуты, округлённые вверх)
+// - distance → Intl.NumberFormat ru-RU: метры, либо километры при ≥ 1000 м
 // - arrival_time → Intl.DateTimeFormat HH:MM с timeZone:'Europe/Moscow' → «Прибытие в HH:MM МСК»
 // - coordsValid := isValidCoords(from) && isValidCoords([zoneLat, zoneLon])
 //   зашит в DesktopDeeplinkPopover/MobileDeeplinkSheet (disabled trigger при !coordsValid).
@@ -47,11 +47,21 @@ export function RouteSummaryCard() {
 
   const etaMin = Math.max(1, Math.ceil(route.eta_seconds / 60));
   const distance = route.selected_candidate.distance_from_origin_meters;
-  const distanceLabel = new Intl.NumberFormat('ru-RU', {
-    style: 'unit',
-    unit: 'meter',
-    unitDisplay: 'short',
-  }).format(distance);
+  // > 1 км → километры с одним знаком после запятой (2600 м → 2,6 км),
+  // иначе — метры.
+  const distanceLabel =
+    distance >= 1000
+      ? new Intl.NumberFormat('ru-RU', {
+          style: 'unit',
+          unit: 'kilometer',
+          unitDisplay: 'short',
+          maximumFractionDigits: 1,
+        }).format(distance / 1000)
+      : new Intl.NumberFormat('ru-RU', {
+          style: 'unit',
+          unit: 'meter',
+          unitDisplay: 'short',
+        }).format(distance);
   const coordsValid = isValidCoords(from) && isValidCoords(zoneCenterLatLon);
 
   return (
@@ -64,7 +74,7 @@ export function RouteSummaryCard() {
       </p>
       <div className="flex items-center gap-3 text-zinc-800">
         <span className="inline-flex items-center gap-1">
-          <Clock size={14} aria-hidden /> {etaMin} мин ({route.eta_seconds} сек)
+          <Clock size={14} aria-hidden /> {etaMin} мин
         </span>
         <span className="inline-flex items-center gap-1">
           <Ruler size={14} aria-hidden /> {distanceLabel}
