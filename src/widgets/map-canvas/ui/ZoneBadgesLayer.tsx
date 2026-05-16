@@ -29,7 +29,14 @@
 // (YMapDefaultFeaturesLayer), другой датасет. Наши zone-полигоны —
 // зелёный/янтарный/красный/серый (zone-palette), и бейдж сидит на углу
 // ИМЕННО нашего полигона, а не Yandex-овского cyan.
-import { YMapMarker } from '@/shared/lib/ymaps';
+//
+// Fix 2026-05-16 (5): бейджи в СВОЁМ markers-слое (source ptk-badges,
+// zIndex 2000). Раньше маркеры жили в дефолтном features-слое (низкий zIndex),
+// а слой zone-полигонов (ZoneLayer zIndex 1900 / ParallelZoneLayer 1901)
+// рисовался ПОВЕРХ — полигон перекрывал цифру. Выделенный слой с zIndex выше
+// зон гарантирует, что цифра всегда читается над полигоном. zIndex слоя
+// доминирует над per-marker zIndex (тот лишь упорядочивает бейджи между собой).
+import { YMapMarker, YMapFeatureDataSource, YMapLayer } from '@/shared/lib/ymaps';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { zoneBottomRight } from '@/shared/lib/geo';
 import { ZONE_BADGE_MIN_ZOOM } from '@/shared/config';
@@ -50,6 +57,8 @@ export function ZoneBadgesLayer({ zoom }: Props) {
 
   return (
     <>
+      <YMapFeatureDataSource id="ptk-badges" />
+      <YMapLayer source="ptk-badges" type="markers" zIndex={2000} />
       {data.map((z) => {
         const c = zoneBottomRight(z.geometry);
         // Семантический цвет = тот же, что у полигона зоны (палитра D-01).
@@ -63,7 +72,12 @@ export function ZoneBadgesLayer({ zoom }: Props) {
           selected: false,
         });
         return (
-          <YMapMarker key={`badge-${z.zone_id}`} coordinates={c} zIndex={2000}>
+          <YMapMarker
+            key={`badge-${z.zone_id}`}
+            source="ptk-badges"
+            coordinates={c}
+            zIndex={2000}
+          >
             {/* 0×0 anchor — делает центрирование независимым от дефолта ymaps3 */}
             <div style={{ position: 'relative', width: 0, height: 0 }}>
               <span
