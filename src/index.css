@@ -41,6 +41,21 @@
   transition: bottom 200ms ease;
 }
 
+/* Fix 2026-05-16: +/- зум-контрол должен уходить ЗА мобильную карточку.
+   Попытка через z-index на самом контроле ([class*='ymaps3-controls'])
+   НЕ сработала: имя класса контрола в текущей сборке Yandex другое, а ymaps3
+   держит контролы в своём высоком stacking-контексте, который per-element
+   z-index не пробивает (карточка — body-portal vaul, z 50).
+
+   Робастное решение, не зависящее от внутренних классов ymaps3: сам
+   контейнер карты делаем ИЗОЛИРОВАННЫМ stacking-контекстом. isolation:isolate
+   не меняет порядок самого контейнера в потоке (он остаётся фоном под FAB'ами/
+   панелями), но «запирает» ВЕСЬ map-subtree — любой внутренний z-index
+   контролов больше не может всплыть выше карточки. */
+.map-controls-shifted-container {
+  isolation: isolate;
+}
+
 /* Phase 5 D-12 (INTEG-04): Tailwind 4 native @theme directive.
    Превращает brand hex'ы из shared/config/brand-tokens.ts в utility classes
    (bg-brand-green-500, text-brand-amber-400 etc.). Single source of truth.
