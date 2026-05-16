@@ -21,7 +21,6 @@ import { MapErrorBoundary } from '@/app/errors';
 import { MapSkeleton } from '@/widgets/map-canvas/ui/MapSkeleton';
 import { MapRefContext } from '@/widgets/map-canvas';
 import { FiltersFAB, MobileFiltersDrawer } from '@/widgets/filters-bar';
-import { Legend } from '@/widgets/legend';
 import { MobileZoneCard } from '@/widgets/zone-card';
 import { useSelectedZone } from '@/features/select-zone';
 import { TimeSelectorChip, MobileTimeSelectorSheet } from '@/widgets/time-selector';
@@ -81,7 +80,6 @@ export function MobileLayout() {
         {/* I-1: FiltersFAB top-4 right-4 z-30; TimeSelectorChip top-16 right-4 z-30 — стек ПОД FAB */}
         <FiltersFAB onClick={() => setFiltersOpen(true)} />
         <TimeSelectorChip onClick={() => setTimeSheetOpen(true)} />
-        <Legend />
         {/* Phase 4: top-bar SearchBar (left side, FABs справа не пересекаются — right-20) */}
         <MobileSearchBar />
         {/* Phase 4 / CO-03: DestPromptBanner ниже top-bar (top-14 чтобы под input).

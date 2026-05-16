@@ -8,8 +8,12 @@
 // серый/красный/янтарный/зелёный), текст белый → бейдж читается на карте и
 // сразу кодирует занятость, как и сам полигон.
 //
-// pointer-events-none: бейдж не перехватывает клики — клик проходит сквозь
-// бейдж в polygon под ним → срабатывает onClick из ZoneLayer (Plan 02 wiring).
+// Fix 2026-05-16 (6): бейдж КЛИКАБЕЛЕН и сам открывает карточку зоны
+// (setSelectedZone — то же действие, что клик по полигону в ZoneLayer).
+// Раньше был pointer-events-none в расчёте на «проваливание» клика в полигон
+// под ним, но после выноса бейджей в отдельный markers-слой ВЫШЕ полигонов
+// (Fix 5) и центрирования на угловой вершине (на ребре полигона) pass-through
+// не срабатывал — по кружку парковка не открывалась.
 //
 // Fix 2026-05-16: бейдж стоял на zoneCentroid (среднее вершин) — точка «гуляла».
 // Теперь привязан к правому-нижнему УГЛУ зоны (zoneBottomRight = ближайшая
@@ -38,6 +42,7 @@
 // доминирует над per-marker zIndex (тот лишь упорядочивает бейджи между собой).
 import { YMapMarker, YMapFeatureDataSource, YMapLayer } from '@/shared/lib/ymaps';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
+import { useSelectedZone } from '@/features/select-zone';
 import { zoneBottomRight } from '@/shared/lib/geo';
 import { ZONE_BADGE_MIN_ZOOM } from '@/shared/config';
 import { computeZoneStyle } from '../model/zone-style';
@@ -49,6 +54,7 @@ interface Props {
 export function ZoneBadgesLayer({ zoom }: Props) {
   // Phase 2 Plan 03: бейджи показываются только для зон, прошедших фильтры.
   const { data } = useFilteredZones();
+  const { setSelectedZone } = useSelectedZone();
   if (zoom < ZONE_BADGE_MIN_ZOOM) return null;
   // Quick-fix 2026-05-16 (п.1): НЕ гасим бейджи на транзиентной ошибке/refetch.
   // keepPreviousData держит последние валидные данные — рендерим их, пока есть,
@@ -80,9 +86,12 @@ export function ZoneBadgesLayer({ zoom }: Props) {
           >
             {/* 0×0 anchor — делает центрирование независимым от дефолта ymaps3 */}
             <div style={{ position: 'relative', width: 0, height: 0 }}>
-              <span
+              <button
+                type="button"
                 data-testid="zone-badge"
-                className="pointer-events-none absolute whitespace-nowrap rounded-full px-1.5 py-0.5 text-xs font-semibold text-white shadow"
+                aria-label={`Парковка #${z.zone_id}, свободно ${z.free_count}. Открыть`}
+                onClick={() => setSelectedZone(z.zone_id)}
+                className="absolute cursor-pointer whitespace-nowrap rounded-full border-0 px-1.5 py-0.5 text-xs font-semibold text-white shadow"
                 style={{
                   left: 0,
                   top: 0,
@@ -91,7 +100,7 @@ export function ZoneBadgesLayer({ zoom }: Props) {
                 }}
               >
                 {z.free_count}
-              </span>
+              </button>
             </div>
           </YMapMarker>
         );

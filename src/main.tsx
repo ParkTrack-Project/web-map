@@ -2,9 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router';
 import { AppProviders } from '@/app/providers';
-import { AuthGuard } from '@/app/providers/AuthGuard';
 import { MapPage } from '@/pages/map';
-import { LoginPage } from '@/pages/login';
 import '@/index.css';
 
 // VITE_API_MODE controls MSW registration.
@@ -26,24 +24,17 @@ enableMocking().then(() => {
     <StrictMode>
       <BrowserRouter>
         <AppProviders>
+          {/* 2026-05-16: авторизация полностью удалена (по запросу). Нет
+              LoginPage / AuthGuard / tokenStore / Bearer-интерсептора /
+              авто-редиректа на 401. Карта работает без входа (публичный
+              GET /zones?view=map). Эндпоинты, которые backend гейтит
+              permissions'ами (/zones/:id, /routing/*, /occupancy, /forecasts),
+              для анонима вернут 401 — фронт просто покажет error-state в
+              соответствующем месте (без редиректа), т.к. auth-слоя больше нет.
+              В mock-режиме MSW отдаёт всё без токена. */}
           <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route
-              path="/"
-              element={
-                <AuthGuard>
-                  <MapPage />
-                </AuthGuard>
-              }
-            />
-            <Route
-              path="/map"
-              element={
-                <AuthGuard>
-                  <MapPage />
-                </AuthGuard>
-              }
-            />
+            <Route path="/" element={<MapPage />} />
+            <Route path="/map" element={<MapPage />} />
           </Routes>
         </AppProviders>
       </BrowserRouter>

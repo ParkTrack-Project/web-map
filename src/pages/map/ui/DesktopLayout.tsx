@@ -20,7 +20,6 @@ import { MapErrorBoundary } from '@/app/errors';
 import { MapSkeleton } from '@/widgets/map-canvas/ui/MapSkeleton';
 import { MapRefContext } from '@/widgets/map-canvas';
 import { DesktopFiltersPopover } from '@/widgets/filters-bar';
-import { Legend } from '@/widgets/legend';
 import { ZoneCard } from '@/widgets/zone-card';
 import { TimeSelectorPopover } from '@/widgets/time-selector';
 import { DesktopSearchBar, DestPromptBanner } from '@/widgets/search-bar';
@@ -69,7 +68,6 @@ export function DesktopLayout() {
         <div className="absolute top-16 left-4 z-30 max-w-[480px]">
           <DestPromptBanner />
         </div>
-        <Legend />
         {/* Phase 4 Plan 03: ResultsPanel — z-20 overlay LEFT side; ZoneCard z-30 RIGHT side. */}
         <DesktopResultsPanel />
         <ZoneCard />
