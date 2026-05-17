@@ -81,7 +81,7 @@ export function DesktopFiltersPopover() {
                 type="range"
                 min={0}
                 max={500}
-                step={50}
+                step={10}
                 value={f.filters.maxPay ?? 500}
                 onChange={(e) => {
                   const v = Number(e.target.value);

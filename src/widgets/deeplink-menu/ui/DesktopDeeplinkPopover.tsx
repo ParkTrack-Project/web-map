@@ -24,7 +24,7 @@ export function DesktopDeeplinkPopover({ from, to, coordsValid }: Props) {
           className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
           data-testid="in-put-button"
         >
-          <ArrowRightCircle size={16} aria-hidden /> В путь →
+          <ArrowRightCircle size={16} aria-hidden /> В путь
         </button>
       </Popover.Trigger>
       <Popover.Portal>

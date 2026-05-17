@@ -11,12 +11,11 @@
 import { useCallback, useState } from 'react';
 import { Locate, ListChecks } from 'lucide-react';
 import { useFromCoords, useGeolocationRequest } from '@/features/request-geolocation';
-import { useRoutingSearch } from '@/entities/zone';
 import { useFilteredCandidates } from '@/features/filter-zones';
 import { useIsMobile } from '@/shared/lib/responsive';
 import { pluralizeRu } from '@/shared/lib/i18n';
 import { PreFlightDrawer } from '@/widgets/wtp-cta';
-import { useRoutingSearchBody } from '../model/useRoutingSearchBody';
+import { useRoutingResults } from '../model/useRoutingResults';
 
 interface MobileResultsButtonProps {
   /** true когда MobileResultsSheet open — chip скрывается. */
@@ -42,9 +41,8 @@ export function MobileResultsButton({
   onOpenSheet,
   onManualEntry,
 }: MobileResultsButtonProps) {
-  const body = useRoutingSearchBody();
   const { from, setFromCoords } = useFromCoords();
-  const { data, isFetching } = useRoutingSearch(body);
+  const { data, isFetching } = useRoutingResults();
   const filtered = useFilteredCandidates(data?.candidates);
   const isMobile = useIsMobile();
   const { request, state } = useGeolocationRequest();
