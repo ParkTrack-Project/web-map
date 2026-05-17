@@ -3,11 +3,12 @@
 // На mount — НЕ вызывает Yandex API (use-debounce; min length 2).
 // Click outside — закрывает popover (radix Popover handles).
 //
-// D-07: 4 одновременных side-effects ВНУТРИ одного onSelect handler:
-//   (1) setDestination URL ?dest
+// D-07: одновременные side-effects ВНУТРИ одного onSelect handler:
+//   (1) setDestination URL ?dest (→ маркер адреса на карте)
 //   (2) map.setLocation centering (lon-lat order!)
 //   (3) closeCard (?sel=null)
 //   (4) blur input + close popover
+//   (5) открыть окно «Где припарковаться?» (если ?from ещё нет)
 import { useContext, useRef, useState } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { Search, X } from 'lucide-react';
@@ -17,6 +18,8 @@ import {
   useDestination,
 } from '@/features/address-search';
 import { useSelectedZone } from '@/features/select-zone';
+import { useFromCoords } from '@/features/request-geolocation';
+import { useWtpPrompt } from '@/widgets/wtp-cta';
 import { MapRefContext } from '@/widgets/map-canvas';
 import type { SuggestResult } from '@/shared/lib/yandex';
 import { SuggestionsList } from './SuggestionsList';
@@ -26,17 +29,19 @@ export function DesktopSearchBar() {
   const { resolve, isPending: isResolving } = useResolveCoordinates();
   const { setDestination } = useDestination();
   const { closeCard } = useSelectedZone();
+  const { from } = useFromCoords();
+  const openWtpPrompt = useWtpPrompt((s) => s.setOpen);
   const mapRef = useContext(MapRefContext);
   const inputRef = useRef<HTMLInputElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
 
-  // D-07: 4 одновременных side-effects ВНУТРИ одного handler — НЕ через useEffect chains.
+  // D-07: одновременные side-effects ВНУТРИ одного handler — НЕ через useEffect chains.
   const onSelectSuggestion = async (sug: SuggestResult) => {
     if (!sug.uri) return;
     try {
       const coords = await resolve(sug.uri); // [lat, lon]
-      // 1. setDestination — URL ?dest
+      // 1. setDestination — URL ?dest (→ розовый маркер адреса на карте)
       setDestination(coords);
       // 2. center map (lon-lat order для Yandex setLocation)
       mapRef?.current?.setLocation({ center: [coords[1], coords[0]], zoom: 16, duration: 300 });
@@ -46,6 +51,11 @@ export function DesktopSearchBar() {
       inputRef.current?.blur();
       setOpen(false);
       setText(sug.title.text);
+      // 5. Quick-fix 2026-05-16: сразу предлагаем указать стартовую точку —
+      //    открываем окно «Где припарковаться?». Только если ?from ещё нет:
+      //    при известном origin результаты и так открываются автоматически,
+      //    лишнее модальное окно не показываем.
+      if (!from) openWtpPrompt(true);
     } catch (e) {
       console.warn('[search] geocode failed:', e);
     }
@@ -63,8 +73,8 @@ export function DesktopSearchBar() {
             ref={inputRef}
             type="search"
             role="searchbox"
-            aria-label="Поиск адреса"
-            placeholder="Поиск адреса"
+            aria-label="Где искать парковку?"
+            placeholder="Где искать парковку?"
             value={text}
             onChange={(e) => setText(e.target.value)}
             onFocus={() => setOpen(true)}

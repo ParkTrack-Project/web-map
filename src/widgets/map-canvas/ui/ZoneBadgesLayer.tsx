@@ -12,22 +12,19 @@
 // (setSelectedZone — то же действие, что клик по полигону в ZoneLayer).
 // Раньше был pointer-events-none в расчёте на «проваливание» клика в полигон
 // под ним, но после выноса бейджей в отдельный markers-слой ВЫШЕ полигонов
-// (Fix 5) и центрирования на угловой вершине (на ребре полигона) pass-through
-// не срабатывал — по кружку парковка не открывалась.
+// (Fix 5) pass-through не срабатывал — по кружку парковка не открывалась.
 //
-// Fix 2026-05-16: бейдж стоял на zoneCentroid (среднее вершин) — точка «гуляла».
-// Теперь привязан к правому-нижнему УГЛУ зоны (zoneBottomRight = ближайшая
-// реальная вершина полигона к углу его bbox; для повёрнутых прямоугольников-
-// парковок угол bbox лежит сбоку от фигуры, поэтому снэп к вершине).
+// Quick-fix 2026-05-16: бейдж стоит в ЦЕНТРЕ зоны (zoneCentroid = среднее
+// вершин полигона), а не в углу — так цифра «по центру парковки» и читается
+// очевиднее. Для маленьких парковочных прямоугольников среднее вершин = их
+// геометрический центр; точка географическая → зум-инвариантна.
 //
 // Fix 2026-05-16 (4): хватит гадать про якорь ymaps3 (top-left vs center).
 // Бейдж в обёртке 0×0: у элемента нулевого размера top-left == center, поэтому
 // ymaps3 ставит его origin в координату ОДИНАКОВО при любой своей конвенции.
 // Сам pill абсолютно позиционируется в этом origin (left/top:0) и центрируется
-// translate(-50%,-50%) → центр pill ровно на угловой вершине полигона при
-// любом дефолте ymaps3. Вершина лежит НА границе зоны (доказано: mock-генератор
-// даёт axis-aligned прямоугольник, zoneBottomRight = точная SE-вершина), точка
-// географическая → зум-инвариантно.
+// translate(-50%,-50%) → центр pill ровно в центроиде полигона при любом
+// дефолте ymaps3.
 //
 // ПРИМ.: cyan-прямоугольник на карте — ВСТРОЕННЫЙ парковочный слой Yandex
 // (YMapDefaultFeaturesLayer), другой датасет. Наши zone-полигоны —
@@ -43,9 +40,10 @@
 import { YMapMarker, YMapFeatureDataSource, YMapLayer } from '@/shared/lib/ymaps';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { useSelectedZone } from '@/features/select-zone';
-import { zoneBottomRight } from '@/shared/lib/geo';
+import { zoneCentroid } from '@/shared/lib/geo';
 import { ZONE_BADGE_MIN_ZOOM } from '@/shared/config';
 import { computeZoneStyle } from '../model/zone-style';
+import { useZoneClusters } from '../model/useZoneClusters';
 
 interface Props {
   zoom: number;
@@ -55,18 +53,24 @@ export function ZoneBadgesLayer({ zoom }: Props) {
   // Phase 2 Plan 03: бейджи показываются только для зон, прошедших фильтры.
   const { data } = useFilteredZones();
   const { setSelectedZone } = useSelectedZone();
+  // Quick-fix 2026-05-17: бейдж только у зон-одиночек на текущем зуме — те,
+  // что слились в кластер, представляет кружок ZoneClusterLayer (хук зовём
+  // до early-return: правило хуков).
+  const { singletonIds } = useZoneClusters(zoom);
   if (zoom < ZONE_BADGE_MIN_ZOOM) return null;
   // Quick-fix 2026-05-16 (п.1): НЕ гасим бейджи на транзиентной ошибке/refetch.
   // keepPreviousData держит последние валидные данные — рендерим их, пока есть,
   // чтобы зоны не «пропадали до перезагрузки».
   if (!data) return null;
 
+  const visible = data.filter((z) => singletonIds.has(z.zone_id));
+
   return (
     <>
       <YMapFeatureDataSource id="ptk-badges" />
       <YMapLayer source="ptk-badges" type="markers" zIndex={2000} />
-      {data.map((z) => {
-        const c = zoneBottomRight(z.geometry);
+      {visible.map((z) => {
+        const c = zoneCentroid(z.geometry);
         // Семантический цвет = тот же, что у полигона зоны (палитра D-01).
         // Берём solid stroke-цвет (без альфы) — контрастен с белым текстом.
         const { stroke } = computeZoneStyle({

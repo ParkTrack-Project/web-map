@@ -17,11 +17,16 @@
 // - BuildRouteSection wires CARD-05 [Построить маршрут] → useCreateRouteMutation
 // - На success → setRouteId → ?route=<id> в URL → RouteSummaryCard renders inline
 // - Закрытие карточки (X / outside click) → clearRouteId + closeCard atomically
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Lock, Accessibility, Car, MapPin, Navigation } from 'lucide-react';
 import { useSelectedZone } from '@/features/select-zone';
 import { useTimeMode } from '@/features/select-time-mode';
-import { useZoneByIdQuery, useCreateRouteMutation, type Zone } from '@/entities/zone';
+import {
+  useZoneByIdQuery,
+  useCreateRouteMutation,
+  useRouteByIdQuery,
+  type Zone,
+} from '@/entities/zone';
 import { buildRoutingBody } from '@/widgets/results-panel';
 import { useFromCoords, useGeolocationRequest } from '@/features/request-geolocation';
 import { useDestination } from '@/features/address-search';
@@ -198,9 +203,24 @@ function BuildRouteSection({ zoneId }: { zoneId: number }) {
   const { filters } = useFilters();
   const { mode } = useTimeMode();
   const geo = useGeolocationRequest();
-  const { setRouteId, routeId } = useRouteId();
+  const { setRouteId, routeId, clearRouteId } = useRouteId();
   const createRoute = useCreateRouteMutation();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Quick-fix 2026-05-16: ?route — глобальный URL-стейт. При переходе на другую
+  // карточку парковки он оставался от первого маршрута, и каждая карточка
+  // показывала RouteSummaryCard с чужими данными. Маршрут привязан к зоне через
+  // route.selected_zone_id — сверяем с текущей карточкой.
+  const { data: activeRoute } = useRouteByIdQuery(routeId);
+  const routeForThisZone = routeId !== null && activeRoute?.selected_zone_id === zoneId;
+
+  // Маршрут построен для другой зоны → сбрасываем ?route, чтобы на этой карточке
+  // снова была кнопка «Построить маршрут» (а не данные предыдущего маршрута).
+  useEffect(() => {
+    if (activeRoute && activeRoute.selected_zone_id !== zoneId) {
+      clearRouteId();
+    }
+  }, [activeRoute, zoneId, clearRouteId]);
 
   const busy = createRoute.isPending || geo.state.status === 'requesting';
   // geo.state.error реактивно показывает точную причину (отказ/таймаут) после
@@ -232,7 +252,7 @@ function BuildRouteSection({ zoneId }: { zoneId: number }) {
     }
   };
 
-  if (routeId !== null) {
+  if (routeForThisZone) {
     return <RouteSummaryCard />;
   }
 
