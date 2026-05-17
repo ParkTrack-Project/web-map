@@ -73,8 +73,8 @@ export function DesktopSearchBar() {
             ref={inputRef}
             type="search"
             role="searchbox"
-            aria-label="Поиск адреса"
-            placeholder="Поиск адреса"
+            aria-label="Где искать парковку?"
+            placeholder="Где искать парковку?"
             value={text}
             onChange={(e) => setText(e.target.value)}
             onFocus={() => setOpen(true)}
