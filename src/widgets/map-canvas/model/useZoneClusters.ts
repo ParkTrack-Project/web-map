@@ -6,15 +6,27 @@
 // пересчёт ~200 точек 4× — микросекунды, плумбинг через контекст не нужен).
 import { useMemo } from 'react';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
-import { CLUSTER_MERGE_PX } from '@/shared/config';
+import { CLUSTER_MERGE_PX, CLUSTER_MAX_FREE_BANDS } from '@/shared/config';
 import { clusterZones, type ClusterResult } from './cluster-zones';
 
 const EMPTY: ClusterResult = { clusters: [], singletonIds: new Set<number>() };
 
+// Потолок суммы свободных мест в ноде для данного зума: самая тесная
+// подходящая полоса (zoom < belowZoom). Нет подходящей (зум ≥13) → без потолка.
+function maxFreeForZoom(zoom: number): number {
+  for (const band of CLUSTER_MAX_FREE_BANDS) {
+    if (zoom < band.belowZoom) return band.cap;
+  }
+  return Infinity;
+}
+
 export function useZoneClusters(zoom: number): ClusterResult {
   const { data } = useFilteredZones();
   return useMemo(
-    () => (data ? clusterZones(data, zoom, CLUSTER_MERGE_PX) : EMPTY),
+    () =>
+      data
+        ? clusterZones(data, zoom, CLUSTER_MERGE_PX, maxFreeForZoom(zoom))
+        : EMPTY,
     [data, zoom],
   );
 }

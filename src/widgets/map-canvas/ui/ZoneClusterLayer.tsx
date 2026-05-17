@@ -15,6 +15,7 @@ import { YMapMarker } from '@/shared/lib/ymaps';
 import { zonePalette } from '@/shared/config';
 import { MapRefContext } from '../model/map-ref-context';
 import { useZoneClusters } from '../model/useZoneClusters';
+import { clusterBubbleSizePx } from '../model/cluster-zones';
 
 interface Props {
   zoom: number;
@@ -50,8 +51,9 @@ export function ZoneClusterLayer({ zoom }: Props) {
   return (
     <>
       {clusters.map((cl) => {
-        // Размер кружка слегка растёт с числом зон (28..44px).
-        const size = Math.min(28 + Math.floor(cl.zoneCount / 4) * 4, 44);
+        // Размер кружка (28..44px) — общий хелпер с моделью, чтобы
+        // пост-проход слияния перекрытий считал радиус по тому же размеру.
+        const size = clusterBubbleSizePx(cl.zoneCount);
         return (
           <YMapMarker key={`cluster-${cl.key}`} coordinates={cl.center} zIndex={2100}>
             <button
