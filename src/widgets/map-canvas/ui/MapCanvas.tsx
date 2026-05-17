@@ -37,7 +37,7 @@ const YMap = YMapRaw as unknown as ComponentType<{
   mode?: string;
   children?: React.ReactNode;
 }>;
-import { ITMO_CENTER, DEFAULT_ZOOM, CLUSTER_ZOOM_THRESHOLD } from '@/shared/config';
+import { ITMO_CENTER, DEFAULT_ZOOM, CLUSTER_ZOOM_STEP } from '@/shared/config';
 import { centerFromBbox, bboxFromCenterZoom, roundBbox5 } from '@/shared/lib/geo';
 import { useBboxTracking } from '../model/useBboxTracking';
 import { ZoneLayer } from './ZoneLayer';
@@ -46,6 +46,7 @@ import { ZoneBadgesLayer } from './ZoneBadgesLayer';
 import { ZoneClusterLayer } from './ZoneClusterLayer';
 import { ZoneStateOverlay } from './ZoneStateOverlay';
 import { RoutePreviewLayer } from './RoutePreviewLayer';
+import { DestinationMarkerLayer } from './DestinationMarkerLayer';
 import { ModeTransitionOverlay } from '@/widgets/mode-transition-overlay';
 
 interface MapCanvasProps {
@@ -55,6 +56,13 @@ interface MapCanvasProps {
 export function MapCanvas({ mapRef }: MapCanvasProps) {
   const { bbox, zoom: urlZoom, writeViewport, setBbox } = useBboxTracking();
   const zoom = urlZoom ?? DEFAULT_ZOOM;
+
+  // Quick-fix 2026-05-17 (iter.2): кластеризация ведётся по ЖИВОМУ дробному
+  // зуму карты, квантованному CLUSTER_ZOOM_STEP, а не по округлённому URL ?z —
+  // иначе между целыми зумами нет промежуточного состояния (14→13 схлопывает
+  // всё в одну ноду). setState только при смене кванта (Object.is bail-out в
+  // ф-обновлении) → пересчёт на границах шага, а не каждый кадр зум-анимации.
+  const [clusterZoom, setClusterZoom] = useState(zoom);
 
   // Fix 2026-05-16: MapPage монтирует ДВА MapCanvas (Desktop + Mobile, CSS-gated
   // hidden/flex). Скрытый инстанс (display:none) НЕ должен трогать viewport-URL —
@@ -107,6 +115,12 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
             // Только видимый инстанс пишет viewport-URL (см. isHidden выше) —
             // иначе скрытый 0-размерный MapCanvas пинг-понгует ?bbox/?z.
             if (isHidden()) return;
+            // Живой дробный зум → квант CLUSTER_ZOOM_STEP для кластер-слоёв.
+            // Функц. setState: тот же квант → возвращаем prev → React бейлит
+            // ре-рендер (не каждый кадр анимации, только на границах шага).
+            const qz =
+              Math.round(location.zoom / CLUSTER_ZOOM_STEP) * CLUSTER_ZOOM_STEP;
+            setClusterZoom((prev) => (prev === qz ? prev : qz));
             // location.bounds: [[lonSW, latSW], [lonNE, latNE]]
             const b = location.bounds;
             writeViewport(
@@ -121,15 +135,19 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
         <YMapControls position="right">
           <YMapZoomControl />
         </YMapControls>
-        {/* Quick-fix п.7: на обзорном зуме (< CLUSTER_ZOOM_THRESHOLD) полигоны
-            и parallel-зоны не рисуем — их заменяет ZoneClusterLayer. Бейджи
-            самогасятся ниже ZONE_BADGE_MIN_ZOOM, кластеры — выше порога. */}
-        {zoom >= CLUSTER_ZOOM_THRESHOLD && <ZoneLayer />}
-        {zoom >= CLUSTER_ZOOM_THRESHOLD && <ParallelZoneLayer />}
-        <ZoneBadgesLayer zoom={zoom} />
-        <ZoneClusterLayer zoom={zoom} />
+        {/* Quick-fix 2026-05-17: бинарный порог зума убран. Все 4 слоя активны
+            на ЛЮБОМ зуме и делят членство через useZoneClusters(clusterZoom):
+            ZoneClusterLayer рисует кружки (zoneCount>1), а полигон/бейдж-слои —
+            только зоны-одиночки. clusterZoom = живой дробный зум (квант
+            CLUSTER_ZOOM_STEP) → точки сливаются постепенно, без скачка 14→13. */}
+        <ZoneLayer zoom={clusterZoom} />
+        <ParallelZoneLayer zoom={clusterZoom} />
+        <ZoneBadgesLayer zoom={clusterZoom} />
+        <ZoneClusterLayer zoom={clusterZoom} />
         {/* Phase 4 / ROUTE-03: route preview как изолированный children — не сбрасывает viewport */}
         <RoutePreviewLayer />
+        {/* Quick-fix 2026-05-16: маркер выбранного адреса (?dest) */}
+        <DestinationMarkerLayer />
       </YMap>
       {/* Z_INDEX.zoneStateOverlay=20 — empty/error overlay (Phase 2: D-21/D-22/UX-02/UX-04) */}
       <ZoneStateOverlay />

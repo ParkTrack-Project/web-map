@@ -5,11 +5,12 @@
 // показывается ТОЛЬКО при первом запросе (когда state='prompt' или 'denied').
 // Request flow владеется здесь, передаётся в PreFlightDialog как onAllow prop.
 // НЕ вызывает getCurrentPosition при mount (WTP-02 enforcement).
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Locate } from 'lucide-react';
 import { Z_INDEX } from '@/shared/config';
 import { useGeolocationRequest, useFromCoords } from '@/features/request-geolocation';
 import { PreFlightDialog } from './PreFlightDialog';
+import { useWtpPrompt } from '../model/useWtpPrompt';
 
 interface WTPCTAButtonProps {
   /** Callback при «Указать вручную» — Layout использует для focus search-input. */
@@ -28,7 +29,10 @@ async function isGeolocationAlreadyGranted(): Promise<boolean> {
 }
 
 export function WTPCTAButton({ onManualEntry }: WTPCTAButtonProps = {}) {
-  const [open, setOpen] = useState(false);
+  // Quick-fix 2026-05-16: open вынесен в общий стор — SearchBar открывает это
+  // же окно после выбора адреса.
+  const open = useWtpPrompt((s) => s.open);
+  const setOpen = useWtpPrompt((s) => s.setOpen);
   const { request } = useGeolocationRequest();
   const { setFromCoords } = useFromCoords();
   const handleManual = useCallback(() => onManualEntry?.(), [onManualEntry]);
@@ -45,7 +49,7 @@ export function WTPCTAButton({ onManualEntry }: WTPCTAButtonProps = {}) {
       return;
     }
     setOpen(true);
-  }, [requestGeolocation]);
+  }, [requestGeolocation, setOpen]);
 
   return (
     <>

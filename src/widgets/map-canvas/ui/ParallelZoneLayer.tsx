@@ -15,19 +15,29 @@ import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { useSelectedZone } from '@/features/select-zone';
 import { polygonToParallelLine } from '@/shared/lib/geo';
 import { computeZoneStyle } from '../model/zone-style';
+import { useZoneClusters } from '../model/useZoneClusters';
+
+interface ParallelZoneLayerProps {
+  zoom: number;
+}
 
 // Phase 5 D-31 (NFR-03 — I-3): React.memo — parallel-зон может быть >100 при
 // больших viewport'ах; ParallelZoneLayer subscriber на same useFilteredZones как
 // ZoneLayer, поэтому без memo каждый ZoneLayer rerender триггерит cascade.
-function ParallelZoneLayerInner() {
+function ParallelZoneLayerInner({ zoom }: ParallelZoneLayerProps) {
   // Phase 2 Plan 03: переключено на useFilteredZones (фильтры применены).
   // useSelectedZone wiring (Plan 02) сохранён.
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
+  // Quick-fix 2026-05-17: только зоны-одиночки (см. ZoneLayer) — попавшие в
+  // мультикластер parallel-зоны заменяет кружок ZoneClusterLayer.
+  const { singletonIds } = useZoneClusters(zoom);
   // Quick-fix 2026-05-16 (п.1): см. ZoneLayer — не гасим на транзиентной ошибке.
   if (!data) return null;
 
-  const parallel = data.filter((z) => z.zone_type === 'parallel');
+  const parallel = data.filter(
+    (z) => z.zone_type === 'parallel' && singletonIds.has(z.zone_id),
+  );
 
   return (
     <>

@@ -53,8 +53,8 @@ export function MobileSearchBar() {
           ref={inputRef}
           type="search"
           role="searchbox"
-          aria-label="Поиск адреса"
-          placeholder="Поиск адреса"
+          aria-label="Где искать парковку?"
+          placeholder="Где искать парковку?"
           inputMode="search"
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -86,8 +86,8 @@ export function MobileSearchBar() {
           <Search size={14} aria-hidden className="absolute left-3 text-zinc-400" />
           <input
             type="search"
-            aria-label="Поиск адреса"
-            placeholder="Поиск адреса"
+            aria-label="Где искать парковку?"
+            placeholder="Где искать парковку?"
             inputMode="search"
             autoFocus
             value={text}
