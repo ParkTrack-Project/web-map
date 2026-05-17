@@ -19,6 +19,9 @@ export interface BuildRoutingBodyArgs {
   dest: [number, number] | null; // [lat, lon]
   filters: ZoneFilters;
   mode: TimeMode;
+  // D-14 был жёстко 500. Параметризуем для авто-расширения поиска
+  // (useRoutingResults: 500 → 1500 → 3000 при нуле кандидатов).
+  destRadiusMeters?: number;
 }
 
 export function buildRoutingBody({
@@ -26,6 +29,7 @@ export function buildRoutingBody({
   dest,
   filters,
   mode,
+  destRadiusMeters = 500,
 }: BuildRoutingBodyArgs): RoutingSearchBody | null {
   if (!from) return null;
   const [latFrom, lonFrom] = from;
@@ -41,7 +45,7 @@ export function buildRoutingBody({
   };
   if (isToDest && dest) {
     body.destination = { latitude: dest[0], longitude: dest[1] };
-    body.max_distance_to_destination_meters = 500; // D-14 hardcoded
+    body.max_distance_to_destination_meters = destRadiusMeters;
   }
   // Map filters → body params (D-25)
   if (filters.maxPay !== null) body.max_pay = filters.maxPay;
