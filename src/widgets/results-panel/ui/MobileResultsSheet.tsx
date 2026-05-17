@@ -21,11 +21,10 @@ import { useFromCoords } from '@/features/request-geolocation';
 import { useDestination } from '@/features/address-search';
 import { useSelectedZone } from '@/features/select-zone';
 import { useFilters, useFilteredCandidates } from '@/features/filter-zones';
-import { useRoutingSearch } from '@/entities/zone';
 import { Spinner } from '@/shared/ui';
 import { useIsMobile } from '@/shared/lib/responsive';
 import { useVisualViewportHeight } from '@/shared/lib/dom';
-import { useRoutingSearchBody } from '../model/useRoutingSearchBody';
+import { useRoutingResults } from '../model/useRoutingResults';
 import { useAutoSelectBestVariant } from '../model/useAutoSelectBestVariant';
 import { ResultsList } from './ResultsList';
 import { EmptyResultsState } from './EmptyResultsState';
@@ -43,12 +42,11 @@ export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResul
   // с длинным title могут переехать под keyboard если pop'ится из soft-keyboard
   // event (например, user открыл sheet поверх focused MobileSearchBar).
   useVisualViewportHeight();
-  const body = useRoutingSearchBody();
   const { from, clearFromCoords } = useFromCoords();
   const { dest, clearDestination } = useDestination();
   const { selectedZoneId, closeCard } = useSelectedZone();
   const { activeCount, resetAll } = useFilters();
-  const { data, isFetching, isError, refetch } = useRoutingSearch(body);
+  const { data, isFetching, isError, refetch } = useRoutingResults();
   const filtered = useFilteredCandidates(data?.candidates);
   useAutoSelectBestVariant(data?.selected_zone_id ?? null);
 

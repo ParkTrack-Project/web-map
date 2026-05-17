@@ -26,6 +26,7 @@ import {
   useCreateRouteMutation,
   useRouteByIdQuery,
   type Zone,
+  type RoutingNewBody,
 } from '@/entities/zone';
 import { buildRoutingBody } from '@/widgets/results-panel';
 import { useFromCoords, useGeolocationRequest } from '@/features/request-geolocation';
@@ -241,10 +242,15 @@ function BuildRouteSection({ zoneId }: { zoneId: number }) {
       setErrorMsg('Не удалось построить маршрут');
       return;
     }
+    // Fix 2026-05-17: пользователь ЯВНО выбрал эту парковку — не режем её
+    // фильтром «в радиусе N м от адреса». Иначе backend find_candidates
+    // отбрасывает выбранную зону по дистанции до ?dest → 422 (centroid
+    // длинной parallel-зоны + погрешность геокодера легко >500 м). Адрес
+    // остаётся для ETA пешком, но не как жёсткий отсев.
+    const routeBody: RoutingNewBody = { ...body, selected_zone_id: zoneId };
+    delete routeBody.max_distance_to_destination_meters;
     try {
-      const route = await createRoute.mutateAsync({
-        body: { ...body, selected_zone_id: zoneId },
-      });
+      const route = await createRoute.mutateAsync({ body: routeBody });
       setRouteId(route.route_id);
     } catch (e) {
       setErrorMsg('Не удалось построить маршрут');

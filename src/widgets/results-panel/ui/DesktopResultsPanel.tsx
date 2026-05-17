@@ -9,10 +9,9 @@ import { useFromCoords } from '@/features/request-geolocation';
 import { useDestination } from '@/features/address-search';
 import { useSelectedZone } from '@/features/select-zone';
 import { useFilters, useFilteredCandidates } from '@/features/filter-zones';
-import { useRoutingSearch } from '@/entities/zone';
 import { Z_INDEX, RESULTS_PANEL_WIDTH_PX } from '@/shared/config';
 import { Spinner } from '@/shared/ui';
-import { useRoutingSearchBody } from '../model/useRoutingSearchBody';
+import { useRoutingResults } from '../model/useRoutingResults';
 import { useAutoSelectBestVariant } from '../model/useAutoSelectBestVariant';
 import { ResultsList } from './ResultsList';
 import { EmptyResultsState } from './EmptyResultsState';
@@ -20,12 +19,11 @@ import { EmptyResultsState } from './EmptyResultsState';
 // Phase 5 D-31 (NFR-03): React.memo — react-virtual handles internal virtualization,
 // но wrapper memo предотвращает rerender DesktopResultsPanel при unrelated parent state changes.
 function DesktopResultsPanelInner() {
-  const body = useRoutingSearchBody();
   const { from, clearFromCoords } = useFromCoords();
   const { dest, clearDestination } = useDestination();
   const { closeCard } = useSelectedZone();
   const { activeCount, resetAll } = useFilters();
-  const { data, isFetching, isError, refetch } = useRoutingSearch(body);
+  const { data, isFetching, isError, refetch } = useRoutingResults();
   const filtered = useFilteredCandidates(data?.candidates);
   // D-21 / WTP-06: auto-select best
   useAutoSelectBestVariant(data?.selected_zone_id ?? null);
