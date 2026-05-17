@@ -31,6 +31,26 @@ export const CLUSTER_MERGE_PX = 32;
 // → ещё плавнее, но чаще пересчёт; 1 = старое поведение (по целым).
 export const CLUSTER_ZOOM_STEP = 0.5;
 
+// Quick-fix 2026-05-17 (iter.4): потолок суммы СВОБОДНЫХ МЕСТ в ОДНОЙ ноде
+// по зуму (не число зон — число свободных парковок). На обзорных зумах один
+// кружок не должен представлять сколь угодно много свободных мест — связная
+// группа дробится на под-кластеры, у каждого Σ free_count ≤ cap (медианный
+// k-d сплит, пространственно-связно). Пиксельная близость (CLUSTER_MERGE_PX)
+// решает, ЧТО близко; cap ограничивает суммарную ёмкость ноды. Зум ≥13 (нет
+// подходящей полосы) → без потолка.
+// Полосы: zoom < belowZoom → cap; берётся самая тесная подходящая.
+//   zoom<7 → 2500 мест, zoom<10 → 500, zoom<13 → 250.
+// Прим.: одиночная зона с free_count > cap остаётся узлом как есть (точку
+// не раздробить). Тюнится здесь.
+export const CLUSTER_MAX_FREE_BANDS: ReadonlyArray<{
+  belowZoom: number;
+  cap: number;
+}> = [
+  { belowZoom: 7, cap: 1400 },
+  { belowZoom: 10, cap: 350 },
+  { belowZoom: 13, cap: 150 },
+];
+
 // D-11 (Phase 2): namespace для sessionStorage-ключей фильтров. Версионирование
 // «v1» позволяет bump'нуть до v2 при schema-bump (Phase 3+) без collision'ов.
 export const FILTER_STORAGE_PREFIX = 'parktrack:f:v1:';
