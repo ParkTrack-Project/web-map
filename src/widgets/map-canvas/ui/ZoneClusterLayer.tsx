@@ -1,36 +1,23 @@
-// Quick-fix 2026-05-16 (п.7): кластеризация зон на малом зуме.
+// Quick-fix 2026-05-17: scale-adaptive кластеризация (см. model/cluster-zones.ts).
 //
-// Готового кластерера в проекте нет (пользователь выбрал «своё лёгкое
-// решение»). На zoom < CLUSTER_ZOOM_THRESHOLD вместо ~200 крошечных полигонов
-// рисуем агрегированные кружки: центроиды зон бакетятся в сетку, ячейка
-// зависит от зума (≈80px). В кружке — суммарно свободных мест по кластеру;
-// цвет — из той же палитры D-01 (red/amber/green), как у полигонов и бейджей.
+// Раньше слой работал ТОЛЬКО на zoom < CLUSTER_ZOOM_THRESHOLD (бинарный режим:
+// либо всё в кластерах, либо ни одной группировки). Теперь слой активен на
+// ЛЮБОМ зуме и рисует только мультикластеры (zoneCount>1) из общего хука
+// useZoneClusters — членство согласовано с полигон/бейдж-слоями (они рисуют
+// singletonIds). При отдалении кружков становится больше, при приближении
+// они распадаются по одной зоне — переход непрерывный, без порога зума.
+//
+// Цвет — палитра D-01 (red/amber/green) по сумме свободных мест.
 // Клик по кластеру — приближение на +3 зума к его центру (drill-in); дальше
-// onUpdate сам перепишет ?bbox/?z и зоны подгрузятся полигонами.
-//
-// На zoom >= CLUSTER_ZOOM_THRESHOLD слой ничего не рисует (полигоны + бейджи
-// берут управление — см. MapCanvas-гейт).
-import { useContext, useMemo } from 'react';
+// onUpdate перепишет ?bbox/?z, кластер распадётся, зоны подгрузятся точно.
+import { useContext } from 'react';
 import { YMapMarker } from '@/shared/lib/ymaps';
-import { useFilteredZones } from '@/features/viewport-driven-zones';
-import { zoneCentroid } from '@/shared/lib/geo';
-import { CLUSTER_ZOOM_THRESHOLD, zonePalette } from '@/shared/config';
+import { zonePalette } from '@/shared/config';
 import { MapRefContext } from '../model/map-ref-context';
+import { useZoneClusters } from '../model/useZoneClusters';
 
 interface Props {
   zoom: number;
-}
-
-interface Cluster {
-  key: string;
-  center: [number, number]; // [lon, lat] — порядок ymaps3
-  freeSum: number;
-  zoneCount: number;
-}
-
-// Размер ячейки сетки в градусах ≈ 80px на текущем зуме (Web Mercator по lon).
-function cellDegFor(zoom: number): number {
-  return (360 * 80) / (256 * 2 ** zoom);
 }
 
 function clusterColor(freeSum: number): string {
@@ -41,35 +28,10 @@ function clusterColor(freeSum: number): string {
 }
 
 export function ZoneClusterLayer({ zoom }: Props) {
-  const { data } = useFilteredZones();
+  const { clusters } = useZoneClusters(zoom);
   const ctx = useContext(MapRefContext);
 
-  const clusters = useMemo<Cluster[]>(() => {
-    if (!data || zoom >= CLUSTER_ZOOM_THRESHOLD) return [];
-    const cell = cellDegFor(zoom);
-    const acc = new Map<
-      string,
-      { sumLon: number; sumLat: number; count: number; free: number }
-    >();
-    for (const z of data) {
-      const [lon, lat] = zoneCentroid(z.geometry);
-      const key = `${Math.floor(lon / cell)}:${Math.floor(lat / cell)}`;
-      const cur = acc.get(key) ?? { sumLon: 0, sumLat: 0, count: 0, free: 0 };
-      cur.sumLon += lon;
-      cur.sumLat += lat;
-      cur.count += 1;
-      cur.free += z.is_active ? z.free_count : 0;
-      acc.set(key, cur);
-    }
-    return Array.from(acc.entries()).map(([key, c]) => ({
-      key,
-      center: [c.sumLon / c.count, c.sumLat / c.count] as [number, number],
-      freeSum: c.free,
-      zoneCount: c.count,
-    }));
-  }, [data, zoom]);
-
-  if (zoom >= CLUSTER_ZOOM_THRESHOLD || clusters.length === 0) return null;
+  if (clusters.length === 0) return null;
 
   const drillIn = (center: [number, number]) => {
     const map = ctx?.current;
