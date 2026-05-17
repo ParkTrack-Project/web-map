@@ -16,12 +16,12 @@ function wrap(children: ReactNode) {
 }
 
 describe('DesktopSearchBar (SEARCH-01..03 / D-04)', () => {
-  it('renders input с aria-label «Поиск адреса»', () => {
+  it('renders input с aria-label «Где искать парковку?»', () => {
     render(wrap(<DesktopSearchBar />));
-    expect(screen.getByRole('searchbox', { name: 'Поиск адреса' })).toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: 'Где искать парковку?а' })).toBeInTheDocument();
   });
   it('input имеет placeholder', () => {
     render(wrap(<DesktopSearchBar />));
-    expect(screen.getByPlaceholderText(/Поиск адреса/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Где искать парковку?/i)).toBeInTheDocument();
   });
 });
