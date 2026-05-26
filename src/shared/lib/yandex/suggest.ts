@@ -3,10 +3,14 @@
 // Yandex; прод-ключ к нему НЕ подключён → 403/пустой ответ → «поиск ничего не
 // находит»). Теперь — через встроенный `ymaps3.search` (JS-API, авторизуется
 // тем же ключом, что грузит карту). Он сразу отдаёт координаты, поэтому
-// отдельный Geocoder-резолв больше не обязателен (coords едут в SuggestResult).
+// отдельный Geocoder-резолв больше не нужен — coords едут в SuggestResult
+// и потребитель (Desktop/MobileSearchBar) использует их напрямую.
 //
-// Публичный контракт (SuggestResult / классы ошибок) сохранён, чтобы не ломать
-// useAddressSuggest / SuggestionsList / useResolveCoordinates / barrel-реэкспорт.
+// Fix 2026-05-26: useResolveCoordinates/geocodeByUri удалены — повторный
+// поиск по `sug.uri` (там был только title, без региона из subtitle) уводил
+// адрес в чужой город (напр. «Ломоносова 9 СПб» → В. Новгород).
+//
+// Публичный контракт (SuggestResult / классы ошибок) сохранён.
 import { searchGeo } from '@/shared/lib/ymaps';
 import { SUGGEST_MIN_QUERY_LENGTH } from '@/shared/config';
 
@@ -16,8 +20,8 @@ export interface SuggestResult {
   tags?: string[];
   distance?: { text: string; value: number };
   address?: { formatted_address: string };
-  uri?: string; // искомый текст — вход для useResolveCoordinates → geocodeByUri
-  coords?: [number, number]; // [lat, lon] — ymaps3.search отдаёт сразу
+  uri?: string; // стабильный key для list-item (raw title от ymaps3.search)
+  coords?: [number, number]; // [lat, lon] — ymaps3.search отдаёт сразу, потребитель использует напрямую
 }
 
 export class SuggestApiError extends Error {
@@ -57,7 +61,7 @@ export async function suggestAddresses(
     return hits.map((h) => ({
       title: { text: h.title },
       ...(h.subtitle ? { subtitle: { text: h.subtitle } } : {}),
-      uri: h.title, // useResolveCoordinates(uri) → geocodeByUri → searchGeo
+      uri: h.title, // только как list-key; для центрирования карты потребитель берёт coords
       coords: h.coords,
     }));
   } catch (e) {

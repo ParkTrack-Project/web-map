@@ -9,14 +9,15 @@
 //   (3) closeCard (?sel=null)
 //   (4) blur input + close popover
 //   (5) открыть окно «Где припарковаться?» (если ?from ещё нет)
+//
+// Fix 2026-05-26: координаты берём из `sug.coords` (их кладёт ymaps3.search в
+// suggestAddresses). Раньше делался повторный resolve по `sug.uri`, в котором
+// лежал ТОЛЬКО title (без региона из subtitle) → Yandex без региона возвращал
+// первый попавшийся объект (напр. «Ломоносова 9 СПб» уезжал в В. Новгород).
 import { useContext, useRef, useState } from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { Search, X } from 'lucide-react';
-import {
-  useAddressSuggest,
-  useResolveCoordinates,
-  useDestination,
-} from '@/features/address-search';
+import { useAddressSuggest, useDestination } from '@/features/address-search';
 import { useSelectedZone } from '@/features/select-zone';
 import { useFromCoords } from '@/features/request-geolocation';
 import { useWtpPrompt } from '@/widgets/wtp-cta';
@@ -26,7 +27,6 @@ import { SuggestionsList } from './SuggestionsList';
 
 export function DesktopSearchBar() {
   const { text, setText, results, isFetching, error } = useAddressSuggest();
-  const { resolve, isPending: isResolving } = useResolveCoordinates();
   const { setDestination } = useDestination();
   const { closeCard } = useSelectedZone();
   const { from } = useFromCoords();
@@ -37,28 +37,26 @@ export function DesktopSearchBar() {
   const [open, setOpen] = useState(false);
 
   // D-07: одновременные side-effects ВНУТРИ одного handler — НЕ через useEffect chains.
-  const onSelectSuggestion = async (sug: SuggestResult) => {
-    if (!sug.uri) return;
-    try {
-      const coords = await resolve(sug.uri); // [lat, lon]
-      // 1. setDestination — URL ?dest (→ розовый маркер адреса на карте)
-      setDestination(coords);
-      // 2. center map (lon-lat order для Yandex setLocation)
-      mapRef?.current?.setLocation({ center: [coords[1], coords[0]], zoom: 16, duration: 300 });
-      // 3. close zone-card
-      closeCard();
-      // 4. blur input + close popover
-      inputRef.current?.blur();
-      setOpen(false);
-      setText(sug.title.text);
-      // 5. Quick-fix 2026-05-16: сразу предлагаем указать стартовую точку —
-      //    открываем окно «Где припарковаться?». Только если ?from ещё нет:
-      //    при известном origin результаты и так открываются автоматически,
-      //    лишнее модальное окно не показываем.
-      if (!from) openWtpPrompt(true);
-    } catch (e) {
-      console.warn('[search] geocode failed:', e);
-    }
+  const onSelectSuggestion = (sug: SuggestResult) => {
+    // suggestAddresses гарантирует coords для каждого hit (ymaps3.search отдаёт
+    // их сразу). Guard на случай будущего источника подсказок без координат.
+    if (!sug.coords) return;
+    const coords = sug.coords; // [lat, lon]
+    // 1. setDestination — URL ?dest (→ розовый маркер адреса на карте)
+    setDestination(coords);
+    // 2. center map (lon-lat order для Yandex setLocation)
+    mapRef?.current?.setLocation({ center: [coords[1], coords[0]], zoom: 16, duration: 300 });
+    // 3. close zone-card
+    closeCard();
+    // 4. blur input + close popover
+    inputRef.current?.blur();
+    setOpen(false);
+    setText(sug.title.text);
+    // 5. Quick-fix 2026-05-16: сразу предлагаем указать стартовую точку —
+    //    открываем окно «Где припарковаться?». Только если ?from ещё нет:
+    //    при известном origin результаты и так открываются автоматически,
+    //    лишнее модальное окно не показываем.
+    if (!from) openWtpPrompt(true);
   };
 
   return (
@@ -111,7 +109,7 @@ export function DesktopSearchBar() {
         }}
         className="z-50 w-[480px] rounded-xl border border-zinc-200 bg-white shadow-md outline-none"
       >
-        {(isFetching || isResolving) && (
+        {isFetching && (
           <div role="status" className="px-3 py-2 text-xs text-zinc-500">
             Загрузка…
           </div>
