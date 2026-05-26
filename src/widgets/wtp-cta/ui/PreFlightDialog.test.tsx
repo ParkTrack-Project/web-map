@@ -1,6 +1,7 @@
 // Phase 4 / WTP-03 / D-10 (TDD).
 // - содержит EXACT explainer text per D-10
-// - две кнопки: «Разрешить геолокацию», «Указать вручную»
+// - единственная primary-кнопка «Разрешить геолокацию»
+//   (Fix 2026-05-26: secondary «Указать вручную» удалён по запросу продукта).
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -20,14 +21,7 @@ function wrap(children: ReactNode) {
 describe('PreFlightDialog (WTP-03 / D-10)', () => {
   it('содержит EXACT explainer текст', () => {
     render(
-      wrap(
-        <PreFlightDialog
-          open={true}
-          onOpenChange={() => {}}
-          onAllow={() => {}}
-          onManualEntry={() => {}}
-        />,
-      ),
+      wrap(<PreFlightDialog open={true} onOpenChange={() => {}} onAllow={() => {}} />),
     );
     expect(
       screen.getByText(
@@ -36,18 +30,11 @@ describe('PreFlightDialog (WTP-03 / D-10)', () => {
     ).toBeInTheDocument();
   });
 
-  it('содержит обе кнопки', () => {
+  it('единственная кнопка — «Разрешить геолокацию»', () => {
     render(
-      wrap(
-        <PreFlightDialog
-          open={true}
-          onOpenChange={() => {}}
-          onAllow={() => {}}
-          onManualEntry={() => {}}
-        />,
-      ),
+      wrap(<PreFlightDialog open={true} onOpenChange={() => {}} onAllow={() => {}} />),
     );
     expect(screen.getByRole('button', { name: 'Разрешить геолокацию' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Указать вручную' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Указать вручную' })).toBeNull();
   });
 });

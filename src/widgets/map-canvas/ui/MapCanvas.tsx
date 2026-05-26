@@ -25,6 +25,8 @@ import {
   YMapListener,
   YMapControls,
   YMapZoomControl,
+  YMapGeolocationControl,
+  YMapRotateTiltControl,
   useDefault,
 } from '@/shared/lib/ymaps';
 
@@ -134,6 +136,14 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
         />
         <YMapControls position="right">
           <YMapZoomControl />
+          {/* 2026-05-26: встроенный компас Яндекса. Сам прячется при
+              azimuth=0 + tilt=0; клик возвращает «север сверху, top-down»
+              с плавной анимацией. Свой CompassButton больше не нужен. */}
+          <YMapRotateTiltControl />
+          {/* 2026-05-26: «Моё местоположение» как в Яндекс.Картах. Built-in
+              control — запрашивает navigator.geolocation, центрирует карту,
+              рисует синюю точку. ?from не трогает (это отдельный WTP-флоу). */}
+          <YMapGeolocationControl />
         </YMapControls>
         {/* Quick-fix 2026-05-17: бинарный порог зума убран. Все 4 слоя активны
             на ЛЮБОМ зуме и делят членство через useZoneClusters(clusterZoom):
