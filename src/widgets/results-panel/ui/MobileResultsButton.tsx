@@ -22,8 +22,6 @@ interface MobileResultsButtonProps {
   hidden: boolean;
   /** Вызывается в ready-state click → Layout открывает sheet. */
   onOpenSheet: () => void;
-  /** Передаётся в pre-flight «Указать вручную» — focus search input в Layout. */
-  onManualEntry?: () => void;
 }
 
 async function isGeolocationAlreadyGranted(): Promise<boolean> {
@@ -36,11 +34,7 @@ async function isGeolocationAlreadyGranted(): Promise<boolean> {
   }
 }
 
-export function MobileResultsButton({
-  hidden,
-  onOpenSheet,
-  onManualEntry,
-}: MobileResultsButtonProps) {
+export function MobileResultsButton({ hidden, onOpenSheet }: MobileResultsButtonProps) {
   const { from, setFromCoords } = useFromCoords();
   const { data, isFetching } = useRoutingResults();
   const filtered = useFilteredCandidates(data?.candidates);
@@ -100,7 +94,6 @@ export function MobileResultsButton({
         open={preFlightOpen}
         onOpenChange={setPreFlightOpen}
         onAllow={requestGeolocation}
-        onManualEntry={() => onManualEntry?.()}
       />
     </>
   );

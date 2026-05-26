@@ -62,11 +62,8 @@ export function MobileLayout() {
     document.documentElement.style.setProperty('--bottom-sheet-offset', offset);
   }, [filtersOpen, timeSheetOpen, resultsSheetOpen, selectedZoneId]);
 
-  // D-12 «Указать вручную» → focus search-input.
-  const handleManualEntry = () => {
-    const input = document.querySelector<HTMLInputElement>('input[role="searchbox"]');
-    input?.focus();
-  };
+  // 2026-05-26: handleManualEntry удалён — кнопка «Указать вручную» из
+  // PreFlightDrawer убрана, фокусить инпут больше неоткуда.
 
   return (
     <MapRefContext.Provider value={mapRef}>
@@ -92,7 +89,6 @@ export function MobileLayout() {
         <MobileResultsButton
           hidden={resultsSheetOpen}
           onOpenSheet={() => setResultsSheetOpen(true)}
-          onManualEntry={handleManualEntry}
         />
         {/* Phase 4 Plan 04: FitToRouteButton сам gates рендер по ?route */}
         <FitToRouteButton />

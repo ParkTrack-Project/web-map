@@ -1,8 +1,12 @@
 // Phase 4 / WTP-03 / D-10:
 // Desktop pre-flight modal через @radix-ui/react-dialog.
-// Текст из CONTEXT D-10 verbatim. Brand-green primary, secondary outline для manual entry.
+// Текст из CONTEXT D-10 verbatim. Brand-green primary CTA.
 // Pure presentational — request flow lifted to parent (WTPCTAButton) чтобы Permissions API
 // мог пропустить pre-flight при state='granted' и переиспользовать тот же request handler.
+//
+// Fix 2026-05-26: убрана secondary-кнопка «Указать вручную» (по запросу
+// продукта). Manual entry остаётся доступен через поиск в шапке карты —
+// дублирующий путь в pre-flight'е не нужен.
 import * as Dialog from '@radix-ui/react-dialog';
 import { Locate } from 'lucide-react';
 
@@ -10,18 +14,12 @@ interface PreFlightDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAllow: () => Promise<void> | void; // owned by parent (WTPCTAButton)
-  onManualEntry: () => void; // closes dialog + focuses search-input в parent (D-10)
 }
 
 const EXPLAINER_TEXT =
   'Для поиска ближайших парковок нужен доступ к вашей геолокации. Координаты используются только для запроса к серверу и не сохраняются.';
 
-export function PreFlightDialog({
-  open,
-  onOpenChange,
-  onAllow,
-  onManualEntry,
-}: PreFlightDialogProps) {
+export function PreFlightDialog({ open, onOpenChange, onAllow }: PreFlightDialogProps) {
   const handleAllow = async () => {
     await onAllow();
     // Close dialog независимо от исхода — denied/timeout state читается через banner.
@@ -47,16 +45,6 @@ export function PreFlightDialog({
               className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
             >
               Разрешить геолокацию
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onManualEntry();
-                onOpenChange(false);
-              }}
-              className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-            >
-              Указать вручную
             </button>
           </div>
         </Dialog.Content>
