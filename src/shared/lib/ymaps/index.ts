@@ -68,15 +68,35 @@ type Ymaps3SearchFeature = {
   geometry?: { coordinates?: [number, number] }; // [lon, lat]
   properties?: { name?: string; description?: string };
 };
+// `bounds` — viewport bias для ymaps3.search: при наличии Yandex ранжирует
+// результаты внутри bbox выше, и в подсказках первыми идут улицы/POI рядом.
+// Формат: [[swLon, swLat], [neLon, neLat]] — совпадает с location.bounds JS-API.
+type Ymaps3SearchRequest = {
+  text: string;
+  bounds?: [[number, number], [number, number]];
+};
 type Ymaps3WithSearch = {
-  search(req: { text: string }): Promise<Ymaps3SearchFeature[]>;
+  search(req: Ymaps3SearchRequest): Promise<Ymaps3SearchFeature[]>;
 };
 
-export async function searchGeo(text: string): Promise<GeoSearchHit[]> {
+/**
+ * Поиск адресов через ymaps3.search (JS-API).
+ *
+ * @param text — пользовательский ввод.
+ * @param bounds — viewport bias (опц.). Когда передан — улицы/POI внутри bbox
+ *   ранжируются выше → подсказки в первую очередь показывают объекты рядом
+ *   с тем, что юзер видит на карте сейчас (Fix 2026-05-26).
+ */
+export async function searchGeo(
+  text: string,
+  bounds?: [[number, number], [number, number]],
+): Promise<GeoSearchHit[]> {
   const q = text.trim();
   if (!q) return [];
   const api = ymaps3 as unknown as Ymaps3WithSearch;
-  const features = await api.search({ text: q });
+  const req: Ymaps3SearchRequest = { text: q };
+  if (bounds) req.bounds = bounds;
+  const features = await api.search(req);
   const hits: GeoSearchHit[] = [];
   for (const f of features ?? []) {
     const c = f.geometry?.coordinates;
