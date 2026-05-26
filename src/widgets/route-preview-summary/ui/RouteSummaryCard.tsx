@@ -2,7 +2,8 @@
 // ETA + distance + arrival summary + [В путь] CTA → opens deeplink menu.
 // Mounted parent'ом когда ?route присутствует (parent ZoneCardBody уже gates).
 //
-// - eta_seconds → «N мин» через ceil/60 (минуты, округлённые вверх)
+// - eta_seconds → formatDurationFromSeconds: «N мин» / «N ч M мин» / «N д M ч»
+//   (Fix 2026-05-26: раньше всегда печатали в минутах → 4000 мин для длинных маршрутов)
 // - distance → Intl.NumberFormat ru-RU: метры, либо километры при ≥ 1000 м
 // - arrival_time → Intl.DateTimeFormat HH:MM с timeZone:'Europe/Moscow' → «Прибытие в HH:MM МСК»
 // - coordsValid := isValidCoords(from) && isValidCoords([zoneLat, zoneLon])
@@ -13,6 +14,7 @@ import { useRouteByIdQuery } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { useFromCoords } from '@/features/request-geolocation';
 import { isValidCoords } from '@/shared/lib/deeplink';
+import { formatDurationFromSeconds } from '@/shared/lib/i18n';
 import { DesktopDeeplinkPopover, MobileDeeplinkSheet } from '@/widgets/deeplink-menu';
 import { useRouteId } from '../model/useRouteId';
 
@@ -45,7 +47,7 @@ export function RouteSummaryCard() {
 
   if (!routeId || isPending || isError || !route) return null;
 
-  const etaMin = Math.max(1, Math.ceil(route.eta_seconds / 60));
+  const etaLabel = formatDurationFromSeconds(route.eta_seconds);
   const distance = route.selected_candidate.distance_from_origin_meters;
   // > 1 км → километры с одним знаком после запятой (2600 м → 2,6 км),
   // иначе — метры.
@@ -74,7 +76,7 @@ export function RouteSummaryCard() {
       </p>
       <div className="flex items-center gap-3 text-zinc-800">
         <span className="inline-flex items-center gap-1">
-          <Clock size={14} aria-hidden /> {etaMin} мин
+          <Clock size={14} aria-hidden /> {etaLabel}
         </span>
         <span className="inline-flex items-center gap-1">
           <Ruler size={14} aria-hidden /> {distanceLabel}

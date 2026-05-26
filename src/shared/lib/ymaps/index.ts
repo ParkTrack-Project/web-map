@@ -41,7 +41,11 @@ export const {
 const controlsModule = (await (
   ymaps3.import as (m: string) => Promise<typeof import('@yandex/ymaps3-default-ui-theme')>
 )('@yandex/ymaps3-controls@0.0.1')) as typeof import('@yandex/ymaps3-default-ui-theme');
-export const { YMapZoomControl, YMapGeolocationControl } = reactify.module(controlsModule);
+// YMapRotateTiltControl: встроенный «компас» — клик сбрасывает azimuth+tilt в 0
+// с плавной анимацией. Кнопка сама прячется когда карта не повернута/наклонена
+// (поведение Yandex.Maps по умолчанию). Лежит в том же controls-бандле.
+export const { YMapZoomControl, YMapGeolocationControl, YMapRotateTiltControl } =
+  reactify.module(controlsModule);
 
 export const useDefault = reactify.useDefault;
 
