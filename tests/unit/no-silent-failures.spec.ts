@@ -56,19 +56,20 @@ describe('No silent failures (D-21)', () => {
 
     // Whitelist — queries that intentionally don't raise/handle errors:
     // - useAddressSuggest: error прокидывается через query.error в caller widget (toast там)
-    // - useResolveCoordinates: mutation.error прокидывается, обрабатывается в caller
     // - useZonesQuery / useZoneByIdQuery: throw'ит TimeModeUnavailableError synchronous,
     //   ZoneStateOverlay показывает it через isError; no per-query handler нужен
     // - useRoutingSearch / useRouteByIdQuery: error прокидывается в DesktopResultsPanel
     //   (refetch button); RouteSummaryCard сбрасывает ?route на isError
     // - useCreateRouteMutation: caller (ZoneCard) wraps в try/catch + toast
     // - useUserProfile: профиль из /users/me; not wired в UI, error безмолвный
+    //
+    // Fix 2026-05-26: useResolveCoordinates удалён вместе с geocoder.ts — координаты
+    // подсказки теперь приходят прямо из ymaps3.search; allowlist-запись больше не нужна.
     const allowlist: RegExp[] = [
       /entities[\\/]user[\\/]queries[\\/]user\.queries\.ts$/,
       /entities[\\/]zone[\\/]queries[\\/]zone\.queries\.ts$/,
       /entities[\\/]zone[\\/]queries[\\/]routing\.queries\.ts$/,
       /features[\\/]address-search[\\/]model[\\/]useAddressSuggest\.ts$/,
-      /features[\\/]address-search[\\/]model[\\/]useResolveCoordinates\.ts$/,
     ];
     const filtered = missing.filter(
       (c) => !allowlist.some((re) => re.test(c.file.replace(/\\/g, '/'))),

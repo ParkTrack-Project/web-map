@@ -2,13 +2,12 @@
 // Mobile top-bar input. Focus → full-screen overlay (NO vaul — Pitfall 11 nested Drawer
 // — используем simple absolute-positioned overlay, не конкурирует с ZoneCard/Results sheet'ами).
 // tap-targets ≥ 44px (h-11), inputMode="search".
+//
+// Fix 2026-05-26: используем `sug.coords` напрямую (см. DesktopSearchBar для
+// объяснения — повторный resolve по title без региона уводил адрес в чужой город).
 import { useContext, useRef, useState } from 'react';
 import { Search, X, ArrowLeft } from 'lucide-react';
-import {
-  useAddressSuggest,
-  useResolveCoordinates,
-  useDestination,
-} from '@/features/address-search';
+import { useAddressSuggest, useDestination } from '@/features/address-search';
 import { useSelectedZone } from '@/features/select-zone';
 import { MapRefContext } from '@/widgets/map-canvas';
 import { useVisualViewportHeight } from '@/shared/lib/dom';
@@ -22,26 +21,21 @@ export function MobileSearchBar() {
   // wrapper ниже читает её через CSS calc().
   useVisualViewportHeight();
   const { text, setText, results, isFetching, error } = useAddressSuggest();
-  const { resolve } = useResolveCoordinates();
   const { setDestination } = useDestination();
   const { closeCard } = useSelectedZone();
   const mapRef = useContext(MapRefContext);
   const inputRef = useRef<HTMLInputElement>(null);
   const [overlayOpen, setOverlayOpen] = useState(false);
 
-  const onSelect = async (sug: SuggestResult) => {
-    if (!sug.uri) return;
-    try {
-      const coords = await resolve(sug.uri);
-      setDestination(coords);
-      mapRef?.current?.setLocation({ center: [coords[1], coords[0]], zoom: 16, duration: 300 });
-      closeCard();
-      setText(sug.title.text);
-      inputRef.current?.blur(); // SEARCH-04: клавиатура закрывается
-      setOverlayOpen(false);
-    } catch (e) {
-      console.warn('[search] geocode failed:', e);
-    }
+  const onSelect = (sug: SuggestResult) => {
+    if (!sug.coords) return;
+    const coords = sug.coords;
+    setDestination(coords);
+    mapRef?.current?.setLocation({ center: [coords[1], coords[0]], zoom: 16, duration: 300 });
+    closeCard();
+    setText(sug.title.text);
+    inputRef.current?.blur(); // SEARCH-04: клавиатура закрывается
+    setOverlayOpen(false);
   };
 
   // Top-bar (всегда видим). right-14 = 56px — место для круглой FiltersFAB (44px) + 12px gap.
