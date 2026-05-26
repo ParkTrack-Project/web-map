@@ -3,7 +3,10 @@
 // + refetchQueries (UX-04).
 //
 // Phase 3 D-16 / TIME-09 / UX-03: mode-aware texts + CTA «Вернуться к Сейчас»:
-//   - now empty:  существующий Phase 2 текст
+//   - now empty без фильтров: НИЧЕГО не показываем (Fix 2026-05-26 — раньше был
+//     «В этой области нет парковок. Сдвиньте карту…», блокировал карту оверлеем
+//     и шумел; пустой viewport — нормальное состояние, юзер видит чистую карту).
+//   - now empty с фильтрами: «нет парковок, удовлетворяющих фильтрам» + reset
 //   - past empty: «Нет данных за это время» + setNow CTA
 //   - future empty: «Прогноз на это время недоступен» + setNow CTA
 //   - error любой mode: «Не удалось загрузить данные» (I-3: было «парковки»)
@@ -71,6 +74,10 @@ export function ZoneStateOverlay() {
   }
 
   if (data && data.length === 0 && !isFetching && bbox) {
+    // 2026-05-26: убрали generic «нет парковок в области, сдвиньте карту» —
+    // пустой viewport больше не блокирует карту полноэкранным оверлеем. Если
+    // активны фильтры или mode!=now — показываем релевантный CTA (это
+    // объяснимый «почему пусто», без него юзер недоумевает).
     let emptyText: string;
     let extraCta: 'reset-filters' | 'back-to-now' | null = null;
     if (mode.kind === 'now') {
@@ -78,7 +85,8 @@ export function ZoneStateOverlay() {
         emptyText = 'В этой области нет парковок, удовлетворяющих фильтрам';
         extraCta = 'reset-filters';
       } else {
-        emptyText = 'В этой области нет парковок. Сдвиньте карту, чтобы увидеть другие зоны.';
+        // mode=now без фильтров: пусто — это нормальное состояние, не сообщаем.
+        return null;
       }
     } else if (mode.kind === 'past') {
       emptyText = 'Нет данных за это время';

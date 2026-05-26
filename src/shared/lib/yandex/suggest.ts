@@ -53,10 +53,20 @@ export class SuggestRateLimitedError extends Error {
 export async function suggestAddresses(
   text: string,
   signal: AbortSignal,
+  bbox?: [number, number, number, number],
 ): Promise<SuggestResult[]> {
   if (text.trim().length < SUGGEST_MIN_QUERY_LENGTH) return [];
   try {
-    const hits = await searchGeo(text);
+    // bbox = [west, south, east, north] (наш канонический формат) → bounds
+    // [[swLon, swLat], [neLon, neLat]] для ymaps3.search. Передаём viewport
+    // как bias: улицы рядом с тем, что юзер видит на карте, идут первыми.
+    const bounds: [[number, number], [number, number]] | undefined = bbox
+      ? [
+          [bbox[0], bbox[1]],
+          [bbox[2], bbox[3]],
+        ]
+      : undefined;
+    const hits = await searchGeo(text, bounds);
     if (signal.aborted) return [];
     return hits.map((h) => ({
       title: { text: h.title },
