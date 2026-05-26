@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- **Address search** перестал «перепрыгивать» в другой город при выборе подсказки. Координаты выбранной подсказки теперь берутся из `SuggestResult.coords` (их кладёт `ymaps3.search` в `suggestAddresses`). Раньше после клика делался повторный resolve по `sug.uri`, в котором хранился только `title` без региона из `subtitle` — Yandex без региона возвращал первый попавшийся объект (например, «Ломоносова 9 Санкт-Петербург» уходил в Великий Новгород). Заодно удалены ставшие мёртвыми `useResolveCoordinates` и `geocodeByUri` (`shared/lib/yandex/geocoder.ts`); экземпляр `isResolving` в загрузочном статусе Desktop-варианта тоже снят.
+
 ## [1.0.0-mvp] — Phase 5 verification complete
 
 Final MVP release. Merge from `feat/mvp-rewrite` → `main`.

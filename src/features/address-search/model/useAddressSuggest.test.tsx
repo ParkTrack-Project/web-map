@@ -1,9 +1,13 @@
 // Phase 4 / SEARCH-01..02 / D-01..D-03 (TDD RED):
 // Tests for useAddressSuggest hook — debounce 300ms, min length 2, retry false,
 // queryKey on debounced text. mocks suggestAddresses.
+//
+// Fix 2026-05-26: hook теперь читает ?bbox через nuqs для viewport bias →
+// нужен NuqsTestingAdapter в обёртке.
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import type { ReactNode } from 'react';
 import { useAddressSuggest } from './useAddressSuggest';
 
@@ -13,10 +17,12 @@ vi.mock('@/shared/lib/yandex', async () => {
 });
 import { suggestAddresses } from '@/shared/lib/yandex';
 
-function makeWrapper() {
+function makeWrapper(initialUrl = '') {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: 0 } } });
   return ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+    <QueryClientProvider client={qc}>
+      <NuqsTestingAdapter searchParams={initialUrl}>{children}</NuqsTestingAdapter>
+    </QueryClientProvider>
   );
 }
 
