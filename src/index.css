@@ -29,16 +29,29 @@
   }
 }
 
-/* Phase 5 D-05 (RESP-07): map controls offset выше открытого bottom-sheet'а.
-   --bottom-sheet-offset устанавливается MobileLayout useEffect'ом в
-   зависимости от состояния sheets (filters/time/results/selectedZone).
-   Default 20px когда все sheets закрыты. Селектор-fallback ниже целит
-   ymaps3 controls внутри map-controls-shifted-container, потому что
-   YMapControls сам не принимает className prop (typed reactify
-   обёртка из @yandex/ymaps3-types). */
+:root {
+  --bottom-sheet-offset: 20px;
+  }
+
 .map-controls-shifted-container [class*='ymaps3-controls'] {
   bottom: var(--bottom-sheet-offset, 20px) !important;
   transition: bottom 200ms ease;
+}
+
+/* Центруем узкие контролы относительно большого 3D-компаса.
+   Двигаем не внутреннюю иконку, а внешний слот контрола внутри YMapControls. */
+.map-controls-shifted-container [class*='ymaps3--controls'] > *:has(.ymaps3--zoom-control),
+.map-controls-shifted-container [class*='ymaps3--controls'] > *:has(.ymaps3--geolocation-control) {
+  margin-right: 8px !important;
+  margin-bottom: 11px;
+}
+
+.ymaps3--controls.ymaps3--controls_bottom.ymaps3--controls_left.ymaps3--controls_horizontal {
+  display: none;
+}
+
+.ymaps3--button, .ymaps3--control-button, .ymaps3--control, .ymaps3--control__background {
+  border-radius: 12px !important;
 }
 
 /* Fix 2026-05-16: +/- зум-контрол должен уходить ЗА мобильную карточку.

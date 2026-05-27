@@ -4,16 +4,15 @@
 // CO-04: при `from || dest` (results-active mode) FAB скрывается.
 // Permissions API skip-logic: при state='granted' click сразу запрашивает координаты,
 // pre-flight Drawer показывается только при первом запросе.
+//
+// Fix 2026-05-26: пропс `onManualEntry` удалён — кнопка «Указать вручную» из
+// PreFlightDrawer убрана, callback некому вызывать.
 import { useState, useCallback } from 'react';
 import { Locate } from 'lucide-react';
 import { Z_INDEX } from '@/shared/config';
 import { useGeolocationRequest, useFromCoords } from '@/features/request-geolocation';
 import { useDestination } from '@/features/address-search';
 import { PreFlightDrawer } from './PreFlightDrawer';
-
-interface WTPMobileFABProps {
-  onManualEntry?: () => void;
-}
 
 async function isGeolocationAlreadyGranted(): Promise<boolean> {
   if (typeof navigator === 'undefined' || !('permissions' in navigator)) return false;
@@ -25,12 +24,11 @@ async function isGeolocationAlreadyGranted(): Promise<boolean> {
   }
 }
 
-export function WTPMobileFAB({ onManualEntry }: WTPMobileFABProps = {}) {
+export function WTPMobileFAB() {
   const [open, setOpen] = useState(false);
   const { request } = useGeolocationRequest();
   const { setFromCoords, from } = useFromCoords();
   const { dest } = useDestination();
-  const handleManual = useCallback(() => onManualEntry?.(), [onManualEntry]);
 
   const requestGeolocation = useCallback(async () => {
     const coords = await request();
@@ -59,12 +57,7 @@ export function WTPMobileFAB({ onManualEntry }: WTPMobileFABProps = {}) {
       >
         <Locate size={24} aria-hidden />
       </button>
-      <PreFlightDrawer
-        open={open}
-        onOpenChange={setOpen}
-        onAllow={requestGeolocation}
-        onManualEntry={handleManual}
-      />
+      <PreFlightDrawer open={open} onOpenChange={setOpen} onAllow={requestGeolocation} />
     </>
   );
 }

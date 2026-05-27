@@ -7,7 +7,7 @@ import type { RouteCandidate } from '@/entities/zone';
 import { useSelectedZone } from '@/features/select-zone';
 import { MapRefContext } from '@/widgets/map-canvas';
 import { zoneCentroid } from '@/shared/lib/geo';
-import { pluralizeRu } from '@/shared/lib/i18n';
+import { pluralizeRu, formatDurationFromSeconds } from '@/shared/lib/i18n';
 
 interface ResultItemProps {
   candidate: RouteCandidate;
@@ -19,8 +19,10 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
   const mapRef = useContext(MapRefContext);
   const isSelected = selectedZoneId === c.zone_id;
   const isBest = c.rank === 1;
-  const distanceMin = Math.max(1, Math.round(c.duration_from_origin_seconds / 60));
-  const minutePlural = pluralizeRu(distanceMin, { one: 'мин', few: 'мин', many: 'мин' });
+  // 2026-05-26: единый форматтер длительности — «4 мин», «1 ч 30 мин»,
+  // «2 д 18 ч». Раньше всегда печаталось в минутах → дальние маршруты
+  // показывали «4000 мин» вместо «2 д 18 ч».
+  const durationLabel = formatDurationFromSeconds(c.duration_from_origin_seconds);
   const freePlural = pluralizeRu(c.predicted_free_count ?? 0, {
     one: 'свободное место',
     few: 'свободных места',
@@ -91,7 +93,7 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
       )}
       <div className="flex items-center gap-1 text-xs text-zinc-600">
         <MapPin size={12} aria-hidden />
-        {c.distance_from_origin_meters} м ({distanceMin} {minutePlural} на машине)
+        {c.distance_from_origin_meters} м ({durationLabel} на машине)
       </div>
       {c.distance_to_destination_meters !== null && (
         <div className="flex items-center gap-1 text-xs text-zinc-600">

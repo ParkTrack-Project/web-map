@@ -35,13 +35,8 @@ const MapCanvas = lazy(() =>
 
 export function DesktopLayout() {
   const mapRef = useRef<YMapInstance | null>(null);
-  // D-12 «Указать вручную» → focus search-input (передаётся через WTPCTAButton.onManualEntry).
-  const searchAnchorRef = useRef<HTMLDivElement>(null);
-  const handleManualEntry = () => {
-    const input =
-      searchAnchorRef.current?.querySelector<HTMLInputElement>('input[role="searchbox"]');
-    input?.focus();
-  };
+  // 2026-05-26: searchAnchorRef + handleManualEntry удалены — кнопку «Указать
+  // вручную» из PreFlightDialog убрали, фокусить инпут больше неоткуда.
 
   return (
     <MapRefContext.Provider value={mapRef}>
@@ -58,10 +53,8 @@ export function DesktopLayout() {
             ~50px vertical space карты, единый pattern с mobile FiltersFAB. */}
         <div className="absolute top-4 left-4 z-30 flex items-start gap-2">
           <TimeSelectorPopover />
-          <WTPCTAButton onManualEntry={handleManualEntry} />
-          <div ref={searchAnchorRef}>
-            <DesktopSearchBar />
-          </div>
+          <WTPCTAButton />
+          <DesktopSearchBar />
           <DesktopFiltersPopover />
         </div>
         {/* Phase 4 / CO-03: DestPromptBanner — ниже flex-row */}

@@ -1,16 +1,11 @@
-// ZONE-03 / D-04: parallel-зоны рисуются как полоса (LineString) между midpoint'ами
-// двух коротких сторон 4-угольника.
-//
-// Отдельный YMapFeatureDataSource (zIndex 1901, выше standard-зон) — полосы
-// должны быть поверх обычных полигонов, чтобы их было видно даже при пересечении.
-// Толщина — фиксированная stroke-width 6px (zoom-aware расчёт можно ввести
-// позже; пока стабильная читаемость > zoom-scale).
-//
-// Plan 02-02 wiring: клик → setSelectedZone(z.zone_id), выбранная зона получает
-// stroke-width 8 (вместо 6) для визуального отличия (D-08 для LineString-варианта).
-import { memo } from 'react';
+// ZONE-03 / D-04: parallel-зоны рисуются как полоса (LineString).
+import { memo, type ComponentType } from 'react';
 import type { LngLat } from '@yandex/ymaps3-types/common/types/lng-lat';
-import { YMapFeature, YMapFeatureDataSource, YMapLayer } from '@/shared/lib/ymaps';
+import {
+  YMapFeature as YMapFeatureRaw,
+  YMapFeatureDataSource as YMapFeatureDataSourceRaw,
+  YMapLayer as YMapLayerRaw,
+} from '@/shared/lib/ymaps';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { useSelectedZone } from '@/features/select-zone';
 import { polygonToParallelLine } from '@/shared/lib/geo';
@@ -21,45 +16,80 @@ interface ParallelZoneLayerProps {
   zoom: number;
 }
 
-// Phase 5 D-31 (NFR-03 — I-3): React.memo — parallel-зон может быть >100 при
-// больших viewport'ах; ParallelZoneLayer subscriber на same useFilteredZones как
-// ZoneLayer, поэтому без memo каждый ZoneLayer rerender триггерит cascade.
+type LineStringGeometry = {
+  type: 'LineString';
+  coordinates: LngLat[];
+};
+
+type YMapFeatureProps = {
+  id: string;
+  geometry: LineStringGeometry;
+  style: {
+    stroke: Array<{
+      color: string;
+      width: number;
+    }>;
+  };
+  source: string;
+  onClick?: () => void;
+};
+
+type YMapFeatureDataSourceProps = {
+  id: string;
+};
+
+type YMapLayerProps = {
+  source: string;
+  type: string;
+  zIndex?: number;
+};
+
+const YMapFeature = YMapFeatureRaw as unknown as ComponentType<YMapFeatureProps>;
+
+const YMapFeatureDataSource =
+  YMapFeatureDataSourceRaw as unknown as ComponentType<YMapFeatureDataSourceProps>;
+
+const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
+
 function ParallelZoneLayerInner({ zoom }: ParallelZoneLayerProps) {
-  // Phase 2 Plan 03: переключено на useFilteredZones (фильтры применены).
-  // useSelectedZone wiring (Plan 02) сохранён.
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
-  // Quick-fix 2026-05-17: только зоны-одиночки (см. ZoneLayer) — попавшие в
-  // мультикластер parallel-зоны заменяет кружок ZoneClusterLayer.
   const { singletonIds } = useZoneClusters(zoom);
-  // Quick-fix 2026-05-16 (п.1): см. ZoneLayer — не гасим на транзиентной ошибке.
+
   if (!data) return null;
 
   const parallel = data.filter(
-    (z) => z.zone_type === 'parallel' && singletonIds.has(z.zone_id),
+    (z) =>
+      z.zone_type === 'parallel' &&
+      singletonIds.has(z.zone_id) &&
+      z.geometry?.coordinates?.length,
   );
 
   return (
     <>
       <YMapFeatureDataSource id="ptk-zones-parallel" />
       <YMapLayer source="ptk-zones-parallel" type="features" zIndex={1901} />
+
       {parallel.map((z) => {
         const line = polygonToParallelLine(z.geometry);
         if (!line) return null;
+
         const palette = computeZoneStyle({
           zoneId: z.zone_id,
           free_count: z.free_count,
           confidence: z.confidence,
           is_active: z.is_active,
           mode: 'now',
-          selected: z.zone_id === selectedZoneId, // D-08
+          selected: z.zone_id === selectedZoneId,
         });
-        const geometry = {
-          type: 'LineString' as const,
+
+        const geometry: LineStringGeometry = {
+          type: 'LineString',
           coordinates: line.coordinates as LngLat[],
         };
-        // Для LineString используем stroke (fill игнорируется), ширина 6 / 8 (selected).
+
         const strokeWidth = z.zone_id === selectedZoneId ? 8 : 6;
+
         return (
           <YMapFeature
             key={z.zone_id}

@@ -68,6 +68,20 @@ describe('ResultItem (RANK-04 / D-20)', () => {
     expect(screen.getByText(/850 м/)).toBeInTheDocument();
     expect(screen.getByText(/4 мин/)).toBeInTheDocument(); // 240 sec / 60 = 4 min
   });
+
+  // 2026-05-26: длинные маршруты конвертируем в часы/дни вместо «4000 мин».
+  it('конвертирует длинную поездку: 4000 мин (≈240000с) → «2 д 18 ч»', () => {
+    render(
+      wrap(
+        <ResultItem
+          candidate={{ ...c, duration_from_origin_seconds: 4000 * 60 }}
+          onClick={() => {}}
+        />,
+      ),
+    );
+    expect(screen.getByText(/2 д 18 ч/)).toBeInTheDocument();
+    expect(screen.queryByText(/4000 мин/)).toBeNull();
+  });
   it('shows confidence percent', () => {
     render(wrap(<ResultItem candidate={c} onClick={() => {}} />));
     expect(screen.getByText(/76%/)).toBeInTheDocument();

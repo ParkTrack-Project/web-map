@@ -36,6 +36,12 @@ export function readFiltersFromStorage(): Partial<ZoneFilters> {
   const hnf = ssGet('hideNoFree');
   if (hnf !== null) r.hideNoFree = hnf === '1';
 
+  const mfc = ssGet('minFreeCount');
+  if (mfc !== null) {
+    const n = Number(mfc);
+    if (Number.isFinite(n) && n >= 0) r.minFreeCount = Math.floor(n);
+  }
+
   const mc = ssGet('minConf');
   if (mc !== null) {
     const n = Number(mc);
@@ -89,6 +95,7 @@ export function writeFilterToStorage<K extends keyof ZoneFilters>(
     case 'hideInactive':
       serialized = (value as boolean) ? '1' : '0';
       break;
+    case 'minFreeCount':
     case 'minConf':
       serialized = String(value as number);
       break;

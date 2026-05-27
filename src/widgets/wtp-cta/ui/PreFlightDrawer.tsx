@@ -1,7 +1,10 @@
 // Phase 4 / WTP-03 / D-10:
-// Mobile pre-flight через vaul Drawer — тот же текст и кнопки, что в Dialog.
+// Mobile pre-flight через vaul Drawer — тот же текст, что в Dialog.
 // Single-snap по умолчанию (Phase 3 pattern; Pitfall 11 — nested vaul / focus-trap conflict).
 // Pure presentational — request flow lifted to parent (WTPMobileFAB) per Permissions API skip-logic.
+//
+// Fix 2026-05-26: убрана кнопка «Указать вручную» (по запросу продукта,
+// синхронно с PreFlightDialog).
 import { Drawer } from 'vaul';
 import { Locate } from 'lucide-react';
 
@@ -9,18 +12,12 @@ interface PreFlightDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAllow: () => Promise<void> | void;
-  onManualEntry: () => void;
 }
 
 const EXPLAINER_TEXT =
   'Для поиска ближайших парковок нужен доступ к вашей геолокации. Координаты используются только для запроса к серверу и не сохраняются.';
 
-export function PreFlightDrawer({
-  open,
-  onOpenChange,
-  onAllow,
-  onManualEntry,
-}: PreFlightDrawerProps) {
+export function PreFlightDrawer({ open, onOpenChange, onAllow }: PreFlightDrawerProps) {
   const handleAllow = async () => {
     await onAllow();
     onOpenChange(false);
@@ -47,16 +44,6 @@ export function PreFlightDrawer({
               className="min-h-[44px] rounded-md bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
             >
               Разрешить геолокацию
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onManualEntry();
-                onOpenChange(false);
-              }}
-              className="min-h-[44px] rounded-md border border-zinc-300 px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-            >
-              Указать вручную
             </button>
           </div>
         </Drawer.Content>
