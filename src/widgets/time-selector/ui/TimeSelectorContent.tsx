@@ -21,11 +21,9 @@ import { MAX_PAST_DAYS, MAX_FUTURE_HOURS, MIN_RESOLUTION_MINUTES } from '@/share
 import { inputValueToUtcIso, utcIsoToInputValue } from '@/shared/lib/i18n';
 import { deriveMode } from '@/shared/lib/url';
 import { PRESETS, applyPreset, type Preset } from '../lib/presets';
-import { formatBoundMessage } from '../lib/bounds';
 
 export function TimeSelectorContent() {
   const { mode, setMode, setNow } = useTimeMode();
-  const [outOfRangeMsg, setOutOfRangeMsg] = useState<string | null>(null);
   // Active preset label — для визуальной подсветки выбранной chip-кнопки.
   // Сбрасывается при ручном вводе времени или Reset (значит preset больше
   // не отражает текущий mode.at).
@@ -37,16 +35,13 @@ export function TimeSelectorContent() {
     const r = applyPreset(preset);
     const next = deriveMode(r.at);
     setMode(next);
-    setOutOfRangeMsg(r.outOfRangeMsg);
     setActivePresetLabel(preset.label);
   };
 
   const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const local = e.target.value;
     if (!local) {
-      // Очистка input → возвращаем к now
       setNow();
-      setOutOfRangeMsg(null);
       setActivePresetLabel(null);
       return;
     }
@@ -54,18 +49,13 @@ export function TimeSelectorContent() {
       const iso = inputValueToUtcIso(local);
       const next = deriveMode(iso);
       setMode(next);
-      setOutOfRangeMsg(null);
       setActivePresetLabel(null);
     } catch {
-      // Кинд для message: derived из текущего mode (если уже выбрано),
-      // иначе fallback к 'past' для bound-message (тривиальный edge case).
-      const k = mode.kind === 'future' ? 'future' : 'past';
-      setOutOfRangeMsg(formatBoundMessage(k));
+      setActivePresetLabel(null);
     }
   };
 
   const onReset = () => {
-    setOutOfRangeMsg(null);
     setActivePresetLabel(null);
     setNow();
   };
