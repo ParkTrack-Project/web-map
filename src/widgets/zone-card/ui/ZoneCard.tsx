@@ -133,7 +133,11 @@ function ZoneCardBody({ zone }: { zone: Zone }) {
     many: 'мест',
   });
   // CARD-02: «обновлено N минут назад» через date-fns с ru-локалью.
-  const updatedRu = formatRelativeRu(zone.occupancy_updated_at);
+  const updatedAt =
+  zone.occupancy_updated_at ??
+  ('observed_at' in zone ? String(zone.observed_at) : null);
+
+  const updatedRu = formatRelativeRu(updatedAt);
 
   return (
     <>
