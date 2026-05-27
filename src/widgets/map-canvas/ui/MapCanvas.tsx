@@ -36,6 +36,11 @@ import {
 const YMap = YMapRaw as unknown as ComponentType<{
   ref?: React.Ref<YMapInstance | null>;
   location: { center: [number, number]; zoom: number };
+  camera?: {
+    tilt?: number;
+    azimuth?: number;
+    duration?: number;
+  };
   mode?: string;
   children?: React.ReactNode;
 }>;
@@ -88,6 +93,13 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
     zoom,
   }));
   const initialLocation = useDefault(initialLocationValue);
+  const initialCamera = useDefault(
+  {
+    tilt: 0,
+    azimuth: 0,
+  },
+  [],
+  );
 
   // Quick-fix п.0: если ?bbox нет — один раз засеваем его из initial view,
   // чтобы зоны грузились без сдвига карты. setBbox только пишет URL-параметр,
@@ -108,7 +120,7 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
 
   return (
     <div ref={rootRef} className="map-controls-shifted-container relative h-full w-full">
-      <YMap ref={mapRef} location={initialLocation} mode="vector">
+      <YMap ref={mapRef} location={initialLocation} camera={initialCamera} mode="vector">
         <YMapDefaultSchemeLayer />
         {/* MAP-03: встроенный парковочный слой Yandex входит в default features layer */}
         <YMapDefaultFeaturesLayer />
