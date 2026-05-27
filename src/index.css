@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-@import '@yandex/ymaps3-default-ui-theme/dist/esm/index.css';
 
 /* A11Y-04 / D-18: глобальный focus-ring для всех :focus-visible элементов.
    Никакого outline:none без замены — все интерактивные кастомные компоненты
