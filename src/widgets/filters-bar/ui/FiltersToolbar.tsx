@@ -40,6 +40,27 @@ export function FiltersToolbar() {
       >
         Только свободные
       </FilterChip>
+      <FilterPopoverChip
+        label={`Свободных ≥ ${f.filters.minFreeCount}`}
+        active={f.filters.minFreeCount > 0}
+        ariaLabel="Минимальное число свободных мест"
+      >
+        <label className="flex flex-col gap-2 text-sm">
+          <span>Минимальное число свободных мест: {f.filters.minFreeCount}</span>
+          <input
+            type="number"
+            min={0}
+            step={1}
+            value={f.filters.minFreeCount}
+            onChange={(e) => {
+              const n = Number(e.target.value);
+              f.setMinFreeCount(Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0);
+            }}
+            aria-label="Минимальное число свободных мест"
+            className="w-32 rounded-md border border-zinc-200 px-2 py-1"
+          />
+        </label>
+      </FilterPopoverChip>
 
       {/* FILTER-02: chip + popover-slider (D-09) */}
       <FilterPopoverChip
