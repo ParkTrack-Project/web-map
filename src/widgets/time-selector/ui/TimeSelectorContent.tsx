@@ -15,17 +15,15 @@
 // никаких new strings на каждый rerender (mobile webkit teardown'ит controlled input).
 import { useMemo, useState } from 'react';
 import type { ChangeEvent } from 'react';
-import { Clock, X, CalendarClock } from 'lucide-react';
+import { X, CalendarClock } from 'lucide-react';
 import { useTimeMode } from '@/features/select-time-mode';
 import { MAX_PAST_DAYS, MAX_FUTURE_HOURS, MIN_RESOLUTION_MINUTES } from '@/shared/config';
 import { inputValueToUtcIso, utcIsoToInputValue } from '@/shared/lib/i18n';
 import { deriveMode } from '@/shared/lib/url';
 import { PRESETS, applyPreset, type Preset } from '../lib/presets';
-import { formatBoundMessage } from '../lib/bounds';
 
 export function TimeSelectorContent() {
   const { mode, setMode, setNow } = useTimeMode();
-  const [outOfRangeMsg, setOutOfRangeMsg] = useState<string | null>(null);
   // Active preset label — для визуальной подсветки выбранной chip-кнопки.
   // Сбрасывается при ручном вводе времени или Reset (значит preset больше
   // не отражает текущий mode.at).
@@ -37,16 +35,13 @@ export function TimeSelectorContent() {
     const r = applyPreset(preset);
     const next = deriveMode(r.at);
     setMode(next);
-    setOutOfRangeMsg(r.outOfRangeMsg);
     setActivePresetLabel(preset.label);
   };
 
   const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const local = e.target.value;
     if (!local) {
-      // Очистка input → возвращаем к now
       setNow();
-      setOutOfRangeMsg(null);
       setActivePresetLabel(null);
       return;
     }
@@ -54,18 +49,13 @@ export function TimeSelectorContent() {
       const iso = inputValueToUtcIso(local);
       const next = deriveMode(iso);
       setMode(next);
-      setOutOfRangeMsg(null);
       setActivePresetLabel(null);
     } catch {
-      // Кинд для message: derived из текущего mode (если уже выбрано),
-      // иначе fallback к 'past' для bound-message (тривиальный edge case).
-      const k = mode.kind === 'future' ? 'future' : 'past';
-      setOutOfRangeMsg(formatBoundMessage(k));
+      setActivePresetLabel(null);
     }
   };
 
   const onReset = () => {
-    setOutOfRangeMsg(null);
     setActivePresetLabel(null);
     setNow();
   };
@@ -85,6 +75,34 @@ export function TimeSelectorContent() {
   }, []);
 
   const inputValue = isModeChosen && 'at' in mode ? utcIsoToInputValue(mode.at) : defaultNowValue;
+  const pastPresets = PRESETS.filter((preset) =>
+  preset.type === 'static' ? preset.deltaMs < 0 : preset.dayOffset < 0,
+);
+
+const futurePresets = PRESETS.filter((preset) =>
+  preset.type === 'static' ? preset.deltaMs > 0 : preset.dayOffset > 0,
+);
+
+const renderPresetButton = (preset: Preset) => {
+  const isActivePreset = activePresetLabel === preset.label;
+
+  return (
+    <button
+      key={preset.label}
+      type="button"
+      onClick={() => onPreset(preset)}
+      aria-pressed={isActivePreset}
+      className={
+        'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ' +
+        (isActivePreset
+          ? 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-1 ring-emerald-500/40'
+          : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900')
+      }
+    >
+      {preset.label}
+    </button>
+  );
+};
 
   return (
     <div className="flex flex-col gap-3 p-4" data-testid="time-selector-content">
@@ -108,50 +126,32 @@ export function TimeSelectorContent() {
       </div>
 
       {/* Preset chips — всегда видим объединённый список (5 past + 5 future) */}
-      <div role="group" aria-label="Быстрый выбор времени" className="flex flex-wrap gap-1.5">
-        {PRESETS.map((p) => {
-          const isActivePreset = activePresetLabel === p.label;
-          return (
-            <button
-              key={p.label}
-              type="button"
-              onClick={() => onPreset(p)}
-              aria-pressed={isActivePreset}
-              className={
-                'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ' +
-                (isActivePreset
-                  ? 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-1 ring-emerald-500/40'
-                  : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900')
-              }
-            >
-              {p.label}
-            </button>
-          );
-        })}
+      {/* Preset chips — прошлое и будущее отдельно */}
+      <div aria-label="Быстрый выбор времени" className="flex flex-col gap-2">
+        <div className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">Прошлое</div>
+        <div role="group" aria-label="Прошлое" className="flex flex-wrap gap-1.5">
+          {pastPresets.map(renderPresetButton)}
+        </div>
+
+        <div className="h-px w-full bg-zinc-200" aria-hidden="true"/>
+
+        <div className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">Будущее</div>
+        <div role="group" aria-label="Будущее" className="flex flex-wrap gap-1.5">
+          {futurePresets.map(renderPresetButton)}
+        </div>
       </div>
 
       {/* Reset «Сейчас» CTA — только когда mode != now */}
       {isModeChosen && (
-        <button
+          <button
           type="button"
           onClick={onReset}
           aria-label="Вернуться к Сейчас"
-          className="inline-flex items-center justify-center gap-1.5 self-start rounded-md px-2 py-1 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+          className="inline-flex items-center justify-center gap-1.5 self-start rounded-md bg-emerald-600 px-2 py-1 text-xs font-medium text-white transition-colors hover:bg-emerald-700"
         >
-          <Clock size={12} aria-hidden />
           <X size={12} aria-hidden />
           Вернуться к Сейчас
         </button>
-      )}
-
-      {outOfRangeMsg && (
-        <p
-          role="status"
-          className="text-xs font-medium text-amber-600"
-          data-testid="out-of-range-msg"
-        >
-          {outOfRangeMsg}
-        </p>
       )}
     </div>
   );

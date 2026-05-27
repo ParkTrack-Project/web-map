@@ -120,20 +120,51 @@ export function ZoneCardContent({ zoneId, onClose }: ContentProps) {
           )}
         </div>
       )}
-      {data && data.is_active !== false && <ZoneCardBody zone={data} />}
+      {data && data.is_active !== false && <ZoneCardBody zone={data} mode={mode} />}
     </div>
   );
 }
 
-function ZoneCardBody({ zone }: { zone: Zone }) {
+function ZoneCardBody({ zone, mode }: { zone: Zone; mode: ReturnType<typeof useTimeMode>['mode'] }) {
   // CARD-06: русская плюрализация мест.
   const placeWord = pluralizeRu(zone.free_count, {
     one: 'место',
     few: 'места',
     many: 'мест',
   });
-  // CARD-02: «обновлено N минут назад» через date-fns с ru-локалью.
-  const updatedRu = formatRelativeRu(zone.occupancy_updated_at);
+
+  const forecastCreatedAt =
+  (zone as unknown as { forecast_created_at?: string | null }).forecast_created_at ??
+  zone.occupancy_updated_at;
+
+const displayedAt =
+  (zone as unknown as { displayed_at?: string | null }).displayed_at ??
+  (zone as unknown as { predicted_for?: string | null }).predicted_for ??
+  (zone as unknown as { forecasted_at?: string | null }).forecasted_at ??
+  (zone as unknown as { forecast_at?: string | null }).forecast_at;
+
+const updatedRu = formatRelativeRu(zone.occupancy_updated_at);
+const forecastCreatedRu = formatRelativeRu(forecastCreatedAt);
+
+const formatDateTime = (iso?: string | null) => {
+  if (!iso) return 'неизвестно';
+
+  const date = new Date(iso);
+
+  if (Number.isNaN(date.getTime())) return 'неизвестно';
+
+  return new Intl.DateTimeFormat('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+};
+
+const confidencePercent = Math.round(
+  Math.max(0, Math.min(1, zone.confidence)) * 100,
+);
 
   return (
     <>
@@ -143,9 +174,19 @@ function ZoneCardBody({ zone }: { zone: Zone }) {
       </div>
 
       <div className="text-sm text-zinc-600">
-        Уверенность данных: {Math.round(zone.confidence * 100)}%
-        <span className="ml-2 text-zinc-500">обновлено {updatedRu}</span>
+        Уверенность данных: {confidencePercent}%
+        {mode.kind === 'future' ? (
+          <span className="ml-2 text-zinc-500">прогноз создан {forecastCreatedRu}</span>
+        ) : (
+          <span className="ml-2 text-zinc-500">обновлено {updatedRu}</span>
+        )}
       </div>
+
+      {mode.kind === 'future' && (
+        <div className="text-sm font-medium text-emerald-700">
+          Отображается прогноз на {formatDateTime(displayedAt)}
+        </div>
+      )}
 
       {/* CARD-04: цена или «Бесплатно» */}
       <div className="text-base">

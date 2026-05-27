@@ -23,6 +23,10 @@ export function useFilters() {
     'fNoFree',
     parseAsBoolean.withDefault(DEFAULT_FILTERS.hideNoFree),
   );
+  const [minFreeCount, _setMinFreeCount] = useQueryState(
+    'fMinFree',
+    parseAsInteger.withDefault(DEFAULT_FILTERS.minFreeCount),
+  );
   const [minConf, _setMinConf] = useQueryState(
     'fMinConf',
     parseAsFloat.withDefault(DEFAULT_FILTERS.minConf),
@@ -47,6 +51,7 @@ export function useFilters() {
 
   const filters: ZoneFilters = {
     hideNoFree,
+    minFreeCount,
     minConf,
     maxPay,
     hidePrivate,
@@ -61,6 +66,14 @@ export function useFilters() {
       writeFilterToStorage('hideNoFree', v);
     },
     [_setHideNoFree],
+  );
+  const setMinFreeCount = useCallback(
+    (v: number) => {
+      const safeValue = Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0;
+      _setMinFreeCount(safeValue);
+      writeFilterToStorage('minFreeCount', safeValue);
+    },
+    [_setMinFreeCount],
   );
   const setMinConf = useCallback(
     (v: number) => {
@@ -107,6 +120,7 @@ export function useFilters() {
 
   const resetAll = useCallback(() => {
     setHideNoFree(DEFAULT_FILTERS.hideNoFree);
+    setMinFreeCount(DEFAULT_FILTERS.minFreeCount);
     setMinConf(DEFAULT_FILTERS.minConf);
     setMaxPay(DEFAULT_FILTERS.maxPay);
     setHidePrivate(DEFAULT_FILTERS.hidePrivate);
@@ -115,6 +129,7 @@ export function useFilters() {
     setHideInactive(DEFAULT_FILTERS.hideInactive);
   }, [
     setHideNoFree,
+    setMinFreeCount,
     setMinConf,
     setMaxPay,
     setHidePrivate,
@@ -127,6 +142,7 @@ export function useFilters() {
     filters,
     activeCount: countActive(filters),
     setHideNoFree,
+    setMinFreeCount,
     setMinConf,
     setMaxPay,
     setHidePrivate,

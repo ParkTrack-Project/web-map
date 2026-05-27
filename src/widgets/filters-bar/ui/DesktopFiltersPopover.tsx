@@ -55,22 +55,37 @@ export function DesktopFiltersPopover() {
             <label className="flex items-center justify-between">
               Только свободные
               <input
-                type="checkbox"
-                checked={f.filters.hideNoFree}
-                onChange={(e) => f.setHideNoFree(e.target.checked)}
-                className="h-5 w-5"
+                  type="checkbox"
+                  checked={f.filters.hideNoFree}
+                  onChange={(e) => f.setHideNoFree(e.target.checked)}
+                  className="h-5 w-5"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span>Свободных мест ≥ {f.filters.minFreeCount}</span>
+              <input
+                  type="number"
+                  min={0}
+                  step={1}
+                  value={f.filters.minFreeCount}
+                  onChange={(e) => {
+                    const n = Number(e.target.value);
+                    f.setMinFreeCount(Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0);
+                  }}
+                  aria-label="Минимальное число свободных мест"
+                  className="rounded-md border border-zinc-200 px-2 py-1"
               />
             </label>
             <label className="flex flex-col gap-1">
               <span>Уверенность ≥ {Math.round(f.filters.minConf * 100)}%</span>
               <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={f.filters.minConf}
-                onChange={(e) => f.setMinConf(Number(e.target.value))}
-                aria-label="Минимальная уверенность данных"
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={f.filters.minConf}
+                  onChange={(e) => f.setMinConf(Number(e.target.value))}
+                  aria-label="Минимальная уверенность данных"
               />
             </label>
             <label className="flex flex-col gap-1">
@@ -78,48 +93,48 @@ export function DesktopFiltersPopover() {
                 Цена ≤ {f.filters.maxPay === null ? 'без ограничения' : `${f.filters.maxPay} ₽`}
               </span>
               <input
-                type="range"
-                min={0}
-                max={500}
-                step={10}
-                value={f.filters.maxPay ?? 500}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  f.setMaxPay(v >= 500 ? null : v);
-                }}
-                aria-label="Максимальная цена в час"
+                  type="range"
+                  min={0}
+                  max={500}
+                  step={10}
+                  value={f.filters.maxPay ?? 500}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    f.setMaxPay(v >= 500 ? null : v);
+                  }}
+                  aria-label="Максимальная цена в час"
               />
             </label>
             <label className="flex items-center justify-between">
               Скрыть частные
               <input
-                type="checkbox"
-                checked={f.filters.hidePrivate}
-                onChange={(e) => f.setHidePrivate(e.target.checked)}
-                className="h-5 w-5"
+                  type="checkbox"
+                  checked={f.filters.hidePrivate}
+                  onChange={(e) => f.setHidePrivate(e.target.checked)}
+                  className="h-5 w-5"
               />
             </label>
             <label className="flex items-center justify-between">
               Скрыть для инвалидов
               <input
-                type="checkbox"
-                checked={f.filters.hideAccessible}
-                onChange={(e) => f.setHideAccessible(e.target.checked)}
-                className="h-5 w-5"
+                  type="checkbox"
+                  checked={f.filters.hideAccessible}
+                  onChange={(e) => f.setHideAccessible(e.target.checked)}
+                  className="h-5 w-5"
               />
             </label>
             <fieldset className="flex flex-col gap-2">
               <legend className="font-semibold">Тип расположения</legend>
               {ALL_LOCATION_TYPES.map((t) => (
-                <label key={t} className="flex items-center justify-between">
-                  {LOC_LABEL[t]}
-                  <input
-                    type="checkbox"
-                    checked={f.filters.locationType.includes(t)}
-                    onChange={() => toggleLoc(t)}
-                    className="h-5 w-5"
-                  />
-                </label>
+                  <label key={t} className="flex items-center justify-between">
+                    {LOC_LABEL[t]}
+                    <input
+                        type="checkbox"
+                        checked={f.filters.locationType.includes(t)}
+                        onChange={() => toggleLoc(t)}
+                        className="h-5 w-5"
+                    />
+                  </label>
               ))}
               <p className="text-xs text-zinc-500">
                 Если ничего не выбрано — показываются все типы
@@ -128,20 +143,20 @@ export function DesktopFiltersPopover() {
             <label className="flex items-center justify-between">
               Скрыть неактивные
               <input
-                type="checkbox"
-                checked={f.filters.hideInactive}
-                onChange={(e) => f.setHideInactive(e.target.checked)}
-                className="h-5 w-5"
+                  type="checkbox"
+                  checked={f.filters.hideInactive}
+                  onChange={(e) => f.setHideInactive(e.target.checked)}
+                  className="h-5 w-5"
               />
             </label>
             {f.activeCount > 0 && (
-              <button
-                type="button"
-                onClick={f.resetAll}
-                className="mt-2 rounded-md bg-zinc-200 px-4 py-2 text-sm hover:bg-zinc-300"
-              >
-                Сбросить все
-              </button>
+                <button
+                    type="button"
+                    onClick={f.resetAll}
+                    className="mt-2 rounded-md bg-zinc-200 px-4 py-2 text-sm hover:bg-zinc-300"
+                >
+                  Сбросить все
+                </button>
             )}
           </div>
         </Popover.Content>

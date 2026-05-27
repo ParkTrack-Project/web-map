@@ -76,14 +76,23 @@ export function MobileZoneCard() {
   useEffect(() => {
     if (!isOpen || !zone || !mapRefHolder?.current) return;
     if (zone.is_active === false) return;
-    const center = zoneCentroid(zone.geometry);
-    try {
-      mapRefHolder.current.setLocation({
-        center,
-        duration: 300, // ms — easing 300ms (D-07 mobile)
-      });
+    if (!zone.geometry?.coordinates?.[0]?.length) {
+  console.warn('[ptk] mobile pan skipped: zone geometry is missing', {
+    selectedZoneId,
+    zone,
+  });
+  return;
+}
+
+  const center = zoneCentroid(zone.geometry);
+
+  try {
+    mapRefHolder.current.setLocation({
+      center,
+      duration: 300,
+    });
       console.debug('[ptk] mobile pan to zone', selectedZoneId);
-    } catch (e) {
+  } catch (e) {
       console.warn('[ptk] mobile pan failed:', e);
     }
   }, [isOpen, zone, mapRefHolder, selectedZoneId]);

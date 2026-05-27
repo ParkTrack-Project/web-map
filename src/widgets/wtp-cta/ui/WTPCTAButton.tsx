@@ -5,17 +5,15 @@
 // показывается ТОЛЬКО при первом запросе (когда state='prompt' или 'denied').
 // Request flow владеется здесь, передаётся в PreFlightDialog как onAllow prop.
 // НЕ вызывает getCurrentPosition при mount (WTP-02 enforcement).
+//
+// Fix 2026-05-26: пропс `onManualEntry` удалён — кнопка «Указать вручную» из
+// PreFlightDialog убрана, callback некому вызывать.
 import { useCallback } from 'react';
 import { Locate } from 'lucide-react';
 import { Z_INDEX } from '@/shared/config';
 import { useGeolocationRequest, useFromCoords } from '@/features/request-geolocation';
 import { PreFlightDialog } from './PreFlightDialog';
 import { useWtpPrompt } from '../model/useWtpPrompt';
-
-interface WTPCTAButtonProps {
-  /** Callback при «Указать вручную» — Layout использует для focus search-input. */
-  onManualEntry?: () => void;
-}
 
 async function isGeolocationAlreadyGranted(): Promise<boolean> {
   if (typeof navigator === 'undefined' || !('permissions' in navigator)) return false;
@@ -28,14 +26,13 @@ async function isGeolocationAlreadyGranted(): Promise<boolean> {
   }
 }
 
-export function WTPCTAButton({ onManualEntry }: WTPCTAButtonProps = {}) {
+export function WTPCTAButton() {
   // Quick-fix 2026-05-16: open вынесен в общий стор — SearchBar открывает это
   // же окно после выбора адреса.
   const open = useWtpPrompt((s) => s.open);
   const setOpen = useWtpPrompt((s) => s.setOpen);
   const { request } = useGeolocationRequest();
   const { setFromCoords } = useFromCoords();
-  const handleManual = useCallback(() => onManualEntry?.(), [onManualEntry]);
 
   const requestGeolocation = useCallback(async () => {
     const coords = await request();
@@ -63,12 +60,7 @@ export function WTPCTAButton({ onManualEntry }: WTPCTAButtonProps = {}) {
         <Locate size={16} aria-hidden />
         Где припарковаться?
       </button>
-      <PreFlightDialog
-        open={open}
-        onOpenChange={setOpen}
-        onAllow={requestGeolocation}
-        onManualEntry={handleManual}
-      />
+      <PreFlightDialog open={open} onOpenChange={setOpen} onAllow={requestGeolocation} />
     </>
   );
 }

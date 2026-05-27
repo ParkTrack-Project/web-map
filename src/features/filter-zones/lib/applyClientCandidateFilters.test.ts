@@ -40,6 +40,7 @@ const baseCandidate: RouteCandidate = {
 
 const baseFilters: ZoneFilters = {
   hideNoFree: false,
+  minFreeCount: 0,
   minConf: 0,
   maxPay: null,
   hidePrivate: false,

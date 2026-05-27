@@ -15,7 +15,6 @@
 //
 // I-5: applyPreset принимает now (default Date.now()) и пробрасывает его
 // во все bounds-helpers — atomic time consistency.
-import { isWithinBounds, clampToBounds, formatBoundMessage } from './bounds';
 
 export type Preset =
   | { type: 'static'; label: string; deltaMs: number }
@@ -62,14 +61,10 @@ export interface ApplyPresetResult {
  */
 export function applyPreset(preset: Preset, now: number = Date.now()): ApplyPresetResult {
   const rawAt = computeAt(preset, now);
-  // kind derived из знака delta. Если rawAt === now (граничный случай) —
-  // считаем 'past' (boundary тривиально in-range для обеих сторон).
-  const derivedKind: 'past' | 'future' = rawAt > now ? 'future' : 'past';
-  const within = isWithinBounds(rawAt, derivedKind, now);
-  const at = within ? rawAt : clampToBounds(rawAt, derivedKind, now);
+
   return {
-    at: new Date(at).toISOString(),
-    outOfRangeMsg: within ? null : formatBoundMessage(derivedKind, now),
-    clamped: !within,
+    at: new Date(rawAt).toISOString(),
+    outOfRangeMsg: null,
+    clamped: false,
   };
 }

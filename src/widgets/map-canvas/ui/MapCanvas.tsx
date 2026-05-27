@@ -16,29 +16,29 @@
 // Phase 2 Plan 03 (URL-01): zoom поднят в URL-state ?z=N через nuqs внутри
 // useBboxTracking. Локальный useState удалён; ZoneBadgesLayer читает зум из
 // единого источника (URL или DEFAULT_ZOOM как fallback при пустом URL).
-import { useEffect, useRef, useState, type ComponentType, type RefObject } from 'react';
-import type { YMap as YMapInstance } from '@yandex/ymaps3-types';
 import {
-  YMap as YMapRaw,
-  YMapDefaultSchemeLayer,
-  YMapDefaultFeaturesLayer,
-  YMapListener,
-  YMapControls,
-  YMapZoomControl,
-  useDefault,
-} from '@/shared/lib/ymaps';
-
-// reactify-обёртка YMap теряет тип props после union с ProviderProps<unknown>
-// при exactOptionalPropertyTypes — runtime shape совпадает с reactify.module(ymaps3).
-// Cast через unknown чтобы TS принял ref+location+mode props.
-const YMap = YMapRaw as unknown as ComponentType<{
-  ref?: React.Ref<YMapInstance | null>;
-  location: { center: [number, number]; zoom: number };
-  mode?: string;
-  children?: React.ReactNode;
-}>;
+  useEffect,
+  useRef,
+  useState,
+  type ComponentType,
+  type ReactNode,
+  type Ref,
+  type RefObject,
+} from 'react';
+import type { YMap as YMapInstance } from '@yandex/ymaps3-types';
 import { ITMO_CENTER, DEFAULT_ZOOM, CLUSTER_ZOOM_STEP } from '@/shared/config';
 import { centerFromBbox, bboxFromCenterZoom, roundBbox5 } from '@/shared/lib/geo';
+import {
+  YMap as YMapRaw,
+  YMapDefaultSchemeLayer as YMapDefaultSchemeLayerRaw,
+  YMapDefaultFeaturesLayer as YMapDefaultFeaturesLayerRaw,
+  YMapListener as YMapListenerRaw,
+  YMapControls as YMapControlsRaw,
+  YMapZoomControl as YMapZoomControlRaw,
+  YMapGeolocationControl as YMapGeolocationControlRaw,
+  YMapRotateTiltControl as YMapRotateTiltControlRaw,
+  useDefault,
+} from '@/shared/lib/ymaps';
 import { useBboxTracking } from '../model/useBboxTracking';
 import { ZoneLayer } from './ZoneLayer';
 import { ParallelZoneLayer } from './ParallelZoneLayer';
@@ -49,9 +49,68 @@ import { RoutePreviewLayer } from './RoutePreviewLayer';
 import { DestinationMarkerLayer } from './DestinationMarkerLayer';
 import { ModeTransitionOverlay } from '@/widgets/mode-transition-overlay';
 
+type Point = [number, number];
+
+interface MapLocation {
+  center: Point;
+  zoom: number;
+}
+
+interface MapCamera {
+  tilt?: number;
+  azimuth?: number;
+  duration?: number;
+}
+
+interface YMapUpdateEvent {
+  location: {
+    zoom: number;
+    bounds: [Point, Point];
+  };
+}
+
+// reactify-обёртки из shared/lib/ymaps после динамической загрузки часто теряют
+// нормальный JSX-тип. Поэтому приводим к ComponentType локально, в одном месте.
+const YMap = YMapRaw as unknown as ComponentType<{
+  ref?: Ref<YMapInstance | null>;
+  location: MapLocation;
+  camera?: MapCamera;
+  behaviors?: string[];
+  distribution?: boolean;
+  mode?: string;
+  children?: ReactNode;
+}>;
+
+const YMapDefaultSchemeLayer = YMapDefaultSchemeLayerRaw as unknown as ComponentType;
+const YMapDefaultFeaturesLayer = YMapDefaultFeaturesLayerRaw as unknown as ComponentType;
+
+const YMapListener = YMapListenerRaw as unknown as ComponentType<{
+  onUpdate?: (event: YMapUpdateEvent) => void;
+}>;
+
+const YMapControls = YMapControlsRaw as unknown as ComponentType<{
+  position?: string;
+  children?: ReactNode;
+}>;
+
+const YMapZoomControl = YMapZoomControlRaw as unknown as ComponentType;
+const YMapGeolocationControl = YMapGeolocationControlRaw as unknown as ComponentType;
+const YMapRotateTiltControl = YMapRotateTiltControlRaw as unknown as ComponentType;
+
 interface MapCanvasProps {
   mapRef: RefObject<YMapInstance | null>;
 }
+
+const MAP_BEHAVIORS = [
+  'drag',
+  'pinchZoom',
+  'pinchRotate',
+  'panTilt',
+  'scrollZoom',
+  'dblClick',
+  'mouseRotate',
+  'mouseTilt',
+];
 
 export function MapCanvas({ mapRef }: MapCanvasProps) {
   const { bbox, zoom: urlZoom, writeViewport, setBbox } = useBboxTracking();
@@ -81,11 +140,19 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
   // ?bbox/?z всё ещё применяются — читаются один раз при инициализации.
   //   ?bbox → центр = середина bbox; зум = ?z (или DEFAULT_ZOOM)
   //   только ?z → ITMO + этот зум; ничего → ITMO + DEFAULT_ZOOM
-  const [initialLocationValue] = useState(() => ({
+  const [initialLocationValue] = useState<MapLocation>(() => ({
     center: bbox ? centerFromBbox(bbox) : ITMO_CENTER,
     zoom,
   }));
   const initialLocation = useDefault(initialLocationValue);
+
+  const initialCamera = useDefault<MapCamera>(
+    {
+      tilt: 0,
+      azimuth: 0,
+    },
+    [],
+  );
 
   // Quick-fix п.0: если ?bbox нет — один раз засеваем его из initial view,
   // чтобы зоны грузились без сдвига карты. setBbox только пишет URL-параметр,
@@ -93,8 +160,10 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
   useEffect(() => {
     if (isHidden()) return; // только видимый инстанс сеет ?bbox
     if (bbox != null) return;
+
     const w = typeof window !== 'undefined' ? window.innerWidth : 1280;
     const h = typeof window !== 'undefined' ? window.innerHeight : 800;
+
     setBbox(
       roundBbox5(
         bboxFromCenterZoom(initialLocationValue.center, initialLocationValue.zoom, w, h),
@@ -106,35 +175,54 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
 
   return (
     <div ref={rootRef} className="map-controls-shifted-container relative h-full w-full">
-      <YMap ref={mapRef} location={initialLocation} mode="vector">
+      <YMap
+        ref={mapRef}
+        location={initialLocation}
+        camera={initialCamera}
+        behaviors={MAP_BEHAVIORS}
+        mode="vector"
+        distribution={false}
+      >
         <YMapDefaultSchemeLayer />
         {/* MAP-03: встроенный парковочный слой Yandex входит в default features layer */}
         <YMapDefaultFeaturesLayer />
+
         <YMapListener
           onUpdate={({ location }) => {
             // Только видимый инстанс пишет viewport-URL (см. isHidden выше) —
             // иначе скрытый 0-размерный MapCanvas пинг-понгует ?bbox/?z.
             if (isHidden()) return;
+
             // Живой дробный зум → квант CLUSTER_ZOOM_STEP для кластер-слоёв.
             // Функц. setState: тот же квант → возвращаем prev → React бейлит
             // ре-рендер (не каждый кадр анимации, только на границах шага).
-            const qz =
-              Math.round(location.zoom / CLUSTER_ZOOM_STEP) * CLUSTER_ZOOM_STEP;
+            const qz = Math.round(location.zoom / CLUSTER_ZOOM_STEP) * CLUSTER_ZOOM_STEP;
             setClusterZoom((prev) => (prev === qz ? prev : qz));
+
             // location.bounds: [[lonSW, latSW], [lonNE, latNE]]
             const b = location.bounds;
             writeViewport(
               {
-                southWest: b[0] as [number, number],
-                northEast: b[1] as [number, number],
+                southWest: b[0],
+                northEast: b[1],
               },
               location.zoom,
             );
           }}
         />
+
         <YMapControls position="right">
           <YMapZoomControl />
+          {/* 2026-05-26: «Моё местоположение» как в Яндекс.Картах. Built-in
+              control — запрашивает navigator.geolocation, центрирует карту,
+              рисует синюю точку. ?from не трогает (это отдельный WTP-флоу). */}
+          <YMapGeolocationControl />
+          {/* 2026-05-26: встроенный компас Яндекса. Сам прячется при
+              azimuth=0 + tilt=0; клик возвращает «север сверху, top-down»
+              с плавной анимацией. Свой CompassButton больше не нужен. */}
+          <YMapRotateTiltControl />
         </YMapControls>
+
         {/* Quick-fix 2026-05-17: бинарный порог зума убран. Все 4 слоя активны
             на ЛЮБОМ зуме и делят членство через useZoneClusters(clusterZoom):
             ZoneClusterLayer рисует кружки (zoneCount>1), а полигон/бейдж-слои —
@@ -144,12 +232,14 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
         <ParallelZoneLayer zoom={clusterZoom} />
         <ZoneBadgesLayer zoom={clusterZoom} />
         <ZoneClusterLayer zoom={clusterZoom} />
+
         {/* Phase 4 / ROUTE-03: route preview как изолированный children — не сбрасывает viewport */}
         <RoutePreviewLayer />
         {/* Quick-fix 2026-05-16: маркер выбранного адреса (?dest) */}
         <DestinationMarkerLayer />
       </YMap>
-      {/* Z_INDEX.zoneStateOverlay=20 — empty/error overlay (Phase 2: D-21/D-22/UX-02/UX-04) */}
+
+      {/* Z_INDEX.zoneStateOverlay=20 — empty/error overlay / time drift overlay */}
       <ZoneStateOverlay />
       {/* Z_INDEX.modeTransitionOverlay=30 — mode-switch skeleton (Phase 3 TIME-06) */}
       <ModeTransitionOverlay />

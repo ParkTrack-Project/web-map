@@ -31,7 +31,8 @@ describe('suggestAddresses (Quick-fix п.4 — ymaps3.search JS-API)', () => {
     ]);
     const ctrl = new AbortController();
     const out = await suggestAddresses('Кронверкский', ctrl.signal);
-    expect(mockedSearchGeo).toHaveBeenCalledWith('Кронверкский');
+    // bbox не передан → bounds undefined (без viewport bias).
+    expect(mockedSearchGeo).toHaveBeenCalledWith('Кронверкский', undefined);
     expect(out).toEqual([
       {
         title: { text: 'Кронверкский пр.' },
@@ -39,6 +40,17 @@ describe('suggestAddresses (Quick-fix п.4 — ymaps3.search JS-API)', () => {
         uri: 'Кронверкский пр.',
         coords: [59.95598, 30.30943],
       },
+    ]);
+  });
+
+  it('viewport bias: bbox → searchGeo получает bounds [[swLon,swLat],[neLon,neLat]]', async () => {
+    mockedSearchGeo.mockResolvedValueOnce([]);
+    const ctrl = new AbortController();
+    // bbox = [west, south, east, north]
+    await suggestAddresses('Кронв', ctrl.signal, [30.2, 59.9, 30.4, 60.0]);
+    expect(mockedSearchGeo).toHaveBeenCalledWith('Кронв', [
+      [30.2, 59.9],
+      [30.4, 60.0],
     ]);
   });
 
