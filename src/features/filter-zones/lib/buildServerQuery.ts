@@ -8,7 +8,11 @@ import { ALL_LOCATION_TYPES, type ZoneFilters } from '@/entities/filters';
 
 export function buildServerQuery(f: ZoneFilters): Record<string, string> {
   const q: Record<string, string> = {};
-  if (f.hideNoFree) q.min_free_count = '1';
+  const minFreeCount = Math.max(f.hideNoFree ? 1 : 0, f.minFreeCount);
+
+  if (minFreeCount > 0) {
+    q.min_free_count = String(minFreeCount);
+  }
   if (f.minConf > 0) q.min_confidence = String(f.minConf);
   if (f.maxPay !== null) q.max_pay = String(f.maxPay);
   if (f.hidePrivate) q.include_private = 'false';

@@ -12,6 +12,7 @@ export function useFiltersHydration(): void {
   const {
     filters,
     setHideNoFree,
+    setMinFreeCount,
     setMinConf,
     setMaxPay,
     setHidePrivate,
@@ -32,6 +33,9 @@ export function useFiltersHydration(): void {
     const stored = readFiltersFromStorage();
     if (stored.hideNoFree !== undefined && stored.hideNoFree !== filters.hideNoFree) {
       setHideNoFree(stored.hideNoFree);
+    }
+    if (stored.minFreeCount !== undefined && stored.minFreeCount !== filters.minFreeCount) {
+      setMinFreeCount(stored.minFreeCount);
     }
     if (stored.minConf !== undefined && stored.minConf !== filters.minConf) {
       setMinConf(stored.minConf);

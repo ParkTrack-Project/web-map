@@ -11,9 +11,11 @@ export function applyClientCandidateFilters(
   candidates: RouteCandidate[],
   f: ZoneFilters,
 ): RouteCandidate[] {
+  const minFreeCount = Math.max(f.hideNoFree ? 1 : 0, f.minFreeCount);
+
   return candidates.filter((c) => {
     // hideNoFree (FILTER-01)
-    if (f.hideNoFree && c.current_free_count === 0) return false;
+    if (minFreeCount > 0 && c.current_free_count < minFreeCount) return false;
     // minConf (FILTER-02) — safety-net
     if (f.minConf > 0 && c.current_confidence < f.minConf) return false;
     // maxPay (FILTER-03) — safety-net

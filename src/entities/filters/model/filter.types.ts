@@ -14,6 +14,7 @@ export const ALL_LOCATION_TYPES: readonly LocationType[] = [
 
 export interface ZoneFilters {
   hideNoFree: boolean; // FILTER-01 default false
+  minFreeCount: number;
   minConf: number; // FILTER-02 default 0 (no min)
   maxPay: number | null; // FILTER-03 default null (no max)
   hidePrivate: boolean; // FILTER-04 default false
@@ -24,6 +25,7 @@ export interface ZoneFilters {
 
 export const DEFAULT_FILTERS: ZoneFilters = {
   hideNoFree: false,
+  minFreeCount: 0,
   minConf: 0,
   maxPay: null,
   hidePrivate: false,
@@ -32,10 +34,10 @@ export const DEFAULT_FILTERS: ZoneFilters = {
   hideInactive: true,
 };
 
-// FILTER-09: сколько фильтров не в дефолте (для badge-count «Активно: N»).
 export function countActive(f: ZoneFilters): number {
   let n = 0;
   if (f.hideNoFree !== DEFAULT_FILTERS.hideNoFree) n++;
+  if (f.minFreeCount !== DEFAULT_FILTERS.minFreeCount) n++;
   if (f.minConf !== DEFAULT_FILTERS.minConf) n++;
   if (f.maxPay !== DEFAULT_FILTERS.maxPay) n++;
   if (f.hidePrivate !== DEFAULT_FILTERS.hidePrivate) n++;

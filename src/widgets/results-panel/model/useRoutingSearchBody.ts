@@ -49,7 +49,11 @@ export function buildRoutingBody({
   }
   // Map filters → body params (D-25)
   if (filters.maxPay !== null) body.max_pay = filters.maxPay;
-  if (filters.hideNoFree) body.min_free_count = 1;
+  const minFreeCount = Math.max(filters.hideNoFree ? 1 : 0, filters.minFreeCount);
+
+  if (minFreeCount > 0) {
+    body.min_free_count = minFreeCount;
+  }
   if (filters.minConf > 0) body.min_confidence = filters.minConf;
   body.include_accessible = !filters.hideAccessible;
   return body;
