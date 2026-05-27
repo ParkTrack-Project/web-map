@@ -163,16 +163,6 @@ const renderPresetButton = (preset: Preset) => {
           Вернуться к Сейчас
         </button>
       )}
-
-      {outOfRangeMsg && (
-        <p
-          role="status"
-          className="text-xs font-medium text-amber-600"
-          data-testid="out-of-range-msg"
-        >
-          {outOfRangeMsg}
-        </p>
-      )}
     </div>
   );
 }

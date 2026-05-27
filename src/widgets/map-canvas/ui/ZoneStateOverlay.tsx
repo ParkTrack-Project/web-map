@@ -14,32 +14,57 @@ const MSK_FORMATTER = new Intl.DateTimeFormat('ru-RU', {
   minute: '2-digit',
 });
 
-type ZoneWithDisplayedTime = ZoneMapItem & {
-  observed_at?: string | null;
-  occupancy_updated_at?: string | null;
-};
+type TemporalModeKind = 'past' | 'future';
 
-function parseTimeMs(value?: string | null): number | null {
-  if (!value) return null;
+type ZoneWithTemporalFields = ZoneMapItem & Record<string, unknown>;
+
+function parseTimeMs(value: unknown): number | null {
+  if (typeof value !== 'string') return null;
 
   const ms = Date.parse(value);
 
   return Number.isFinite(ms) ? ms : null;
 }
 
-function getDisplayedAtMs(zone: ZoneWithDisplayedTime): number | null {
-  return parseTimeMs(zone.occupancy_updated_at ?? zone.observed_at);
+function getDisplayedAtMs(
+  zone: ZoneWithTemporalFields,
+  modeKind: TemporalModeKind,
+): number | null {
+  if (modeKind === 'future') {
+    // Для прогноза displayed_at / predicted_for / forecasted_at —
+    // это время, НА КОТОРОЕ построен прогноз.
+    //
+    // Важно: occupancy_updated_at для future не используем как основной источник,
+    // потому что теперь там должно лежать время создания прогноза.
+    return (
+      parseTimeMs(zone['displayed_at']) ??
+      parseTimeMs(zone['predicted_for']) ??
+      parseTimeMs(zone['forecasted_at']) ??
+      parseTimeMs(zone['forecast_at']) ??
+      parseTimeMs(zone['at'])
+    );
+  }
+
+  // Для истории displayed_at / observed_at / occupancy_updated_at —
+  // это время наблюдения, которое реально отображается на карте.
+  return (
+    parseTimeMs(zone['displayed_at']) ??
+    parseTimeMs(zone['observed_at']) ??
+    parseTimeMs(zone['occupancy_updated_at']) ??
+    parseTimeMs(zone['at'])
+  );
 }
 
 function findNearestDisplayedTimeMs(
   zones: readonly ZoneMapItem[],
   selectedTimeMs: number,
+  modeKind: TemporalModeKind,
 ): number | null {
   let nearestTimeMs: number | null = null;
   let nearestDiffMs = Number.POSITIVE_INFINITY;
 
-  for (const zone of zones as readonly ZoneWithDisplayedTime[]) {
-    const displayedTimeMs = getDisplayedAtMs(zone);
+  for (const zone of zones as readonly ZoneWithTemporalFields[]) {
+    const displayedTimeMs = getDisplayedAtMs(zone, modeKind);
 
     if (displayedTimeMs === null) continue;
 
@@ -87,7 +112,11 @@ export function ZoneStateOverlay() {
 
     if (selectedTimeMs === null) return null;
 
-    const nearestDisplayedTimeMs = findNearestDisplayedTimeMs(data, selectedTimeMs);
+    const nearestDisplayedTimeMs = findNearestDisplayedTimeMs(
+      data,
+      selectedTimeMs,
+      mode.kind,
+    );
 
     if (nearestDisplayedTimeMs === null) return null;
 
@@ -105,7 +134,7 @@ export function ZoneStateOverlay() {
   // Первый load — ничего не показываем.
   if (isPending && !data) return null;
 
-  // Во время refetch тоже не показываем старую плашку поверх карты.
+  // Во время refetch не показываем промежуточные старые плашки.
   if (isFetching) return null;
 
   // Больше не показываем:
@@ -114,8 +143,8 @@ export function ZoneStateOverlay() {
   // - «прогноз недоступен»;
   // - generic error-state.
   //
-  // Единственный разрешённый overlay — сильное расхождение выбранного времени
-  // и времени реально отображаемых данных.
+  // Единственная плашка — когда выбранное время отличается от времени
+  // реально отображаемых данных больше чем на 30 минут.
   if (!timeDrift || mode.kind === 'now') return null;
 
   const selectedLabel = formatMskTime(timeDrift.selectedTimeMs);
@@ -125,15 +154,20 @@ export function ZoneStateOverlay() {
   return (
     <div
       role="status"
-      className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-black/5"
+      className="pointer-events-none absolute inset-0 z-40 grid place-items-center bg-white/70 backdrop-blur-[2px]"
     >
-      <div className="pointer-events-auto max-w-sm rounded-xl bg-white p-4 text-center shadow-lg">
-        <p className="text-sm font-medium text-zinc-900">
-          Ближайшие доступные данные отличаются от выбранного времени на {diffLabel}
+      <div className="pointer-events-auto max-w-sm rounded-xl bg-white p-4 text-center shadow-xl">
+        <p className="text-sm font-semibold text-zinc-900">
+          Для выбранного времени нет точных данных
+        </p>
+
+        <p className="mt-1 text-xs text-zinc-600">
+          Вы выбрали {selectedLabel} МСК, а ближайшие доступные данные есть на{' '}
+          {nearestLabel} МСК.
         </p>
 
         <p className="mt-1 text-xs text-zinc-500">
-          Вы выбрали {selectedLabel} МСК, а сейчас отображаются данные за {nearestLabel} МСК.
+          Разница составляет {diffLabel}.
         </p>
 
         <button
