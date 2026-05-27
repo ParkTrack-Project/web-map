@@ -19,9 +19,13 @@
 // Геометрия zone.geometry.coordinates: number[][][] — наш внутренний формат
 // (PolygonGeometry в entities/zone). ymaps3 ожидает LngLat[][] = [number,
 // number][][]. Cast безопасен: MSW-генератор всегда даёт пары [lon, lat].
-import { memo } from 'react';
+import { memo, type ComponentType } from 'react';
 import type { LngLat } from '@yandex/ymaps3-types/common/types/lng-lat';
-import { YMapFeature, YMapFeatureDataSource, YMapLayer } from '@/shared/lib/ymaps';
+import {
+  YMapFeature as YMapFeatureRaw,
+  YMapFeatureDataSource as YMapFeatureDataSourceRaw,
+  YMapLayer as YMapLayerRaw,
+} from '@/shared/lib/ymaps';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { useSelectedZone } from '@/features/select-zone';
 import { computeZoneStyle, toDrawingStyle } from '../model/zone-style';
@@ -30,6 +34,38 @@ import { useZoneClusters } from '../model/useZoneClusters';
 interface ZoneLayerProps {
   zoom: number;
 }
+
+type PolygonGeometry = {
+  type: 'Polygon';
+  coordinates: LngLat[][];
+};
+
+type YMapFeatureProps = {
+  id: string;
+  geometry: PolygonGeometry;
+  style: ReturnType<typeof toDrawingStyle>;
+  source: string;
+  onClick?: () => void;
+};
+
+type YMapFeatureDataSourceProps = {
+  id: string;
+};
+
+type YMapLayerProps = {
+  source: string;
+  type: string;
+  zIndex?: number;
+};
+
+// reactify-обёртки из shared/lib/ymaps после динамической загрузки могут терять
+// JSX-тип. Поэтому локально приводим их к ComponentType.
+const YMapFeature = YMapFeatureRaw as unknown as ComponentType<YMapFeatureProps>;
+
+const YMapFeatureDataSource =
+  YMapFeatureDataSourceRaw as unknown as ComponentType<YMapFeatureDataSourceProps>;
+
+const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 
 // Phase 5 D-31 (NFR-03): React.memo для тяжёлых widgets — рендерит 200+ features.
 // Props — только zoom (для кластер-членства); memo() предотвращает rerender
@@ -40,22 +76,28 @@ function ZoneLayerInner({ zoom }: ZoneLayerProps) {
   // useSelectedZone wiring (Plan 02) сохранён ниже без изменений.
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
+
   // Quick-fix 2026-05-17: рисуем полигоны ТОЛЬКО для зон-одиночек на текущем
   // зуме; зоны, попавшие в мультикластер, заменяет кружок ZoneClusterLayer
   // (иначе под кружком дублировался бы полигон).
   const { singletonIds } = useZoneClusters(zoom);
+
   // Quick-fix 2026-05-16 (п.1): рендерим, пока есть данные (keepPreviousData),
   // не гасим зоны на транзиентной ошибке/pending — иначе они «пропадают до F5».
   if (!data) return null;
 
   const standard = data.filter(
-    (z) => z.zone_type === 'standard' && singletonIds.has(z.zone_id),
+    (z) =>
+      z.zone_type === 'standard' &&
+      singletonIds.has(z.zone_id) &&
+      z.geometry?.coordinates?.length,
   );
 
   return (
     <>
       <YMapFeatureDataSource id="ptk-zones-standard" />
       <YMapLayer source="ptk-zones-standard" type="features" zIndex={1900} />
+
       {standard.map((z) => {
         const style = computeZoneStyle({
           zoneId: z.zone_id,
@@ -65,10 +107,12 @@ function ZoneLayerInner({ zoom }: ZoneLayerProps) {
           mode: 'now', // Phase 3 forward-compat
           selected: z.zone_id === selectedZoneId, // D-08 highlight
         });
-        const geometry = {
-          type: 'Polygon' as const,
+
+        const geometry: PolygonGeometry = {
+          type: 'Polygon',
           coordinates: z.geometry.coordinates as LngLat[][],
         };
+
         return (
           <YMapFeature
             key={z.zone_id}
