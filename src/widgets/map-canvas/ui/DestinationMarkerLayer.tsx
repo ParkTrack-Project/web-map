@@ -1,21 +1,26 @@
 // Quick-fix 2026-05-16: маркер выбранного адреса (?dest).
-// Раньше при выборе адреса карта только зумилась — не было видно, ГДЕ
-// конкретно точка. Рисуем розовый маркер в ?dest, пока он установлен.
-// - Отдельный от RoutePreviewLayer (origin emerald / зона amber) — это «куда
-//   хочет попасть пользователь», другой семантический слой.
-// - memo: ?dest меняется редко, лишние ре-рендеры при панораме карты не нужны.
-import { memo } from 'react';
+import { memo, type ComponentType, type ReactNode } from 'react';
 import { MapPin } from 'lucide-react';
-import { YMapMarker } from '@/shared/lib/ymaps';
+import { YMapMarker as YMapMarkerRaw } from '@/shared/lib/ymaps';
 import { useDestination } from '@/features/address-search';
+
+type YMapMarkerProps = {
+  coordinates: [number, number];
+  zIndex?: number;
+  source?: string;
+  children?: ReactNode;
+};
+
+const YMapMarker = YMapMarkerRaw as unknown as ComponentType<YMapMarkerProps>;
 
 function DestinationMarkerLayerInner() {
   const { dest } = useDestination();
+
   if (!dest) return null;
+
   const [lat, lon] = dest;
 
   return (
-    // Yandex coordinates order — [lon, lat].
     <YMapMarker coordinates={[lon, lat]}>
       <div
         title="Выбранный адрес"
