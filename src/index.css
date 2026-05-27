@@ -47,6 +47,10 @@
   margin-bottom: 11px;
 }
 
+.ymaps3--controls.ymaps3--controls_bottom.ymaps3--controls_left.ymaps3--controls_horizontal {
+  display: none;
+}
+
 .ymaps3--button, .ymaps3--control-button, .ymaps3--control, .ymaps3--control__background {
   border-radius: 12px !important;
 }
