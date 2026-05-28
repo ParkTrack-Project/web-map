@@ -31,6 +31,7 @@ export function buildRoutingBody({
   mode,
   destRadiusMeters = 500,
 }: BuildRoutingBodyArgs): RoutingSearchBody | null {
+  console.log(mode);
   if (!from) return null;
   const [latFrom, lonFrom] = from;
   const isToDest = !!dest;
@@ -39,9 +40,9 @@ export function buildRoutingBody({
     origin: { latitude: latFrom, longitude: lonFrom },
     // D-14 hardcoded
     limit: 20,
-    provider: 'yandex',
+    provider: 'geoapify',
     // D-41: use_forecast = true в past/future modes
-    use_forecast: mode.kind !== 'now',
+    use_forecast: true,
   };
   if (isToDest && dest) {
     body.destination = { latitude: dest[0], longitude: dest[1] };
