@@ -11,6 +11,7 @@ import { useSelectedZone } from '@/features/select-zone';
 import { polygonToParallelLine } from '@/shared/lib/geo';
 import { computeZoneStyle } from '../model/zone-style';
 import { useZoneClusters } from '../model/useZoneClusters';
+import { useZoomToZone } from '../model/useZoomToZone';
 
 interface ParallelZoneLayerProps {
   zoom: number;
@@ -54,6 +55,7 @@ const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 function ParallelZoneLayerInner({ zoom }: ParallelZoneLayerProps) {
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
+  const zoomToZone = useZoomToZone();
   const { singletonIds } = useZoneClusters(zoom);
 
   if (!data) return null;
@@ -97,7 +99,10 @@ function ParallelZoneLayerInner({ zoom }: ParallelZoneLayerProps) {
             geometry={geometry}
             style={{ stroke: [{ color: palette.stroke, width: strokeWidth }] }}
             source="ptk-zones-parallel"
-            onClick={() => setSelectedZone(z.zone_id)}
+            onClick={() => {
+              setSelectedZone(z.zone_id);
+              zoomToZone(z.geometry); // клик по карте → приближаем к зоне
+            }}
           />
         );
       })}
