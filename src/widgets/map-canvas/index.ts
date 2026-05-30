@@ -6,3 +6,4 @@ export { ZoneBadgesLayer } from './ui/ZoneBadgesLayer';
 export { ZoneClusterLayer } from './ui/ZoneClusterLayer';
 export { ZoneStateOverlay } from './ui/ZoneStateOverlay';
 export { MapRefContext } from './model/map-ref-context';
+export { useZoomToZone } from './model/useZoomToZone';

@@ -1,12 +1,10 @@
 // Phase 4 / RANK-04 / D-20:
 // List-item layout. data-testid="result-item-${zone_id}" для E2E + scroll-sync.
 // Лучший вариант badge — brand-green с иконкой Star (D-21).
-import { useContext } from 'react';
 import { Star, MapPin, Target } from 'lucide-react';
 import type { RouteCandidate } from '@/entities/zone';
 import { useSelectedZone } from '@/features/select-zone';
-import { MapRefContext } from '@/widgets/map-canvas';
-import { zoneCentroid } from '@/shared/lib/geo';
+import { useZoomToZone } from '@/widgets/map-canvas';
 import { pluralizeRu, formatDurationFromSeconds } from '@/shared/lib/i18n';
 
 interface ResultItemProps {
@@ -16,7 +14,7 @@ interface ResultItemProps {
 
 export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
-  const mapRef = useContext(MapRefContext);
+  const zoomToZone = useZoomToZone();
   const isSelected = selectedZoneId === c.zone_id;
   const isBest = c.rank === 1;
   // 2026-05-26: единый форматтер длительности — «4 мин», «1 ч 30 мин»,
@@ -39,18 +37,7 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
   const handleClick = () => {
     onClick?.(c);
     setSelectedZone(c.zone_id);
-    console.log('[results] handleClick mapRef=', mapRef, 'current=', mapRef?.current);
-    if (mapRef?.current) {
-      const center = zoneCentroid(c.geometry);
-      console.log('[results] calling setLocation center=', center, 'zoom=17');
-      try {
-        mapRef.current.setLocation({ center, zoom: 17, duration: 300 });
-      } catch (e) {
-        console.warn('[results] pan failed', e);
-      }
-    } else {
-      console.warn('[results] mapRef is null or current is null — zoom skipped');
-    }
+    zoomToZone(c.geometry); // тот же зум, что и при клике по зоне на карте
   };
 
   return (

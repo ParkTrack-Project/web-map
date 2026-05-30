@@ -30,6 +30,7 @@ import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { useSelectedZone } from '@/features/select-zone';
 import { computeZoneStyle, toDrawingStyle } from '../model/zone-style';
 import { useZoneClusters } from '../model/useZoneClusters';
+import { useZoomToZone } from '../model/useZoomToZone';
 
 interface ZoneLayerProps {
   zoom: number;
@@ -76,6 +77,7 @@ function ZoneLayerInner({ zoom }: ZoneLayerProps) {
   // useSelectedZone wiring (Plan 02) сохранён ниже без изменений.
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
+  const zoomToZone = useZoomToZone();
 
   // Quick-fix 2026-05-17: рисуем полигоны ТОЛЬКО для зон-одиночек на текущем
   // зуме; зоны, попавшие в мультикластер, заменяет кружок ZoneClusterLayer
@@ -120,7 +122,10 @@ function ZoneLayerInner({ zoom }: ZoneLayerProps) {
             geometry={geometry}
             style={toDrawingStyle(style)}
             source="ptk-zones-standard"
-            onClick={() => setSelectedZone(z.zone_id)}
+            onClick={() => {
+              setSelectedZone(z.zone_id);
+              zoomToZone(z.geometry); // клик по карте → приближаем к зоне
+            }}
           />
         );
       })}
