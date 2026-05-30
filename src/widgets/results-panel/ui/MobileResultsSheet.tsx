@@ -92,7 +92,7 @@ export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResul
           <div className="mx-auto my-2 h-1.5 w-12 rounded-full bg-zinc-300" aria-hidden />
           <header className="flex items-center justify-between px-4 py-2">
             <h2 className="text-base font-semibold">
-              {dest && from ? 'Маршрут к адресу' : 'Парковки рядом'}
+              {dest && from ? 'Парковки у адреса' : 'Парковки рядом'}
               {data && (
                 <span className="ml-2 text-xs font-normal text-zinc-500">
                   ({data.total_candidates})
