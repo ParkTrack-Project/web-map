@@ -223,13 +223,16 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
           <YMapRotateTiltControl />
         </YMapControls>
 
-        {/* Quick-fix 2026-05-17: бинарный порог зума убран. Все 4 слоя активны
-            на ЛЮБОМ зуме и делят членство через useZoneClusters(clusterZoom):
-            ZoneClusterLayer рисует кружки (zoneCount>1), а полигон/бейдж-слои —
-            только зоны-одиночки. clusterZoom = живой дробный зум (квант
-            CLUSTER_ZOOM_STEP) → точки сливаются постепенно, без скачка 14→13. */}
-        <ZoneLayer zoom={clusterZoom} />
-        <ParallelZoneLayer zoom={clusterZoom} />
+        {/* Quick-fix 2026-05-17: бинарный порог зума убран. Все слои активны на
+            ЛЮБОМ зуме. ZoneBadgesLayer/ZoneClusterLayer делят членство через
+            useZoneClusters(clusterZoom): кружок рисуется при zoneCount>1, бейджи —
+            только для одиночек. clusterZoom = живой дробный зум (квант
+            CLUSTER_ZOOM_STEP) → точки сливаются постепенно, без скачка 14→13.
+            2026-05-30: полигон-слои (ZoneLayer/ParallelZoneLayer) больше НЕ
+            фильтруются по кластерам — парковки видны всегда, кружок ложится
+            поверх схлопнутой группы. */}
+        <ZoneLayer />
+        <ParallelZoneLayer />
         <ZoneBadgesLayer zoom={clusterZoom} />
         <ZoneClusterLayer zoom={clusterZoom} />
 

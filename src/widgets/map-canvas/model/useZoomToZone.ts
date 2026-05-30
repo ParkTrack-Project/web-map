@@ -21,7 +21,7 @@ export function useZoomToZone() {
   // mapRef — стабильный ref-объект, поэтому callback не пересоздаётся (важно
   // для memo'нутых слоёв ZoneLayer/ParallelZoneLayer).
   return useCallback(
-    (geometry: ZoneGeometry | null | undefined) => {
+    (geometry: ZoneGeometry | null | undefined, opts?: { max?: boolean }) => {
       const map = mapRef?.current;
       // Карта ещё не смонтирована или геометрия пустая — тихо пропускаем.
       if (!map || !geometry?.coordinates?.[0]?.length) return;
@@ -29,8 +29,11 @@ export function useZoomToZone() {
       // Текущий зум карты (ymaps3 YMap.zoom — рантайм-геттер). Узкий каст, чтобы
       // не зависеть от наличия поля в .d.ts; при сбое падаем на 0 → возьмётся порог.
       const currentZoom = (map as { zoom?: number }).zoom ?? 0;
-      // Только «внутрь»: до порога, но если карта уже ближе — оставляем как есть.
-      const targetZoom = Math.max(SELECTED_ZONE_ZOOM, currentZoom);
+      // opts.max → приближаем на МАКСИМУМ карты (клик по карточке парковки).
+      // Иначе — «внутрь» до порога SELECTED_ZONE_ZOOM (клик по зоне/в списке):
+      // если карта уже ближе порога, оставляем как есть.
+      const maxZoom = (map as { zoomRange?: { max?: number } }).zoomRange?.max ?? 21;
+      const targetZoom = opts?.max ? maxZoom : Math.max(SELECTED_ZONE_ZOOM, currentZoom);
 
       try {
         map.setLocation({
