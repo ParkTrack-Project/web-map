@@ -4,20 +4,45 @@
 // - useRouteByIdQuery: queryKey ['route', routeId] — staleTime 5min (route immutable после create).
 // - useCreateRouteMutation: после success → qc.setQueryData(['route', id], route) →
 //   useRouteByIdQuery instant-hit при reload без re-fetch.
-import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { searchRouting, createRoute, getRouteById } from '../api/routing.api';
 import type { RoutingSearchBody, RoutingNewBody } from '../model/routing.types';
 
 /**
+ * Совпадает ли «локация поиска» (origin + destination) у двух тел запроса.
+ * Используется, чтобы держать прошлые результаты только при смене
+ * фильтров/времени/радиуса, но НЕ при смене адреса.
+ */
+function sameSearchLocation(a: RoutingSearchBody | null, b: RoutingSearchBody | null): boolean {
+  if (!a || !b) return false;
+  return (
+    a.origin?.latitude === b.origin?.latitude &&
+    a.origin?.longitude === b.origin?.longitude &&
+    a.destination?.latitude === b.destination?.latitude &&
+    a.destination?.longitude === b.destination?.longitude
+  );
+}
+
+/**
  * D-16: queryKey включает full body — atomic refetch при изменении filters/timeMode/from/dest.
  * enabled: body !== null && body.origin valid — D-15 mode dispatch.
+ *
+ * placeholderData (2026-05-30): держим прошлые результаты ТОЛЬКО когда не менялся
+ * адрес (origin/destination) — смена фильтров/времени/радиуса не должна мигать
+ * (Pitfall 6). При НОВОМ поиске у другого адреса возвращаем undefined → data
+ * пустеет → consumers показывают "Поиск парковок…" и прячут старый список, пока
+ * не придёт новый (небыстрый) ответ. Раньше тут был keepPreviousData без условия,
+ * из-за чего старые ранжированные резы висели до конца нового поиска.
  */
 export function useRoutingSearch(body: RoutingSearchBody | null) {
   return useQuery({
     queryKey: ['routing-search', body] as const,
     queryFn: ({ signal }) => searchRouting(body!, signal),
     enabled: body !== null && Boolean(body?.origin),
-    placeholderData: keepPreviousData,
+    placeholderData: (previousData, previousQuery) => {
+      const prevBody = (previousQuery?.queryKey?.[1] as RoutingSearchBody | null) ?? null;
+      return sameSearchLocation(prevBody, body) ? previousData : undefined;
+    },
     staleTime: 30_000, // Pitfall 6: short stale window
   });
 }
