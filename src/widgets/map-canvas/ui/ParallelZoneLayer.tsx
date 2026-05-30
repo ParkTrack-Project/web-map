@@ -10,12 +10,7 @@ import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { useSelectedZone } from '@/features/select-zone';
 import { polygonToParallelLine } from '@/shared/lib/geo';
 import { computeZoneStyle } from '../model/zone-style';
-import { useZoneClusters } from '../model/useZoneClusters';
 import { useZoomToZone } from '../model/useZoomToZone';
-
-interface ParallelZoneLayerProps {
-  zoom: number;
-}
 
 type LineStringGeometry = {
   type: 'LineString';
@@ -52,19 +47,17 @@ const YMapFeatureDataSource =
 
 const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 
-function ParallelZoneLayerInner({ zoom }: ParallelZoneLayerProps) {
+function ParallelZoneLayerInner() {
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
   const zoomToZone = useZoomToZone();
-  const { singletonIds } = useZoneClusters(zoom);
 
   if (!data) return null;
 
+  // 2026-05-30: рисуем ВСЕ parallel-зоны, даже схлопнутые в кластер — полигоны
+  // (полосы) остаются видны под кружком ZoneClusterLayer. Раньше — только singletonIds.
   const parallel = data.filter(
-    (z) =>
-      z.zone_type === 'parallel' &&
-      singletonIds.has(z.zone_id) &&
-      z.geometry?.coordinates?.length,
+    (z) => z.zone_type === 'parallel' && z.geometry?.coordinates?.length,
   );
 
   return (
