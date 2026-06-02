@@ -51,7 +51,7 @@ function DesktopResultsPanelInner() {
       <header className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
         <div>
           <h2 className="text-base font-semibold">
-            {dest && from ? 'Маршрут к адресу' : 'Парковки рядом'}
+            {dest && from ? 'Парковки у адреса' : 'Парковки рядом'}
           </h2>
           {data && (
             <p className="text-xs text-zinc-500">Всего вариантов: {data.total_candidates}</p>
