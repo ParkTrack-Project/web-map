@@ -29,11 +29,7 @@ import {
 import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { useSelectedZone } from '@/features/select-zone';
 import { computeZoneStyle, toDrawingStyle } from '../model/zone-style';
-import { useZoneClusters } from '../model/useZoneClusters';
-
-interface ZoneLayerProps {
-  zoom: number;
-}
+import { useZoomToZone } from '../model/useZoomToZone';
 
 type PolygonGeometry = {
   type: 'Polygon';
@@ -68,29 +64,25 @@ const YMapFeatureDataSource =
 const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 
 // Phase 5 D-31 (NFR-03): React.memo для тяжёлых widgets — рендерит 200+ features.
-// Props — только zoom (для кластер-членства); memo() предотвращает rerender
-// при изменении parent state, не относящегося к зонам/зуму.
-function ZoneLayerInner({ zoom }: ZoneLayerProps) {
+// Props нет; memo() предотвращает rerender при изменении parent state, не
+// относящегося к зонам.
+function ZoneLayerInner() {
   // Phase 2 Plan 03: переключено с useViewportZones на useFilteredZones —
   // тот же data shape, но с server-side + client-side фильтрами применёнными.
   // useSelectedZone wiring (Plan 02) сохранён ниже без изменений.
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
-
-  // Quick-fix 2026-05-17: рисуем полигоны ТОЛЬКО для зон-одиночек на текущем
-  // зуме; зоны, попавшие в мультикластер, заменяет кружок ZoneClusterLayer
-  // (иначе под кружком дублировался бы полигон).
-  const { singletonIds } = useZoneClusters(zoom);
+  const zoomToZone = useZoomToZone();
 
   // Quick-fix 2026-05-16 (п.1): рендерим, пока есть данные (keepPreviousData),
   // не гасим зоны на транзиентной ошибке/pending — иначе они «пропадают до F5».
   if (!data) return null;
 
+  // 2026-05-30: полигоны рисуем для ВСЕХ standard-зон, даже когда они схлопнуты
+  // в кластер — кружок ZoneClusterLayer ложится поверх, но сами парковки видны.
+  // (Раньше фильтровали по singletonIds → под кружком полигон исчезал.)
   const standard = data.filter(
-    (z) =>
-      z.zone_type === 'standard' &&
-      singletonIds.has(z.zone_id) &&
-      z.geometry?.coordinates?.length,
+    (z) => z.zone_type === 'standard' && z.geometry?.coordinates?.length,
   );
 
   return (
@@ -120,7 +112,10 @@ function ZoneLayerInner({ zoom }: ZoneLayerProps) {
             geometry={geometry}
             style={toDrawingStyle(style)}
             source="ptk-zones-standard"
-            onClick={() => setSelectedZone(z.zone_id)}
+            onClick={() => {
+              setSelectedZone(z.zone_id);
+              zoomToZone(z.geometry); // клик по карте → приближаем к зоне
+            }}
           />
         );
       })}

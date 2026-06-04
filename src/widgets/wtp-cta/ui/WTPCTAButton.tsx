@@ -52,13 +52,13 @@ export function WTPCTAButton() {
     <>
       <button
         type="button"
-        aria-label="Где припарковаться?"
+        aria-label="Припарковаться"
         onClick={handleClick}
         style={{ zIndex: Z_INDEX.wtpCtaDesktop }}
         className="hidden items-center gap-2 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:bg-emerald-700 active:scale-[0.98] lg:inline-flex"
       >
         <Locate size={16} aria-hidden />
-        Где припарковаться?
+        Припарковаться
       </button>
       <PreFlightDialog open={open} onOpenChange={setOpen} onAllow={requestGeolocation} />
     </>

@@ -33,6 +33,7 @@ import { useFromCoords, useGeolocationRequest } from '@/features/request-geoloca
 import { useDestination } from '@/features/address-search';
 import { useFilters } from '@/features/filter-zones';
 import { useRouteId, RouteSummaryCard } from '@/widgets/route-preview-summary';
+import { useZoomToZone } from '@/widgets/map-canvas';
 import { pluralizeRu, formatRelativeRu } from '@/shared/lib/i18n';
 import { Spinner } from '@/shared/ui';
 
@@ -75,9 +76,18 @@ export function ZoneCardContent({ zoneId, onClose }: ContentProps) {
   // Plan 05 / TIME-07: mode инжектится в useZoneByIdQuery → atomic card refetch.
   const { mode, setNow } = useTimeMode();
   const { data, isPending, isError, refetch } = useZoneByIdQuery(zoneId, mode);
+  const zoomToZone = useZoomToZone();
 
   return (
-    <div className="flex flex-col gap-4 p-5">
+    <div
+      className="flex flex-col gap-4 p-5"
+      // 2026-05-30: клик по карточке парковки → максимальный зум на неё. Клики по
+      // кнопкам/ссылкам внутри (Закрыть, Построить маршрут, Повторить) не трогаем.
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest('button, a')) return;
+        if (data?.geometry) zoomToZone(data.geometry, { max: true });
+      }}
+    >
       <header className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Парковка #{zoneId}</h2>
         <button
@@ -132,6 +142,10 @@ function ZoneCardBody({ zone, mode }: { zone: Zone; mode: ReturnType<typeof useT
     few: 'места',
     many: 'мест',
   });
+
+  // 2026-05-30: тип локации может прийти пустым/неизвестным — тогда НЕ рисуем
+  // бейдж вовсе (иначе пустой серый прямоугольник рядом с типом зоны).
+  const locationLabel = LOCATION_TYPE_RU[zone.location_type] ?? zone.location_type;
 
   const forecastCreatedAt =
   (zone as unknown as { forecast_created_at?: string | null }).forecast_created_at ??
@@ -207,9 +221,11 @@ const confidencePercent = Math.round(
           )}
           {zone.zone_type === 'parallel' ? 'Параллельная' : 'Стандартная'}
         </li>
-        <li className="flex items-center gap-1 rounded bg-zinc-100 px-2 py-1">
-          {LOCATION_TYPE_RU[zone.location_type] ?? zone.location_type}
-        </li>
+        {locationLabel && (
+          <li className="flex items-center gap-1 rounded bg-zinc-100 px-2 py-1">
+            {locationLabel}
+          </li>
+        )}
         {zone.is_private && (
           <li className="flex items-center gap-1 rounded bg-amber-100 px-2 py-1 text-amber-900">
             <Lock size={14} aria-hidden /> Частная

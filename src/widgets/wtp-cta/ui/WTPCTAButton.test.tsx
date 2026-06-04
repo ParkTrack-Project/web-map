@@ -37,7 +37,7 @@ beforeEach(() => {
 });
 
 describe('WTPCTAButton (WTP-01 / WTP-02 enforcement)', () => {
-  it('renders с aria-label «Где припарковаться?»', () => {
+  it('renders с aria-label «Припарковаться»', () => {
     const getCurrentPositionMock = vi.fn();
     Object.defineProperty(globalThis.navigator, 'geolocation', {
       value: { getCurrentPosition: getCurrentPositionMock },
@@ -45,7 +45,7 @@ describe('WTPCTAButton (WTP-01 / WTP-02 enforcement)', () => {
       writable: true,
     });
     render(wrap(<WTPCTAButton />));
-    expect(screen.getByRole('button', { name: 'Где припарковаться?' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Припарковаться' })).toBeInTheDocument();
     expect(getCurrentPositionMock).not.toHaveBeenCalled(); // WTP-02: не на mount
   });
 
@@ -54,7 +54,7 @@ describe('WTPCTAButton (WTP-01 / WTP-02 enforcement)', () => {
     // (Permissions API check), потом setOpen(true) → PreFlightDialog появляется.
     // Поэтому findByText (async) обязателен; sync getByText fail'ил до Phase 5.
     render(wrap(<WTPCTAButton />));
-    fireEvent.click(screen.getByRole('button', { name: 'Где припарковаться?' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Припарковаться' }));
     expect(
       await screen.findByText(/Для поиска ближайших парковок нужен доступ/),
     ).toBeInTheDocument();

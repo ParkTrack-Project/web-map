@@ -77,22 +77,26 @@ export function MobileZoneCard() {
     if (!isOpen || !zone || !mapRefHolder?.current) return;
     if (zone.is_active === false) return;
     if (!zone.geometry?.coordinates?.[0]?.length) {
-  console.warn('[ptk] mobile pan skipped: zone geometry is missing', {
-    selectedZoneId,
-    zone,
-  });
-  return;
-}
+      console.warn('[ptk] mobile pan skipped: zone geometry is missing', {
+        selectedZoneId,
+        zone,
+      });
+      return;
+    }
 
-  const center = zoneCentroid(zone.geometry);
+    const center = zoneCentroid(zone.geometry);
 
-  try {
-    mapRefHolder.current.setLocation({
-      center,
-      duration: 300,
-    });
+    try {
+      // Pan-only (центр, без zoom): приближение при ВЫБОРЕ зоны делает общий
+      // useZoomToZone в обработчике клика (по карте и в списке). Если ставить
+      // здесь ещё и фиксированный zoom, он перетёр бы относительный зум клика
+      // (откатывал бы к 18). Эта карточка лишь до-центрирует зону над sheet'ом.
+      mapRefHolder.current.setLocation({
+        center,
+        duration: 300, // ms — easing 300ms (D-07 mobile)
+      });
       console.debug('[ptk] mobile pan to zone', selectedZoneId);
-  } catch (e) {
+    } catch (e) {
       console.warn('[ptk] mobile pan failed:', e);
     }
   }, [isOpen, zone, mapRefHolder, selectedZoneId]);
