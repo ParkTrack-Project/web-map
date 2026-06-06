@@ -18,6 +18,7 @@
 //   /forecasts?view=card→ 60s
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { roundBbox5, type Bbox } from '@/shared/lib/geo';
+import { LIVE_DATA_REFETCH_MS } from '@/shared/config';
 import { fetchZones, fetchZoneById } from '../api/zone.api';
 import type { TimeMode } from '../model/zone.types';
 
@@ -26,6 +27,15 @@ function staleTimeForListMode(mode: TimeMode): number {
   if (mode.kind === 'past') return 300_000; // /occupancy — history immutable
   if (mode.kind === 'future') return 60_000; // /forecasts — decay quickly
   return 30_000; // /zones (now) — ML refresh cadence
+}
+
+// 2026-06-06: интервальный авто-refetch только в режиме «Сейчас» (живой
+// occupancy подтягивается с бэка раз в минуту). В past (история неизменна) и
+// future (прогноз на фикс. время) поллинг бессмыслен → false. TanStack паузит
+// интервал, когда вкладка вне фокуса (refetchIntervalInBackground по умолчанию
+// false) — лишних запросов/квоты нет.
+function liveRefetchInterval(mode: TimeMode): number | false {
+  return mode.kind === 'now' ? LIVE_DATA_REFETCH_MS : false;
 }
 
 function staleTimeForCardMode(mode: TimeMode): number {
@@ -50,6 +60,7 @@ export function useZonesQuery(
     enabled: rounded !== null,
     placeholderData: keepPreviousData,
     staleTime: staleTimeForListMode(mode),
+    refetchInterval: liveRefetchInterval(mode),
   });
 }
 
@@ -74,5 +85,6 @@ export function useZoneByIdQuery(id: number | null, mode: TimeMode = { kind: 'no
     queryFn: ({ signal }) => fetchZoneById(id!, signal, mode),
     enabled: id !== null,
     staleTime: staleTimeForCardMode(mode),
+    refetchInterval: liveRefetchInterval(mode),
   });
 }
