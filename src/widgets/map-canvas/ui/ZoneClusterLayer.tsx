@@ -1,7 +1,11 @@
 // Quick-fix 2026-05-17: scale-adaptive кластеризация (см. model/cluster-zones.ts).
 import { useContext, type ComponentType, type ReactNode } from 'react';
-import { YMapMarker as YMapMarkerRaw } from '@/shared/lib/ymaps';
-import { zonePalette } from '@/shared/config';
+import {
+  YMapMarker as YMapMarkerRaw,
+  YMapFeatureDataSource as YMapFeatureDataSourceRaw,
+  YMapLayer as YMapLayerRaw,
+} from '@/shared/lib/ymaps';
+import { zonePalette, MAP_Z } from '@/shared/config';
 import { MapRefContext } from '../model/map-ref-context';
 import { useZoneClusters } from '../model/useZoneClusters';
 import { clusterBubbleSizePx } from '../model/cluster-zones';
@@ -17,7 +21,22 @@ type YMapMarkerProps = {
   children?: ReactNode;
 };
 
+type YMapFeatureDataSourceProps = {
+  id: string;
+};
+
+type YMapLayerProps = {
+  source: string;
+  type: string;
+  zIndex?: number;
+};
+
 const YMapMarker = YMapMarkerRaw as unknown as ComponentType<YMapMarkerProps>;
+
+const YMapFeatureDataSource =
+  YMapFeatureDataSourceRaw as unknown as ComponentType<YMapFeatureDataSourceProps>;
+
+const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 
 function clusterColor(freeSum: number): string {
   if (freeSum === 0) return zonePalette.full.stroke;
@@ -48,27 +67,50 @@ export function ZoneClusterLayer({ zoom }: Props) {
 
   return (
     <>
+      {/* Кружки кластеров — в ОТДЕЛЬНОМ marker-слое (как бейджи зон), а не в
+          дефолтном features-слое Яндекса. Иначе они оказываются ВНУТРИ того же
+          слоя, где живёт встроенная парковка Яндекса («секторы»), и та их
+          перекрывает. Свой слой с zIndex=MAP_Z.cluster кладёт кружки ПОВЕРХ
+          всего дефолтного features-слоя (вместе с парковкой). */}
+      <YMapFeatureDataSource id="ptk-clusters" />
+      <YMapLayer source="ptk-clusters" type="markers" zIndex={MAP_Z.cluster} />
+
       {clusters.map((cl) => {
         const size = clusterBubbleSizePx(cl.zoneCount);
 
         return (
-          <YMapMarker key={`cluster-${cl.key}`} coordinates={cl.center} zIndex={2100}>
-            <button
-              type="button"
-              data-testid="zone-cluster"
-              aria-label={`${cl.zoneCount} парковок, свободно ${cl.freeSum}. Приблизить`}
-              title={`${cl.zoneCount} парковок · свободно ${cl.freeSum}`}
-              onClick={() => drillIn(cl.center)}
-              className="flex cursor-pointer items-center justify-center rounded-full font-semibold text-white shadow-md ring-2 ring-white/70"
-              style={{
-                width: size,
-                height: size,
-                backgroundColor: clusterColor(cl.freeSum),
-                fontSize: size >= 38 ? 13 : 11,
-              }}
-            >
-              {cl.freeSum}
-            </button>
+          <YMapMarker
+            key={`cluster-${cl.key}`}
+            source="ptk-clusters"
+            coordinates={cl.center}
+            zIndex={MAP_Z.cluster}
+          >
+            {/* Центрируем кружок на координате кластера: YMapMarker по умолчанию
+                ставит в точку ЛЕВЫЙ ВЕРХНИЙ угол элемента, из-за чего кружок
+                «съезжал» вправо-вниз на полразмера. Нулевой wrapper + absolute
+                button с translate(-50%,-50%) — тот же приём, что у бейджей зон
+                (ZoneBadgesLayer). */}
+            <div style={{ position: 'relative', width: 0, height: 0 }}>
+              <button
+                type="button"
+                data-testid="zone-cluster"
+                aria-label={`${cl.zoneCount} парковок, свободно ${cl.freeSum}. Приблизить`}
+                title={`${cl.zoneCount} парковок · свободно ${cl.freeSum}`}
+                onClick={() => drillIn(cl.center)}
+                className="absolute flex cursor-pointer items-center justify-center rounded-full font-semibold text-white shadow-md ring-2 ring-white/70"
+                style={{
+                  left: 0,
+                  top: 0,
+                  transform: 'translate(-50%, -50%)',
+                  width: size,
+                  height: size,
+                  backgroundColor: clusterColor(cl.freeSum),
+                  fontSize: size >= 38 ? 13 : 11,
+                }}
+              >
+                {cl.freeSum}
+              </button>
+            </div>
           </YMapMarker>
         );
       })}
