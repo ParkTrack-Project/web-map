@@ -6,6 +6,13 @@ export const DEFAULT_ZOOM = 15;
 export const VIEWPORT_DEBOUNCE_MS = 400;
 export const BBOX_ROUND_DECIMALS = 5;
 
+// 2026-06-06: авто-обновление «живых» данных о парковках (occupancy/free_count)
+// с бэка — раз в минуту в режиме «Сейчас». TanStack refetchInterval тянет
+// свежие данные сам, пока вкладка в фокусе (в фоне не дёргаем — экономим квоту).
+// В past/future данные не «живые» (история неизменна, прогноз на фикс. время),
+// поэтому там интервальный refetch выключен.
+export const LIVE_DATA_REFETCH_MS = 60_000;
+
 // D-02 (Phase 2): на zoom < 14 бейджи free_count скрываются, чтобы не превращать
 // карту в шум; сами полигоны зон остаются видимы.
 export const ZONE_BADGE_MIN_ZOOM = 14;

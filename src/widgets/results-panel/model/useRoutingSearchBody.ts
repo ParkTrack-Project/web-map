@@ -28,10 +28,11 @@ export function buildRoutingBody({
   from,
   dest,
   filters,
-  mode,
+  // `mode` остаётся в BuildRoutingBodyArgs (его передают вызывающие и он влияет
+  // на queryKey/мемоизацию), но в самом body не используется: use_forecast
+  // хардкожен true. Не деструктурируем — иначе noUnusedLocals падает на сборке.
   destRadiusMeters = 500,
 }: BuildRoutingBodyArgs): RoutingSearchBody | null {
-  console.log(mode);
   if (!from) return null;
   const [latFrom, lonFrom] = from;
   const isToDest = !!dest;
