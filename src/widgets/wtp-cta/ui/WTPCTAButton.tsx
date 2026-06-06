@@ -12,6 +12,7 @@ import { useCallback } from 'react';
 import { Locate } from 'lucide-react';
 import { Z_INDEX } from '@/shared/config';
 import { useGeolocationRequest, useFromCoords } from '@/features/request-geolocation';
+import { useDestination } from '@/features/address-search';
 import { PreFlightDialog } from './PreFlightDialog';
 import { useWtpPrompt } from '../model/useWtpPrompt';
 
@@ -33,6 +34,7 @@ export function WTPCTAButton() {
   const setOpen = useWtpPrompt((s) => s.setOpen);
   const { request } = useGeolocationRequest();
   const { setFromCoords } = useFromCoords();
+  const { clearDestination } = useDestination();
 
   const requestGeolocation = useCallback(async () => {
     const coords = await request();
@@ -40,13 +42,20 @@ export function WTPCTAButton() {
   }, [request, setFromCoords]);
 
   const handleClick = useCallback(async () => {
+    // «Припарковаться» = искать парковки рядом с МОИМ местоположением. Если был
+    // выбран адрес (?dest), сбрасываем его — иначе режим остаётся
+    // route_to_destination и панель продолжает показывать «Парковки у адреса».
+    // Очистка ?dest переключает на find_parking → заголовок «Парковки рядом».
+    // (Авто-окно после выбора адреса в SearchBar идёт через PreFlightDialog.onAllow,
+    // НЕ через этот handler, поэтому тот флоу «парковки у адреса» не ломается.)
+    clearDestination();
     // Skip pre-flight when user already granted permission earlier in this origin.
     if (await isGeolocationAlreadyGranted()) {
       await requestGeolocation();
       return;
     }
     setOpen(true);
-  }, [requestGeolocation, setOpen]);
+  }, [clearDestination, requestGeolocation, setOpen]);
 
   return (
     <>

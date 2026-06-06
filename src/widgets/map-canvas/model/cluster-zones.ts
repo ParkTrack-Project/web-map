@@ -276,3 +276,42 @@ export function clusterZones(
   }));
   return { clusters, singletonIds };
 }
+
+/**
+ * Минимальный зум, на котором зона с центроидом `target` ПЕРЕСТАЁТ сливаться в
+ * агрегированный кружок-кластер: на нём расстояние в экранных пикселях до
+ * БЛИЖАЙШЕГО соседнего центроида превышает `mergePx`, поэтому single-link
+ * кластеризация (см. clusterZones) оставляет зону одиночкой — она рисуется
+ * полигоном + бейджем, а не прячется под кружком группы. Используется при
+ * выборе парковки (в списке / кликом по карте), чтобы приблизить ровно
+ * настолько, чтобы выбранную зону было видно.
+ *
+ * `excludeZoneId` — id самой зоны: её центроид совпадает с `target`, иначе она
+ * стала бы своим же «ближайшим соседом» на нулевом расстоянии. Соседей нет →
+ * `null` (поднимать зум не требуется). Совпадающий центроид у ДРУГОЙ зоны →
+ * +Infinity (развести нельзя) — вызывающая сторона клампит по zoomRange.max.
+ *
+ * Пиксель-расстояние линейно по scale = 256·2^zoom, значит растёт ∝ 2^zoom:
+ * d(zoom) = d0·2^zoom, где d0 — расстояние при zoom 0. Разводим, когда
+ * d0·2^zoom > mergePx ⇒ zoom > log2(mergePx / d0). Берём максимум по соседям —
+ * его задаёт ближайший (у него наибольший требуемый зум).
+ */
+export function minZoomToDecluster(
+  target: [number, number],
+  zones: ZoneMapItem[],
+  mergePx: number,
+  excludeZoneId: number,
+): number | null {
+  const [tx, ty] = projectWorldPx(target[0], target[1], 0);
+  let need = -Infinity;
+  for (const z of zones) {
+    if (z.zone_id === excludeZoneId) continue;
+    if (!z.geometry?.coordinates?.[0]?.length) continue;
+    const [lon, lat] = zoneCentroid(z.geometry);
+    const [nx, ny] = projectWorldPx(lon, lat, 0);
+    const d0 = Math.hypot(tx - nx, ty - ny);
+    const req = d0 > 0 ? Math.log2(mergePx / d0) : Infinity;
+    if (req > need) need = req;
+  }
+  return need === -Infinity ? null : need;
+}

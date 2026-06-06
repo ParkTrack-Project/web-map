@@ -22,6 +22,33 @@ const baseUrl = env.VITE_API_BASE_URL;
 // Singleton-набор зон. Детерминирован — seed=42, count=200.
 const ZONES: ZoneMapItem[] = generateMockZones({ seed: 42, count: 200 });
 
+// 2026-06-06: демо-«живость» occupancy. zone.queries делает авто-refetch /zones
+// и /zones/:id раз в минуту (refetchInterval в режиме «Сейчас»). В mock-режиме
+// ZONES детерминирован → refetch вернул бы те же числа и обновление было бы НЕ
+// видно. Чтобы в прод-демо (Docker, VITE_API_MODE=mock) оно было заметно, слегка
+// колышем occupied/free_count по бакету времени (раз в минуту). Детерминированно
+// в пределах минуты → /zones и /zones/:id согласованы, параллельные запросы
+// стабильны. Чистая копия — ZONES не мутируем (routing и пр. видят базу).
+//
+// ТОЛЬКО в PROD: в vitest и e2e (vite dev) import.meta.env.PROD=false → зоны без
+// изменений, детерминизм тестов/снапшотов сохранён.
+function liveOccupancyHash(zoneId: number, minuteBucket: number): number {
+  let t = (Math.imul(zoneId, 374761393) + Math.imul(minuteBucket, 668265263)) >>> 0;
+  t = (t ^ (t >>> 13)) >>> 0;
+  t = Math.imul(t, 1274126177) >>> 0;
+  return (t ^ (t >>> 16)) >>> 0;
+}
+
+function withLiveOccupancy(zones: ZoneMapItem[]): ZoneMapItem[] {
+  if (!import.meta.env.PROD) return zones;
+  const minuteBucket = Math.floor(Date.now() / 60_000);
+  return zones.map((z) => {
+    const delta = (liveOccupancyHash(z.zone_id, minuteBucket) % 5) - 2; // −2..+2
+    const occupied = Math.min(z.capacity, Math.max(0, z.occupied + delta));
+    return { ...z, occupied, free_count: z.capacity - occupied };
+  });
+}
+
 // Phase 4 / D-39: in-memory ROUTES для GET /routing/<id> reload-recovery.
 // Tradeoff (research §Runtime State Inventory): page reload в dev очищает Map →
 // ?route=<id> вернёт 404 → D-46 toast «Не удалось построить маршрут».
@@ -263,6 +290,11 @@ export const handlers = [
       zones = filterByBbox(zones, bbox);
     }
 
+    // Демо-«живость» (prod-only): occupancy слегка меняется раз в минуту, чтобы
+    // авто-refetch был виден. До applyMockFilters — фильтры видят те же числа,
+    // что и бейджи на карте (консистентно с min_free_count).
+    zones = withLiveOccupancy(zones);
+
     // Phase 2 Plan 03: Server-side filter mapping (D-12).
     const filters: MockFilterParams = {};
     const minFree = url.searchParams.get('min_free_count');
@@ -294,7 +326,10 @@ export const handlers = [
       return HttpResponse.json({ error_description: 'Zone not found' }, { status: 404 });
     }
     const idx = ZONES.indexOf(z);
-    return HttpResponse.json(toFullZone(z, idx));
+    // Та же демо-«живость», что и у /zones — карточка тикает в такт карте
+    // (один zone_id+минута → одинаковый occupied на обоих путях).
+    const live = withLiveOccupancy([z])[0]!;
+    return HttpResponse.json(toFullZone(live, idx));
   }),
 
   // ---- Occupancy (исторический режим) ----

@@ -37,7 +37,9 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
   const handleClick = () => {
     onClick?.(c);
     setSelectedZone(c.zone_id);
-    zoomToZone(c.geometry); // тот же зум, что и при клике по зоне на карте
+    // zoneId → useZoomToZone дотягивает зум до уровня, где парковка выходит из
+    // кружка-группы и сразу видна (тот же расчёт, что и при клике по зоне на карте).
+    zoomToZone(c.geometry, { zoneId: c.zone_id });
   };
 
   return (

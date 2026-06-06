@@ -8,7 +8,7 @@ import {
 import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { useSelectedZone } from '@/features/select-zone';
 import { zoneCentroid } from '@/shared/lib/geo';
-import { ZONE_BADGE_MIN_ZOOM } from '@/shared/config';
+import { ZONE_BADGE_MIN_ZOOM, MAP_Z } from '@/shared/config';
 import { computeZoneStyle } from '../model/zone-style';
 import { useZoneClusters } from '../model/useZoneClusters';
 
@@ -55,7 +55,7 @@ export function ZoneBadgesLayer({ zoom }: Props) {
   return (
     <>
       <YMapFeatureDataSource id="ptk-badges" />
-      <YMapLayer source="ptk-badges" type="markers" zIndex={2000} />
+      <YMapLayer source="ptk-badges" type="markers" zIndex={MAP_Z.zoneBadges} />
 
       {visible.map((z) => {
         const c = zoneCentroid(z.geometry);
@@ -74,7 +74,7 @@ export function ZoneBadgesLayer({ zoom }: Props) {
             key={`badge-${z.zone_id}`}
             source="ptk-badges"
             coordinates={c}
-            zIndex={2000}
+            zIndex={MAP_Z.zoneBadges}
           >
             <div style={{ position: 'relative', width: 0, height: 0 }}>
               <button

@@ -7,6 +7,7 @@ import {
   RESULTS_LIST_ITEM_HEIGHT_PX,
   SUGGEST_MIN_QUERY_LENGTH,
   Z_INDEX,
+  MAP_Z,
 } from '@/shared/config';
 
 describe('Phase 4 constants', () => {
@@ -36,5 +37,17 @@ describe('Phase 4 constants', () => {
   });
   it('Z_INDEX.preflightDialog выше drawerContent', () => {
     expect(Z_INDEX.preflightDialog).toBeGreaterThan(Z_INDEX.drawerContent);
+  });
+  it('MAP_Z.cluster выше бейджей и полигонов (кружки групп — верхний инфо-слой)', () => {
+    expect(MAP_Z.cluster).toBeGreaterThan(MAP_Z.zoneBadges);
+    expect(MAP_Z.cluster).toBeGreaterThan(MAP_Z.zonePolygons);
+    expect(MAP_Z.cluster).toBeGreaterThan(MAP_Z.zoneParallel);
+  });
+  it('MAP_Z.routeStart/routeEnd выше кружков групп (точки маршрута поверх кластеров)', () => {
+    expect(MAP_Z.routeStart).toBeGreaterThan(MAP_Z.cluster);
+    expect(MAP_Z.routeEnd).toBeGreaterThan(MAP_Z.cluster);
+  });
+  it('MAP_Z.routeEnd — самый верхний слой (точка назначения поверх старта)', () => {
+    expect(MAP_Z.routeEnd).toBeGreaterThan(MAP_Z.routeStart);
   });
 });
