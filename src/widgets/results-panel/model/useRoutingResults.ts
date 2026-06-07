@@ -46,7 +46,8 @@ export function useRoutingResults() {
     () => buildRoutingBody({ from, dest, filters, mode, destRadiusMeters: radiusMeters }),
     [from, dest, filters, mode, radiusMeters],
   );
-  const query = useRoutingSearch(body);
+  // В режиме «Сейчас» панель авто-обновляет живые free_count раз в минуту.
+  const query = useRoutingSearch(body, mode.kind === 'now');
 
   // Эскалация: данные именно для текущего радиуса (не placeholder/не в полёте),
   // адрес задан, кандидатов 0 и ещё есть куда расширяться.

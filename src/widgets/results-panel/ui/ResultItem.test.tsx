@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import { ResultItem } from './ResultItem';
 import type { RouteCandidate } from '@/entities/zone';
@@ -41,7 +42,16 @@ const c: RouteCandidate = {
 };
 
 function wrap(children: React.ReactNode) {
-  return <NuqsTestingAdapter>{children}</NuqsTestingAdapter>;
+  // 2026-06-06: ResultItem → useZoomToZone теперь читает useFilteredZones
+  // (нужны зоны для «зума разъединения»), а тот вызывает useZonesQuery →
+  // требуется QueryClientProvider. Без ?bbox запрос disabled (data undefined),
+  // расчёт разъединения тихо пропускается — поведение item'а не меняется.
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return (
+    <QueryClientProvider client={qc}>
+      <NuqsTestingAdapter>{children}</NuqsTestingAdapter>
+    </QueryClientProvider>
+  );
 }
 
 describe('ResultItem (RANK-04 / D-20)', () => {

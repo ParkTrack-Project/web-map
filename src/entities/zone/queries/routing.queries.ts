@@ -5,6 +5,7 @@
 // - useCreateRouteMutation: после success → qc.setQueryData(['route', id], route) →
 //   useRouteByIdQuery instant-hit при reload без re-fetch.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { LIVE_DATA_REFETCH_MS } from '@/shared/config';
 import { searchRouting, createRoute, getRouteById } from '../api/routing.api';
 import type { RoutingSearchBody, RoutingNewBody } from '../model/routing.types';
 
@@ -33,8 +34,12 @@ function sameSearchLocation(a: RoutingSearchBody | null, b: RoutingSearchBody | 
  * пустеет → consumers показывают "Поиск парковок…" и прячут старый список, пока
  * не придёт новый (небыстрый) ответ. Раньше тут был keepPreviousData без условия,
  * из-за чего старые ранжированные резы висели до конца нового поиска.
+ *
+ * `live` (2026-06-06): в режиме «Сейчас» панель результатов авто-обновляет
+ * current_free_count кандидатов раз в минуту (refetchInterval). В past/future
+ * (история/прогноз) поллинг выключен. Передаётся из useRoutingResults по mode.
  */
-export function useRoutingSearch(body: RoutingSearchBody | null) {
+export function useRoutingSearch(body: RoutingSearchBody | null, live = false) {
   return useQuery({
     queryKey: ['routing-search', body] as const,
     queryFn: ({ signal }) => searchRouting(body!, signal),
@@ -44,6 +49,7 @@ export function useRoutingSearch(body: RoutingSearchBody | null) {
       return sameSearchLocation(prevBody, body) ? previousData : undefined;
     },
     staleTime: 30_000, // Pitfall 6: short stale window
+    refetchInterval: live ? LIVE_DATA_REFETCH_MS : false,
   });
 }
 

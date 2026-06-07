@@ -26,6 +26,7 @@ import {
   YMapFeatureDataSource as YMapFeatureDataSourceRaw,
   YMapLayer as YMapLayerRaw,
 } from '@/shared/lib/ymaps';
+import { MAP_Z } from '@/shared/config';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { useSelectedZone } from '@/features/select-zone';
 import { computeZoneStyle, toDrawingStyle } from '../model/zone-style';
@@ -88,7 +89,7 @@ function ZoneLayerInner() {
   return (
     <>
       <YMapFeatureDataSource id="ptk-zones-standard" />
-      <YMapLayer source="ptk-zones-standard" type="features" zIndex={1900} />
+      <YMapLayer source="ptk-zones-standard" type="features" zIndex={MAP_Z.zonePolygons} />
 
       {standard.map((z) => {
         const style = computeZoneStyle({
@@ -114,7 +115,8 @@ function ZoneLayerInner() {
             source="ptk-zones-standard"
             onClick={() => {
               setSelectedZone(z.zone_id);
-              zoomToZone(z.geometry); // клик по карте → приближаем к зоне
+              // клик по карте → приближаем к зоне, дотягивая до выхода из кластера
+              zoomToZone(z.geometry, { zoneId: z.zone_id });
             }}
           />
         );

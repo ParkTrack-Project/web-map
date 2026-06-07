@@ -6,6 +6,7 @@ import {
   YMapFeatureDataSource as YMapFeatureDataSourceRaw,
   YMapLayer as YMapLayerRaw,
 } from '@/shared/lib/ymaps';
+import { MAP_Z } from '@/shared/config';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { useSelectedZone } from '@/features/select-zone';
 import { polygonToParallelLine } from '@/shared/lib/geo';
@@ -63,7 +64,7 @@ function ParallelZoneLayerInner() {
   return (
     <>
       <YMapFeatureDataSource id="ptk-zones-parallel" />
-      <YMapLayer source="ptk-zones-parallel" type="features" zIndex={1901} />
+      <YMapLayer source="ptk-zones-parallel" type="features" zIndex={MAP_Z.zoneParallel} />
 
       {parallel.map((z) => {
         const line = polygonToParallelLine(z.geometry);
@@ -94,7 +95,8 @@ function ParallelZoneLayerInner() {
             source="ptk-zones-parallel"
             onClick={() => {
               setSelectedZone(z.zone_id);
-              zoomToZone(z.geometry); // клик по карте → приближаем к зоне
+              // клик по карте → приближаем к зоне, дотягивая до выхода из кластера
+              zoomToZone(z.geometry, { zoneId: z.zone_id });
             }}
           />
         );

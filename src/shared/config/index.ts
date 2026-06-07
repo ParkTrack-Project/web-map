@@ -5,4 +5,4 @@ export * from './zone-palette';
 // Re-exports zonePalette+CONFIDENCE_THRESHOLD из zone-palette внутри для backward compat;
 // порядок exports выше сохранён, чтобы старые импорты не сломались.
 export { brand } from './brand-tokens';
-export { Z_INDEX, type ZIndexKey } from './zindex';
+export { Z_INDEX, MAP_Z, type ZIndexKey } from './zindex';
