@@ -1,999 +1,1173 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Privacy Policy — ParkTrack</title>
-  <link rel="icon" type="image/svg+xml" href="/parktrack-icon.jpg" />
-  <meta name="description" content="ParkTrack Privacy Policy" />
-  <meta name="theme-color" content="#16a34a" />
-  <style>
-    :root {
-      --bg: #f6faf7;
-      --bg-soft: #edf7f0;
-      --surface: #ffffff;
-      --surface-muted: #f8fbf9;
-      --text: #102016;
-      --muted: #60706a;
-      --line: rgba(16, 32, 22, 0.12);
-      --green: #16a34a;
-      --green-dark: #0f7a38;
-      --green-soft: #dcfce7;
-      --shadow: 0 24px 70px rgba(15, 122, 56, 0.13);
-      --radius-xl: 28px;
-      --radius-lg: 20px;
-      --radius-md: 14px;
-      --max: 1160px;
-    }
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Privacy Policy — ParkTrack</title>
+    <link rel="icon" type="image/svg+xml" href="/parktrack-icon.jpg"/>
+    <meta name="description" content="ParkTrack Privacy Policy"/>
+    <meta name="theme-color" content="#16a34a"/>
+    <style>
+        :root {
+            --bg: #f6faf7;
+            --bg-soft: #edf7f0;
+            --surface: #ffffff;
+            --surface-muted: #f8fbf9;
+            --text: #102016;
+            --muted: #60706a;
+            --line: rgba(16, 32, 22, 0.12);
+            --green: #16a34a;
+            --green-dark: #0f7a38;
+            --green-soft: #dcfce7;
+            --shadow: 0 24px 70px rgba(15, 122, 56, 0.13);
+            --radius-xl: 28px;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --max: 1160px;
+        }
 
-    * {
-      box-sizing: border-box;
-    }
+        * {
+            box-sizing: border-box;
+        }
 
-    html {
-      scroll-behavior: smooth;
-    }
+        html {
+            scroll-behavior: smooth;
+        }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(34, 197, 94, 0.20), transparent 34rem),
-        radial-gradient(circle at 85% 8%, rgba(20, 184, 166, 0.14), transparent 30rem),
-        linear-gradient(180deg, #f8fcf9 0%, var(--bg) 45%, #ffffff 100%);
-      line-height: 1.65;
-    }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--text);
+            background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.20), transparent 34rem),
+            radial-gradient(circle at 85% 8%, rgba(20, 184, 166, 0.14), transparent 30rem),
+            linear-gradient(180deg, #f8fcf9 0%, var(--bg) 45%, #ffffff 100%);
+            line-height: 1.65;
+        }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
 
-    .page-shell {
-      width: min(100% - 32px, var(--max));
-      margin: 0 auto;
-    }
+        .page-shell {
+            width: min(100% - 32px, var(--max));
+            margin: 0 auto;
+        }
 
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      backdrop-filter: blur(18px);
-      background: rgba(246, 250, 247, 0.82);
-      border-bottom: 1px solid var(--line);
-    }
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            backdrop-filter: blur(18px);
+            background: rgba(246, 250, 247, 0.82);
+            border-bottom: 1px solid var(--line);
+        }
 
-    .topbar-inner {
-      min-height: 72px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-    }
+        .topbar-inner {
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
 
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      font-size: 1.15rem;
-    }
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            font-size: 1.15rem;
+        }
 
-    .brand-mark {
-      width: 38px;
-      height: 38px;
-      border-radius: 13px;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(135deg, var(--green), #22c55e);
-      color: white;
-      box-shadow: 0 10px 24px rgba(22, 163, 74, 0.28);
-      font-weight: 900;
-    }
+        .brand-mark {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            object-fit: contain;
+            display: block;
+        }
 
-    .top-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
 
-    .button,
-    .lang-button {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      min-height: 42px;
-      padding: 0 16px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.86);
-      color: var(--text);
-      font-weight: 700;
-      cursor: pointer;
-      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
-    }
+        .button,
+        .lang-button {
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            min-height: 42px;
+            padding: 0 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.86);
+            color: var(--text);
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+        }
 
-    .button:hover,
-    .lang-button:hover {
-      transform: translateY(-1px);
-      border-color: rgba(22, 163, 74, 0.35);
-      box-shadow: 0 12px 26px rgba(15, 122, 56, 0.11);
-    }
+        .button:hover,
+        .lang-button:hover {
+            transform: translateY(-1px);
+            border-color: rgba(22, 163, 74, 0.35);
+            box-shadow: 0 12px 26px rgba(15, 122, 56, 0.11);
+        }
 
-    .button-primary {
-      border-color: transparent;
-      background: var(--green);
-      color: #fff;
-      box-shadow: 0 12px 28px rgba(22, 163, 74, 0.24);
-    }
+        .button-primary {
+            border-color: transparent;
+            background: var(--green);
+            color: #fff;
+            box-shadow: 0 12px 28px rgba(22, 163, 74, 0.24);
+        }
 
-    .language-switcher {
-      display: inline-flex;
-      padding: 4px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.72);
-    }
+        .language-switcher {
+            display: inline-flex;
+            padding: 4px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.72);
+        }
 
-    .lang-button {
-      min-height: 34px;
-      padding: 0 12px;
-      border: 0;
-      background: transparent;
-      color: var(--muted);
-      box-shadow: none;
-    }
+        .lang-button {
+            min-height: 34px;
+            padding: 0 12px;
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            box-shadow: none;
+        }
 
-    .lang-button.is-active {
-      background: var(--green);
-      color: #fff;
-    }
+        .lang-button.is-active {
+            background: var(--green);
+            color: #fff;
+        }
 
-    .hero {
-      padding: 64px 0 30px;
-    }
+        .hero {
+            padding: 64px 0 30px;
+        }
 
-    .hero-card {
-      position: relative;
-      overflow: hidden;
-      border-radius: var(--radius-xl);
-      padding: clamp(28px, 5vw, 54px);
-      background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(237, 247, 240, 0.92)),
-        radial-gradient(circle at 90% 10%, rgba(22, 163, 74, 0.25), transparent 18rem);
-      border: 1px solid rgba(22, 163, 74, 0.14);
-      box-shadow: var(--shadow);
-    }
+        .hero-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius-xl);
+            padding: clamp(28px, 5vw, 54px);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(237, 247, 240, 0.92)),
+            radial-gradient(circle at 90% 10%, rgba(22, 163, 74, 0.25), transparent 18rem);
+            border: 1px solid rgba(22, 163, 74, 0.14);
+            box-shadow: var(--shadow);
+        }
 
-    .hero-card::after {
-      content: "";
-      position: absolute;
-      inset: auto -60px -120px auto;
-      width: 340px;
-      height: 340px;
-      border-radius: 999px;
-      background: rgba(22, 163, 74, 0.10);
-      pointer-events: none;
-    }
+        .hero-card::after {
+            content: "";
+            position: absolute;
+            inset: auto -60px -120px auto;
+            width: 340px;
+            height: 340px;
+            border-radius: 999px;
+            background: rgba(22, 163, 74, 0.10);
+            pointer-events: none;
+        }
 
-    .breadcrumb {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      color: var(--green-dark);
-      background: var(--green-soft);
-      font-weight: 800;
-      font-size: 0.9rem;
-      margin-bottom: 20px;
-    }
+        .breadcrumb {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            color: var(--green-dark);
+            background: var(--green-soft);
+            font-weight: 800;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
 
-    .hero h1 {
-      max-width: 820px;
-      margin: 0 0 16px;
-      font-size: clamp(2.15rem, 5vw, 4.6rem);
-      line-height: 1.02;
-      letter-spacing: -0.07em;
-    }
+        .hero h1 {
+            max-width: 820px;
+            margin: 0 0 16px;
+            font-size: clamp(2.15rem, 5vw, 4.6rem);
+            line-height: 1.02;
+            letter-spacing: -0.02em;
+        }
 
-    .hero p {
-      max-width: 780px;
-      margin: 0;
-      color: var(--muted);
-      font-size: clamp(1.02rem, 2vw, 1.22rem);
-    }
+        .hero p {
+            max-width: 780px;
+            margin: 0;
+            color: var(--muted);
+            font-size: clamp(1.02rem, 2vw, 1.22rem);
+        }
 
-    .meta-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 28px;
-      position: relative;
-      z-index: 1;
-    }
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 28px;
+            position: relative;
+            z-index: 1;
+        }
 
-    .meta-card {
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.74);
-      padding: 18px;
-    }
+        .meta-card {
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.74);
+            padding: 18px;
+        }
 
-    .meta-label {
-      color: var(--muted);
-      font-size: 0.86rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
+        .meta-label {
+            color: var(--muted);
+            font-size: 0.86rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
 
-    .meta-value {
-      margin-top: 5px;
-      font-weight: 800;
-      overflow-wrap: anywhere;
-    }
+        .meta-value {
+            margin-top: 5px;
+            font-weight: 800;
+            overflow-wrap: anywhere;
+        }
 
-    .layout {
-      display: grid;
-      grid-template-columns: 280px minmax(0, 1fr);
-      gap: 24px;
-      padding: 26px 0 72px;
-      align-items: start;
-    }
+        .layout {
+            display: grid;
+            grid-template-columns: 280px minmax(0, 1fr);
+            gap: 24px;
+            padding: 26px 0 72px;
+            align-items: start;
+        }
 
-    .toc {
-      position: sticky;
-      top: 96px;
-      border-radius: var(--radius-lg);
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.78);
-      box-shadow: 0 18px 50px rgba(16, 32, 22, 0.06);
-      padding: 18px;
-    }
+        .toc {
+            position: sticky;
+            top: 96px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.78);
+            box-shadow: 0 18px 50px rgba(16, 32, 22, 0.06);
+            padding: 18px;
+        }
 
-    .toc-title {
-      margin: 0 0 10px;
-      font-size: 0.9rem;
-      color: var(--muted);
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
+        .toc-title {
+            margin: 0 0 10px;
+            font-size: 0.9rem;
+            color: var(--muted);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
 
-    .toc nav {
-      display: grid;
-      gap: 4px;
-    }
+        .toc nav {
+            display: grid;
+            gap: 4px;
+        }
 
-    .toc a {
-      display: block;
-      border-radius: 12px;
-      padding: 9px 10px;
-      color: #334139;
-      font-weight: 650;
-      font-size: 0.94rem;
-    }
+        .toc a {
+            display: block;
+            border-radius: 12px;
+            padding: 9px 10px;
+            color: #334139;
+            font-weight: 650;
+            font-size: 0.94rem;
+        }
 
-    .toc a:hover {
-      background: var(--bg-soft);
-      color: var(--green-dark);
-    }
+        .toc a:hover {
+            background: var(--bg-soft);
+            color: var(--green-dark);
+        }
 
-    .content-card {
-      border-radius: var(--radius-xl);
-      border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.86);
-      box-shadow: 0 22px 70px rgba(16, 32, 22, 0.07);
-      padding: clamp(24px, 4vw, 44px);
-    }
+        .content-card {
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.86);
+            box-shadow: 0 22px 70px rgba(16, 32, 22, 0.07);
+            padding: clamp(24px, 4vw, 44px);
+        }
 
-    .policy-section {
-      scroll-margin-top: 104px;
-      padding: 26px 0;
-      border-bottom: 1px solid var(--line);
-    }
+        .policy-section {
+            scroll-margin-top: 104px;
+            padding: 26px 0;
+            border-bottom: 1px solid var(--line);
+        }
 
-    .policy-section:first-child {
-      padding-top: 0;
-    }
+        .policy-section:first-child {
+            padding-top: 0;
+        }
 
-    .policy-section:last-child {
-      border-bottom: 0;
-      padding-bottom: 0;
-    }
+        .policy-section:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
 
-    h2 {
-      margin: 0 0 14px;
-      font-size: clamp(1.35rem, 2.2vw, 1.9rem);
-      line-height: 1.18;
-      letter-spacing: -0.035em;
-    }
+        h2 {
+            margin: 0 0 14px;
+            font-size: clamp(1.35rem, 2.2vw, 1.9rem);
+            line-height: 1.18;
+            letter-spacing: -0.035em;
+        }
 
-    h3 {
-      margin: 20px 0 8px;
-      font-size: 1.1rem;
-      letter-spacing: -0.02em;
-    }
+        h3 {
+            margin: 20px 0 8px;
+            font-size: 1.1rem;
+            letter-spacing: -0.02em;
+        }
 
-    p {
-      margin: 0 0 14px;
-    }
+        p {
+            margin: 0 0 14px;
+        }
 
-    ul {
-      margin: 10px 0 0;
-      padding-left: 1.2rem;
-    }
+        ul {
+            margin: 10px 0 0;
+            padding-left: 1.2rem;
+        }
 
-    li + li {
-      margin-top: 6px;
-    }
+        li + li {
+            margin-top: 6px;
+        }
 
-    .note {
-      padding: 16px 18px;
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(22, 163, 74, 0.22);
-      background: rgba(220, 252, 231, 0.55);
-      color: #194629;
-      font-weight: 650;
-    }
+        .note {
+            padding: 16px 18px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(22, 163, 74, 0.22);
+            background: rgba(220, 252, 231, 0.55);
+            color: #194629;
+            font-weight: 650;
+        }
 
-    .contact-list {
-      display: grid;
-      gap: 10px;
-      margin-top: 12px;
-    }
+        .contact-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
 
-    .contact-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: baseline;
-      padding: 12px 14px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-md);
-      background: var(--surface-muted);
-    }
+        .contact-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: baseline;
+            padding: 12px 14px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            background: var(--surface-muted);
+        }
 
-    .contact-row strong {
-      min-width: 220px;
-    }
+        .contact-row strong {
+            min-width: 220px;
+        }
 
-    .contact-row a {
-      color: var(--green-dark);
-      font-weight: 800;
-    }
+        .contact-row a {
+            color: var(--green-dark);
+            font-weight: 800;
+        }
 
-    .footer {
-      border-top: 1px solid var(--line);
-      padding: 26px 0 40px;
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
+        .footer {
+            border-top: 1px solid var(--line);
+            padding: 26px 0 40px;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
 
-    [hidden] {
-      display: none !important;
-    }
+        [hidden] {
+            display: none !important;
+        }
 
-    @media (max-width: 900px) {
-      .layout {
-        grid-template-columns: 1fr;
-      }
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
 
-      .toc {
-        position: static;
-      }
+            .toc {
+                position: static;
+            }
 
-      .meta-grid {
-        grid-template-columns: 1fr;
-      }
-    }
+            .meta-grid {
+                grid-template-columns: 1fr;
+            }
+        }
 
-    @media (max-width: 640px) {
-      .page-shell {
-        width: min(100% - 22px, var(--max));
-      }
+        @media (max-width: 640px) {
+            .page-shell {
+                width: min(100% - 22px, var(--max));
+            }
 
-      .topbar-inner {
-        padding: 10px 0;
-        align-items: flex-start;
-        flex-direction: column;
-      }
+            .topbar-inner {
+                padding: 10px 0;
+                align-items: flex-start;
+                flex-direction: column;
+            }
 
-      .top-actions {
-        width: 100%;
-        justify-content: space-between;
-      }
+            .top-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
 
-      .button-primary {
-        flex: 1 1 auto;
-      }
+            .button-primary {
+                flex: 1 1 auto;
+            }
 
-      .hero {
-        padding-top: 34px;
-      }
+            .hero {
+                padding-top: 34px;
+            }
 
-      .hero-card,
-      .content-card {
-        border-radius: 22px;
-      }
-    }
+            .hero-card,
+            .content-card {
+                border-radius: 22px;
+            }
+        }
 
-    @media print {
-      .topbar,
-      .toc,
-      .button,
-      .language-switcher {
-        display: none !important;
-      }
+        @media print {
+            .topbar,
+            .toc,
+            .button,
+            .language-switcher {
+                display: none !important;
+            }
 
-      body {
-        background: #fff;
-      }
+            body {
+                background: #fff;
+            }
 
-      .hero,
-      .layout {
-        padding: 0;
-      }
+            .hero,
+            .layout {
+                padding: 0;
+            }
 
-      .hero-card,
-      .content-card {
-        box-shadow: none;
-        border: 0;
-        padding: 0;
-      }
+            .hero-card,
+            .content-card {
+                box-shadow: none;
+                border: 0;
+                padding: 0;
+            }
 
-      .layout {
-        display: block;
-      }
-    }
-  </style>
+            .layout {
+                display: block;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header class="topbar">
+<header class="topbar">
     <div class="page-shell topbar-inner">
-      <a class="brand" href="/public" aria-label="ParkTrack home">
-        <img class="brand-mark" src="../parktrack-icon.jpg" alt="ParkTrack logo">
-        <span>ParkTrack</span>
-      </a>
+        <a class="brand" href="/public" aria-label="ParkTrack home">
+            <img class="brand-mark" src="../parktrack-icon.jpg" alt="ParkTrack logo">
+            <span>ParkTrack</span>
+        </a>
 
-      <div class="top-actions">
-        <div class="language-switcher" role="group" aria-label="Language switcher">
-          <button class="lang-button is-active" type="button" data-set-lang="ru" aria-pressed="true">RU</button>
-          <button class="lang-button" type="button" data-set-lang="en" aria-pressed="false">EN</button>
+        <div class="top-actions">
+            <div class="language-switcher" role="group" aria-label="Language switcher">
+                <button class="lang-button is-active" type="button" data-set-lang="ru" aria-pressed="true">RU</button>
+                <button class="lang-button" type="button" data-set-lang="en" aria-pressed="false">EN</button>
+            </div>
+            <a class="button button-primary" href="/" data-i18n="homeButton">← На главную</a>
         </div>
-        <a class="button button-primary" href="/public" data-i18n="homeButton">← На главную</a>
-      </div>
     </div>
-  </header>
+</header>
 
-  <main>
+<main>
     <section class="hero page-shell">
-      <div class="hero-card">
-        <div class="breadcrumb" data-i18n="breadcrumb">Справка · Конфиденциальность</div>
-        <h1 data-i18n="heroTitle">Политика конфиденциальности</h1>
-        <p data-i18n="heroText">Как ParkTrack собирает, использует и защищает данные пользователей сайта, мобильного приложения, API и связанных сервисов.</p>
+        <div class="hero-card">
+            <div class="breadcrumb" data-i18n="breadcrumb">Справка · Конфиденциальность</div>
+            <h1 data-i18n="heroTitle">Политика конфиденциальности</h1>
+            <p data-i18n="heroText">Как ParkTrack собирает, использует и защищает данные пользователей сайта, мобильного
+                приложения, API и связанных сервисов.</p>
 
-        <div class="meta-grid" aria-label="Policy summary">
-          <div class="meta-card">
-            <div class="meta-label" data-i18n="updatedLabel">Обновлено</div>
-            <div class="meta-value">08.07.2026</div>
-          </div>
-          <div class="meta-card">
-            <div class="meta-label" data-i18n="contactLabel">Контакт</div>
-            <div class="meta-value"><a href="mailto:privacy@parktrack.live">privacy@parktrack.live</a></div>
-          </div>
+            <div class="meta-grid" aria-label="Policy summary">
+                <div class="meta-card">
+                    <div class="meta-label" data-i18n="updatedLabel">Обновлено</div>
+                    <div class="meta-value">08.07.2026</div>
+                </div>
+                <div class="meta-card">
+                    <div class="meta-label" data-i18n="contactLabel">Контакт</div>
+                    <div class="meta-value"><a href="mailto:privacy@parktrack.live">privacy@parktrack.live</a></div>
+                </div>
+            </div>
         </div>
-      </div>
     </section>
 
     <div class="page-shell layout">
-      <aside class="toc" aria-label="Table of contents">
-        <p class="toc-title" data-i18n="tocTitle">Разделы</p>
-        <nav data-toc="ru">
-          <a href="#ru-who">Кто обрабатывает данные</a>
-          <a href="#ru-data">Какие данные мы собираем</a>
-          <a href="#ru-purpose">Цели обработки</a>
-          <a href="#ru-legal">Правовые основания</a>
-          <a href="#ru-location">Геолокация</a>
-          <a href="#ru-third">Сторонние сервисы</a>
-          <a href="#ru-retention">Сроки хранения</a>
-          <a href="#ru-rights">Права пользователя</a>
-          <a href="#ru-contact">Контакты</a>
-        </nav>
-        <nav data-toc="en" hidden>
-          <a href="#en-who">Who processes data</a>
-          <a href="#en-data">What data we collect</a>
-          <a href="#en-purpose">Processing purposes</a>
-          <a href="#en-legal">Legal basis</a>
-          <a href="#en-location">Location data</a>
-          <a href="#en-third">Third-party services</a>
-          <a href="#en-retention">Retention</a>
-          <a href="#en-rights">User rights</a>
-          <a href="#en-contact">Contacts</a>
-        </nav>
-      </aside>
+        <aside class="toc" aria-label="Table of contents">
+            <p class="toc-title" data-i18n="tocTitle">Разделы</p>
+            <nav data-toc="ru">
+                <a href="#ru-who">Кто обрабатывает данные</a>
+                <a href="#ru-data">Какие данные мы собираем</a>
+                <a href="#ru-purpose">Цели обработки</a>
+                <a href="#ru-legal">Правовые основания</a>
+                <a href="#ru-location">Геолокация</a>
+                <a href="#ru-third">Сторонние сервисы</a>
+                <a href="#ru-retention">Сроки хранения</a>
+                <a href="#ru-rights">Права пользователя</a>
+                <a href="#ru-contact">Контакты</a>
+            </nav>
+            <nav data-toc="en" hidden>
+                <a href="#en-who">Who processes data</a>
+                <a href="#en-data">What data we collect</a>
+                <a href="#en-purpose">Processing purposes</a>
+                <a href="#en-legal">Legal basis</a>
+                <a href="#en-location">Location data</a>
+                <a href="#en-third">Third-party services</a>
+                <a href="#en-retention">Retention</a>
+                <a href="#en-rights">User rights</a>
+                <a href="#en-contact">Contacts</a>
+            </nav>
+        </aside>
 
-      <article class="content-card">
-        <div data-lang-section="ru">
-          <section class="policy-section" id="ru-intro">
-            <h2>Политика конфиденциальности ParkTrack</h2>
-            <p><strong>Дата последнего обновления:</strong> 08.07.2026</p>
-            <p>Настоящая Политика конфиденциальности описывает, какие данные собирает, хранит и обрабатывает <strong>ParkTrack</strong>, включая сайт, мобильное приложение, административную панель, API и другие связанные сервисы ParkTrack.</p>
-            <p>ParkTrack — это сервис для поиска свободных парковочных мест, отображения парковочной доступности на карте, анализа занятости парковок и построения маршрутов к выбранным парковочным зонам.</p>
-            <p>Используя сайт, мобильное приложение или другие сервисы ParkTrack, пользователь подтверждает, что ознакомился с настоящей Политикой.</p>
-          </section>
+        <article class="content-card">
+            <div data-lang-section="ru">
+                <section class="policy-section" id="ru-intro">
+                    <h2>Политика конфиденциальности ParkTrack</h2>
+                    <p><strong>Дата последнего обновления:</strong> 08.07.2026</p>
+                    <p>Настоящая Политика конфиденциальности описывает, какие данные собирает, хранит и обрабатывает
+                        <strong>ParkTrack</strong>, включая сайт, мобильное приложение, административную панель, API и
+                        другие связанные сервисы ParkTrack.</p>
+                    <p>ParkTrack — это сервис для поиска свободных парковочных мест, отображения парковочной доступности
+                        на карте, анализа занятости парковок и построения маршрутов к выбранным парковочным зонам.</p>
+                    <p>Используя сайт, мобильное приложение или другие сервисы ParkTrack, пользователь подтверждает, что
+                        ознакомился с настоящей Политикой.</p>
+                </section>
 
-          <section class="policy-section" id="ru-who">
-            <h2>1. Кто обрабатывает данные</h2>
-            <p>Оператором данных является <strong>ParkTrack Project</strong>, команда ParkTrack.</p>
-            <div class="contact-list">
-              <div class="contact-row"><strong>Email по вопросам данных:</strong> <a href="mailto:privacy@parktrack.live">privacy@parktrack.live</a></div>
-              <div class="contact-row"><strong>Сайт:</strong> <a href="https://parktrack.live">parktrack.live</a></div>
-              <div class="contact-row"><strong>Документация:</strong> <a href="https://docs.parktrack.live">docs.parktrack.live</a></div>
+                <section class="policy-section" id="ru-who">
+                    <h2>1. Кто обрабатывает данные</h2>
+                    <p>Оператором данных является <strong>ParkTrack Project</strong>, команда ParkTrack.</p>
+                    <div class="contact-list">
+                        <div class="contact-row"><strong>Email по вопросам данных:</strong> <a
+                                href="mailto:privacy@parktrack.live">privacy@parktrack.live</a></div>
+                        <div class="contact-row"><strong>Сайт:</strong> <a
+                                href="https://parktrack.live">parktrack.live</a></div>
+                        <div class="contact-row"><strong>Документация:</strong> <a href="https://docs.parktrack.live">docs.parktrack.live</a>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="policy-section" id="ru-data">
+                    <h2>2. Какие данные мы можем собирать</h2>
+                    <h3>2.1. Данные аккаунта</h3>
+                    <p>Если пользователь регистрируется или входит в аккаунт, ParkTrack может обрабатывать:</p>
+                    <ul>
+                        <li>адрес электронной почты;</li>
+                        <li>имя или полное имя;</li>
+                        <li>номер телефона, если он указан;</li>
+                        <li>пароль в виде защищённого хеша;</li>
+                        <li>роль пользователя;</li>
+                        <li>статус активности аккаунта;</li>
+                        <li>дату создания и обновления аккаунта.</li>
+                    </ul>
+                    <p>ParkTrack не хранит пароль пользователя в открытом виде.</p>
+
+                    <h3>2.2. Данные авторизации и сессий</h3>
+                    <p>Для входа в аккаунт, поддержания сессии и защиты сервиса ParkTrack может обрабатывать:</p>
+                    <ul>
+                        <li>токены сессий в защищённом виде;</li>
+                        <li>дату создания сессии;</li>
+                        <li>срок действия сессии;</li>
+                        <li>дату завершения или отзыва сессии;</li>
+                        <li>IP-адрес;</li>
+                        <li>user-agent браузера или приложения;</li>
+                        <li>данные, связанные с восстановлением пароля.</li>
+                    </ul>
+                    <p>Эти данные используются для авторизации, защиты аккаунта, предотвращения несанкционированного
+                        доступа и обеспечения безопасности сервиса.</p>
+
+                    <h3>2.3. Данные местоположения</h3>
+                    <p>Сайт и мобильное приложение ParkTrack могут запрашивать доступ к местоположению пользователя.
+                        Геолокация используется для отображения пользователя на карте, поиска парковок рядом, подбора
+                        парковочной зоны, построения маршрута, расчёта расстояния и примерного времени прибытия.</p>
+                    <p>Доступ к геолокации предоставляется только с разрешения пользователя. Пользователь может
+                        отключить доступ к местоположению в настройках браузера или мобильного устройства. Если доступ к
+                        геолокации отключён, часть функций ParkTrack может быть недоступна или работать ограниченно.</p>
+
+                    <h3>2.4. Данные маршрутов</h3>
+                    <p>Для работы функций маршрутизации ParkTrack может обрабатывать координаты начальной точки
+                        маршрута, координаты точки назначения, выбранную парковочную зону, примерное время прибытия,
+                        маршрутную линию, ссылку для открытия маршрута в навигационном приложении и статус маршрута.</p>
+
+                    <h3>2.5. Данные парковочных зон, камер и источников данных</h3>
+                    <p>ParkTrack обрабатывает данные о парковочной инфраструктуре, включая парковочные зоны, координаты,
+                        вместимость, тип зоны, статус доступности, данные о занятости, прогнозы занятости, сведения о
+                        камерах, источниках данных и технические данные для анализа парковочной ситуации.</p>
+
+                    <h3>2.6. Данные с камер и компьютерного зрения</h3>
+                    <p>ParkTrack может использовать изображения или видеопотоки с городских, партнёрских или иных
+                        подключённых камер для определения занятости парковочных мест.</p>
+                    <p>Такие данные могут использоваться для обнаружения автомобилей, оценки занятости парковочных зон,
+                        обновления информации о свободных местах, проверки качества распознавания и улучшения алгоритмов
+                        компьютерного зрения.</p>
+                    <p>ParkTrack не ставит целью идентифицировать водителей, владельцев автомобилей, пешеходов или иных
+                        физических лиц. Если на изображениях могут присутствовать люди, автомобили или регистрационные
+                        номера транспортных средств, такие данные обрабатываются только в объёме, необходимом для оценки
+                        занятости парковок и работы сервиса.</p>
+
+                    <h3>2.7. Данные партнёров и администраторов</h3>
+                    <p>Если пользователь работает с административной панелью ParkTrack или является представителем
+                        партнёра, ParkTrack может обрабатывать данные профиля администратора или сотрудника партнёра,
+                        email, телефон, роль и права доступа, принадлежность к партнёрской организации и действия,
+                        связанные с управлением камерами, зонами, источниками данных и пользователями.</p>
+
+                    <h3>2.8. Технические данные</h3>
+                    <p>При использовании сайта, приложения, API и административной панели ParkTrack может автоматически
+                        получать IP-адрес, тип и модель устройства, операционную систему, версию приложения, тип и
+                        версию браузера, язык интерфейса, дату и время запроса, технические логи, сообщения об ошибках,
+                        данные о производительности и стабильности сервиса.</p>
+
+                    <h3>2.9. Cookies, localStorage и аналогичные технологии</h3>
+                    <p>На сайте и в административной панели ParkTrack могут использоваться cookies, localStorage и
+                        аналогичные технологии. Они могут применяться для сохранения сессии пользователя, авторизации,
+                        сохранения настроек интерфейса, защиты от несанкционированного доступа, корректной работы сайта
+                        и диагностики технических проблем.</p>
+                    <p>Пользователь может ограничить или отключить cookies в настройках браузера. В этом случае часть
+                        функций сайта или административной панели может работать некорректно.</p>
+                </section>
+
+                <section class="policy-section" id="ru-purpose">
+                    <h2>3. Для каких целей мы используем данные</h2>
+                    <p>ParkTrack обрабатывает данные для следующих целей:</p>
+                    <ul>
+                        <li>предоставление доступа к сайту, мобильному приложению, API и административной панели;</li>
+                        <li>регистрация, вход и управление аккаунтом;</li>
+                        <li>восстановление доступа к аккаунту;</li>
+                        <li>отображение парковок и свободных мест на карте;</li>
+                        <li>поиск парковок рядом с пользователем;</li>
+                        <li>построение маршрутов;</li>
+                        <li>анализ занятости парковочных зон;</li>
+                        <li>прогнозирование доступности парковок;</li>
+                        <li>работа административной панели;</li>
+                        <li>управление пользователями, партнёрами, камерами, зонами и источниками данных;</li>
+                        <li>обеспечение безопасности сервиса;</li>
+                        <li>предотвращение злоупотреблений и несанкционированного доступа;</li>
+                        <li>диагностика ошибок и улучшение стабильности;</li>
+                        <li>техническая поддержка пользователей и партнёров;</li>
+                        <li>выполнение требований применимого законодательства.</li>
+                    </ul>
+                </section>
+
+                <section class="policy-section" id="ru-legal">
+                    <h2>4. Правовые основания обработки</h2>
+                    <p>В зависимости от применимого законодательства данные могут обрабатываться на следующих
+                        основаниях:</p>
+                    <ul>
+                        <li><strong>согласие пользователя</strong> — например, при предоставлении доступа к геолокации;
+                        </li>
+                        <li><strong>исполнение пользовательского соглашения</strong> — когда данные нужны для работы
+                            ParkTrack;
+                        </li>
+                        <li><strong>законный интерес ParkTrack</strong> — например, для безопасности, диагностики
+                            ошибок, предотвращения злоупотреблений и улучшения сервиса;
+                        </li>
+                        <li><strong>исполнение требований закона</strong> — если обработка необходима по применимому
+                            законодательству.
+                        </li>
+                    </ul>
+                    <p>Пользователь может отозвать согласие на обработку данных, если обработка основана на согласии.
+                        Например, доступ к геолокации можно отключить в настройках устройства или браузера. Отзыв
+                        согласия не влияет на законность обработки, выполненной до такого отзыва.</p>
+                </section>
+
+                <section class="policy-section" id="ru-location">
+                    <h2>5. Геолокация</h2>
+                    <p>ParkTrack использует геолокацию только для функций, связанных с картой, поиском парковок и
+                        маршрутизацией.</p>
+                    <p>ParkTrack не использует геолокацию для скрытого постоянного отслеживания пользователя.</p>
+                    <p>Если в будущем в приложении будет добавлен фоновый доступ к местоположению, это будет отдельно
+                        указано в интерфейсе приложения, описании разрешений и настройках мобильного устройства.</p>
+                </section>
+
+                <section class="policy-section" id="ru-third">
+                    <h2>6. Сторонние сервисы и передача данных</h2>
+                    <p>Для работы ParkTrack могут использоваться сторонние сервисы и провайдеры, включая
+                        картографические сервисы, хостинг и инфраструктурные провайдеры, сервисы отправки email, сервисы
+                        хранения и обработки данных, сервисы мониторинга, диагностики и логирования, инструменты
+                        аналитики, магазины приложений и платформенные сервисы мобильных устройств.</p>
+                    <p>Сторонние сервисы могут обрабатывать данные в соответствии со своими собственными правилами
+                        конфиденциальности.</p>
+                    <p>ParkTrack не продаёт персональные данные пользователей третьим лицам.</p>
+                    <p>ParkTrack может передавать данные третьим лицам только если это необходимо для работы ParkTrack,
+                        если данные передаются техническим подрядчикам или сервис-провайдерам, если пользователь дал
+                        согласие, если передача требуется по закону, либо если это необходимо для защиты прав,
+                        безопасности и законных интересов ParkTrack, пользователей или партнёров.</p>
+                </section>
+
+                <section class="policy-section" id="ru-transfer">
+                    <h2>7. Трансграничная передача данных</h2>
+                    <p>Данные могут обрабатываться на серверах или сервисах, расположенных в разных странах. Если данные
+                        передаются за пределы страны пользователя, ParkTrack принимает разумные меры для защиты таких
+                        данных в соответствии с применимыми требованиями законодательства.</p>
+                </section>
+
+                <section class="policy-section" id="ru-retention">
+                    <h2>8. Сроки хранения данных</h2>
+                    <p>ParkTrack хранит данные не дольше, чем это необходимо для целей, указанных в настоящей Политике,
+                        если более длительный срок хранения не требуется по закону, для безопасности, защиты прав или
+                        технической необходимости.</p>
+                    <ul>
+                        <li>данные аккаунта — пока аккаунт активен;</li>
+                        <li>данные сессий — в течение срока действия сессии и разумного периода после него для
+                            безопасности;
+                        </li>
+                        <li>данные восстановления пароля — до истечения срока действия токена и разумного технического
+                            периода после этого;
+                        </li>
+                        <li>маршруты и данные навигации — пока они нужны для работы сервиса, аналитики и улучшения
+                            качества маршрутизации;
+                        </li>
+                        <li>технические логи — в течение срока, необходимого для диагностики, безопасности и
+                            стабильности;
+                        </li>
+                        <li>данные камер и занятости парковок — пока они нужны для отображения парковочной доступности,
+                            аналитики, проверки качества и улучшения моделей;
+                        </li>
+                        <li>данные партнёров и администраторов — пока существует соответствующий аккаунт, партнёрская
+                            связь или необходимость в администрировании.
+                        </li>
+                    </ul>
+                    <p>Если пользователь удаляет аккаунт или запрашивает удаление данных, ParkTrack удаляет или
+                        обезличивает данные, если их дальнейшее хранение не требуется законом, безопасностью, защитой
+                        прав или технической необходимостью.</p>
+                </section>
+
+                <section class="policy-section" id="ru-security">
+                    <h2>9. Защита данных</h2>
+                    <p>ParkTrack принимает разумные технические и организационные меры для защиты данных, включая
+                        хранение паролей в виде хешей, использование токенов сессий, разграничение прав доступа,
+                        ограничение доступа к административным функциям, использование защищённых соединений, контроль
+                        доступа к внутренним системам, техническое логирование и мониторинг, резервное копирование, если
+                        оно используется, обновление и поддержку программной инфраструктуры.</p>
+                    <p>При этом ни один способ передачи и хранения данных в интернете не может быть абсолютно
+                        безопасным.</p>
+                </section>
+
+                <section class="policy-section" id="ru-rights">
+                    <h2>10. Права пользователя</h2>
+                    <p>В зависимости от применимого законодательства пользователь может иметь право:</p>
+                    <ul>
+                        <li>получить информацию о том, какие данные обрабатываются;</li>
+                        <li>запросить копию своих данных;</li>
+                        <li>исправить неточные данные;</li>
+                        <li>удалить аккаунт или связанные с ним данные;</li>
+                        <li>ограничить обработку данных;</li>
+                        <li>отозвать согласие на обработку данных;</li>
+                        <li>возразить против обработки данных;</li>
+                        <li>запросить перенос данных;</li>
+                        <li>обратиться с жалобой в уполномоченный орган по защите данных.</li>
+                    </ul>
+                    <p>Для реализации прав пользователь может написать на <a href="mailto:privacy@parktrack.live">privacy@parktrack.live</a>.
+                        В обращении желательно указать email аккаунта ParkTrack и суть запроса.</p>
+                </section>
+
+                <section class="policy-section" id="ru-delete">
+                    <h2>11. Удаление аккаунта</h2>
+                    <p>Пользователь может запросить удаление аккаунта и связанных с ним данных, отправив обращение на <a
+                            href="mailto:privacy@parktrack.live">privacy@parktrack.live</a>.</p>
+                    <p>В запросе необходимо указать email аккаунта ParkTrack, который требуется удалить. После получения
+                        запроса ParkTrack может запросить дополнительное подтверждение, чтобы убедиться, что запрос
+                        отправлен владельцем аккаунта.</p>
+                    <p>После подтверждения ParkTrack удалит или обезличит данные аккаунта, если их дальнейшее хранение
+                        не требуется законом, безопасностью, защитой прав или технической необходимостью.</p>
+                </section>
+
+                <section class="policy-section" id="ru-children">
+                    <h2>12. Дети</h2>
+                    <p>ParkTrack не предназначен специально для детей младше возраста, с которого они могут
+                        самостоятельно давать согласие на обработку персональных данных по применимому
+                        законодательству.</p>
+                    <p>Если ParkTrack узнает, что получил данные ребёнка без необходимого согласия родителя или
+                        законного представителя, команда ParkTrack примет разумные меры для удаления таких данных.</p>
+                </section>
+
+                <section class="policy-section" id="ru-partners">
+                    <h2>13. Партнёрские данные</h2>
+                    <p>Партнёры ParkTrack могут предоставлять данные о парковках, камерах, источниках данных, объектах
+                        городской инфраструктуры и иной информации, связанной с парковочной доступностью.</p>
+                    <p>Если партнёр предоставляет данные, содержащие персональные данные, он должен иметь законные
+                        основания для такой передачи и обработки.</p>
+                    <p>ParkTrack использует партнёрские данные только для работы сервиса, аналитики парковочной
+                        доступности, отображения информации на карте, прогнозирования занятости и улучшения качества
+                        продукта.</p>
+                </section>
+
+                <section class="policy-section" id="ru-changes">
+                    <h2>14. Изменения Политики</h2>
+                    <p>ParkTrack может периодически обновлять настоящую Политику. Актуальная версия публикуется на сайте
+                        ParkTrack или в мобильном приложении.</p>
+                    <p>Если изменения являются существенными, ParkTrack может дополнительно уведомить пользователей
+                        доступным способом. Продолжение использования ParkTrack после публикации обновлённой Политики
+                        означает ознакомление пользователя с её новой редакцией.</p>
+                </section>
+
+                <section class="policy-section" id="ru-contact">
+                    <h2>15. Контакты</h2>
+                    <p>По вопросам конфиденциальности, обработки данных, удаления аккаунта или реализации прав
+                        пользователя можно связаться с командой ParkTrack:</p>
+                    <div class="contact-list">
+                        <div class="contact-row"><strong>Email по вопросам данных:</strong> <a
+                                href="mailto:privacy@parktrack.live">privacy@parktrack.live</a></div>
+                        <div class="contact-row"><strong>Сайт:</strong> <a
+                                href="https://parktrack.live">parktrack.live</a></div>
+                        <div class="contact-row"><strong>Документация:</strong> <a href="https://docs.parktrack.live">docs.parktrack.live</a>
+                        </div>
+                    </div>
+                </section>
             </div>
-          </section>
 
-          <section class="policy-section" id="ru-data">
-            <h2>2. Какие данные мы можем собирать</h2>
-            <h3>2.1. Данные аккаунта</h3>
-            <p>Если пользователь регистрируется или входит в аккаунт, ParkTrack может обрабатывать:</p>
-            <ul>
-              <li>адрес электронной почты;</li>
-              <li>имя или полное имя;</li>
-              <li>номер телефона, если он указан;</li>
-              <li>пароль в виде защищённого хеша;</li>
-              <li>роль пользователя;</li>
-              <li>статус активности аккаунта;</li>
-              <li>дату создания и обновления аккаунта.</li>
-            </ul>
-            <p>ParkTrack не хранит пароль пользователя в открытом виде.</p>
+            <div data-lang-section="en" hidden>
+                <section class="policy-section" id="en-intro">
+                    <h2>ParkTrack Privacy Policy</h2>
+                    <p><strong>Last updated:</strong> 08 July 2026</p>
+                    <p>This Privacy Policy explains what data <strong>ParkTrack</strong> collects, stores and processes
+                        through the ParkTrack website, mobile application, admin panel, API and other related ParkTrack
+                        services.</p>
+                    <p>ParkTrack is a service for finding available parking spaces, displaying parking availability on a
+                        map, analyzing parking occupancy and building routes to selected parking areas.</p>
+                    <p>By using the ParkTrack website, mobile application or other ParkTrack services, the user confirms
+                        that they have read this Privacy Policy.</p>
+                </section>
 
-            <h3>2.2. Данные авторизации и сессий</h3>
-            <p>Для входа в аккаунт, поддержания сессии и защиты сервиса ParkTrack может обрабатывать:</p>
-            <ul>
-              <li>токены сессий в защищённом виде;</li>
-              <li>дату создания сессии;</li>
-              <li>срок действия сессии;</li>
-              <li>дату завершения или отзыва сессии;</li>
-              <li>IP-адрес;</li>
-              <li>user-agent браузера или приложения;</li>
-              <li>данные, связанные с восстановлением пароля.</li>
-            </ul>
-            <p>Эти данные используются для авторизации, защиты аккаунта, предотвращения несанкционированного доступа и обеспечения безопасности сервиса.</p>
+                <section class="policy-section" id="en-who">
+                    <h2>1. Who processes data</h2>
+                    <p>The data operator is <strong>ParkTrack Project</strong>, the ParkTrack team.</p>
+                    <div class="contact-list">
+                        <div class="contact-row"><strong>Privacy email:</strong> <a
+                                href="mailto:privacy@parktrack.live">privacy@parktrack.live</a></div>
+                        <div class="contact-row"><strong>Website:</strong> <a href="https://parktrack.live">parktrack.live</a>
+                        </div>
+                        <div class="contact-row"><strong>Documentation:</strong> <a href="https://docs.parktrack.live">docs.parktrack.live</a>
+                        </div>
+                        <div class="contact-row"><strong>Partnership inquiries:</strong> <a
+                                href="mailto:partners@parktrack.live">partners@parktrack.live</a></div>
+                    </div>
+                </section>
 
-            <h3>2.3. Данные местоположения</h3>
-            <p>Сайт и мобильное приложение ParkTrack могут запрашивать доступ к местоположению пользователя. Геолокация используется для отображения пользователя на карте, поиска парковок рядом, подбора парковочной зоны, построения маршрута, расчёта расстояния и примерного времени прибытия.</p>
-            <p>Доступ к геолокации предоставляется только с разрешения пользователя. Пользователь может отключить доступ к местоположению в настройках браузера или мобильного устройства. Если доступ к геолокации отключён, часть функций ParkTrack может быть недоступна или работать ограниченно.</p>
+                <section class="policy-section" id="en-data">
+                    <h2>2. What data we may collect</h2>
+                    <h3>2.1. Account data</h3>
+                    <p>If a user registers or signs in, ParkTrack may process:</p>
+                    <ul>
+                        <li>email address;</li>
+                        <li>name or full name;</li>
+                        <li>phone number, if provided;</li>
+                        <li>password in the form of a protected hash;</li>
+                        <li>user role;</li>
+                        <li>account activity status;</li>
+                        <li>account creation and update dates.</li>
+                    </ul>
+                    <p>ParkTrack does not store user passwords in plain text.</p>
 
-            <h3>2.4. Данные маршрутов</h3>
-            <p>Для работы функций маршрутизации ParkTrack может обрабатывать координаты начальной точки маршрута, координаты точки назначения, выбранную парковочную зону, примерное время прибытия, маршрутную линию, ссылку для открытия маршрута в навигационном приложении и статус маршрута.</p>
+                    <h3>2.2. Authentication and session data</h3>
+                    <p>To sign users in, maintain sessions and protect the service, ParkTrack may process:</p>
+                    <ul>
+                        <li>session tokens in a protected form;</li>
+                        <li>session creation date;</li>
+                        <li>session expiration date;</li>
+                        <li>session termination or revocation date;</li>
+                        <li>IP address;</li>
+                        <li>browser or application user-agent;</li>
+                        <li>data related to password recovery.</li>
+                    </ul>
+                    <p>This data is used for authentication, account protection, prevention of unauthorized access and
+                        service security.</p>
 
-            <h3>2.5. Данные парковочных зон, камер и источников данных</h3>
-            <p>ParkTrack обрабатывает данные о парковочной инфраструктуре, включая парковочные зоны, координаты, вместимость, тип зоны, статус доступности, данные о занятости, прогнозы занятости, сведения о камерах, источниках данных и технические данные для анализа парковочной ситуации.</p>
+                    <h3>2.3. Location data</h3>
+                    <p>The ParkTrack website and mobile application may request access to the user's location. Location
+                        data is used to show the user on the map, find nearby parking, select a suitable parking area,
+                        build a route, calculate distance and estimate arrival time.</p>
+                    <p>Location access is provided only with the user's permission. The user can disable location access
+                        in browser or mobile device settings. If location access is disabled, some ParkTrack features
+                        may be unavailable or limited.</p>
 
-            <h3>2.6. Данные с камер и компьютерного зрения</h3>
-            <p>ParkTrack может использовать изображения или видеопотоки с городских, партнёрских или иных подключённых камер для определения занятости парковочных мест.</p>
-            <p>Такие данные могут использоваться для обнаружения автомобилей, оценки занятости парковочных зон, обновления информации о свободных местах, проверки качества распознавания и улучшения алгоритмов компьютерного зрения.</p>
-            <p>ParkTrack не ставит целью идентифицировать водителей, владельцев автомобилей, пешеходов или иных физических лиц. Если на изображениях могут присутствовать люди, автомобили или регистрационные номера транспортных средств, такие данные обрабатываются только в объёме, необходимом для оценки занятости парковок и работы сервиса.</p>
+                    <h3>2.4. Route data</h3>
+                    <p>To provide routing features, ParkTrack may process route start coordinates, destination
+                        coordinates, selected parking area, estimated arrival time, route line, a link for opening the
+                        route in a navigation application and route status.</p>
 
-            <h3>2.7. Данные партнёров и администраторов</h3>
-            <p>Если пользователь работает с административной панелью ParkTrack или является представителем партнёра, ParkTrack может обрабатывать данные профиля администратора или сотрудника партнёра, email, телефон, роль и права доступа, принадлежность к партнёрской организации и действия, связанные с управлением камерами, зонами, источниками данных и пользователями.</p>
+                    <h3>2.5. Parking zones, cameras and data sources</h3>
+                    <p>ParkTrack processes parking infrastructure data, including parking zones, coordinates, capacity,
+                        zone type, availability status, occupancy data, occupancy forecasts, camera information, data
+                        source information and technical data required to analyze the parking situation.</p>
 
-            <h3>2.8. Технические данные</h3>
-            <p>При использовании сайта, приложения, API и административной панели ParkTrack может автоматически получать IP-адрес, тип и модель устройства, операционную систему, версию приложения, тип и версию браузера, язык интерфейса, дату и время запроса, технические логи, сообщения об ошибках, данные о производительности и стабильности сервиса.</p>
+                    <h3>2.6. Camera and computer vision data</h3>
+                    <p>ParkTrack may use images or video streams from city, partner or other connected cameras to
+                        determine parking space occupancy.</p>
+                    <p>Such data may be used to detect vehicles, estimate parking zone occupancy, update information
+                        about available spaces, check recognition quality and improve computer vision algorithms.</p>
+                    <p>ParkTrack does not aim to identify drivers, vehicle owners, pedestrians or other individuals. If
+                        images may contain people, vehicles or license plates, such data is processed only to the extent
+                        necessary to estimate parking occupancy and operate the service.</p>
 
-            <h3>2.9. Cookies, localStorage и аналогичные технологии</h3>
-            <p>На сайте и в административной панели ParkTrack могут использоваться cookies, localStorage и аналогичные технологии. Они могут применяться для сохранения сессии пользователя, авторизации, сохранения настроек интерфейса, защиты от несанкционированного доступа, корректной работы сайта и диагностики технических проблем.</p>
-            <p>Пользователь может ограничить или отключить cookies в настройках браузера. В этом случае часть функций сайта или административной панели может работать некорректно.</p>
-          </section>
+                    <h3>2.7. Partner and admin data</h3>
+                    <p>If a user works with the ParkTrack admin panel or represents a partner, ParkTrack may process
+                        administrator or partner employee profile data, email, phone number, role and access rights,
+                        partner organization affiliation and actions related to managing cameras, zones, data sources
+                        and users.</p>
 
-          <section class="policy-section" id="ru-purpose">
-            <h2>3. Для каких целей мы используем данные</h2>
-            <p>ParkTrack обрабатывает данные для следующих целей:</p>
-            <ul>
-              <li>предоставление доступа к сайту, мобильному приложению, API и административной панели;</li>
-              <li>регистрация, вход и управление аккаунтом;</li>
-              <li>восстановление доступа к аккаунту;</li>
-              <li>отображение парковок и свободных мест на карте;</li>
-              <li>поиск парковок рядом с пользователем;</li>
-              <li>построение маршрутов;</li>
-              <li>анализ занятости парковочных зон;</li>
-              <li>прогнозирование доступности парковок;</li>
-              <li>работа административной панели;</li>
-              <li>управление пользователями, партнёрами, камерами, зонами и источниками данных;</li>
-              <li>обеспечение безопасности сервиса;</li>
-              <li>предотвращение злоупотреблений и несанкционированного доступа;</li>
-              <li>диагностика ошибок и улучшение стабильности;</li>
-              <li>техническая поддержка пользователей и партнёров;</li>
-              <li>выполнение требований применимого законодательства.</li>
-            </ul>
-          </section>
+                    <h3>2.8. Technical data</h3>
+                    <p>When the website, application, API or admin panel is used, ParkTrack may automatically receive IP
+                        address, device type and model, operating system, application version, browser type and version,
+                        interface language, request date and time, technical logs, error messages, performance and
+                        stability data.</p>
 
-          <section class="policy-section" id="ru-legal">
-            <h2>4. Правовые основания обработки</h2>
-            <p>В зависимости от применимого законодательства данные могут обрабатываться на следующих основаниях:</p>
-            <ul>
-              <li><strong>согласие пользователя</strong> — например, при предоставлении доступа к геолокации;</li>
-              <li><strong>исполнение пользовательского соглашения</strong> — когда данные нужны для работы ParkTrack;</li>
-              <li><strong>законный интерес ParkTrack</strong> — например, для безопасности, диагностики ошибок, предотвращения злоупотреблений и улучшения сервиса;</li>
-              <li><strong>исполнение требований закона</strong> — если обработка необходима по применимому законодательству.</li>
-            </ul>
-            <p>Пользователь может отозвать согласие на обработку данных, если обработка основана на согласии. Например, доступ к геолокации можно отключить в настройках устройства или браузера. Отзыв согласия не влияет на законность обработки, выполненной до такого отзыва.</p>
-          </section>
+                    <h3>2.9. Cookies, localStorage and similar technologies</h3>
+                    <p>The ParkTrack website and admin panel may use cookies, localStorage and similar technologies.
+                        They may be used to maintain user sessions, authenticate users, save interface settings, protect
+                        against unauthorized access, ensure correct operation of the website and diagnose technical
+                        issues.</p>
+                    <p>The user may limit or disable cookies in browser settings. In this case, some website or admin
+                        panel features may not work correctly.</p>
+                </section>
 
-          <section class="policy-section" id="ru-location">
-            <h2>5. Геолокация</h2>
-            <p>ParkTrack использует геолокацию только для функций, связанных с картой, поиском парковок и маршрутизацией.</p>
-            <p>ParkTrack не использует геолокацию для скрытого постоянного отслеживания пользователя.</p>
-            <p>Если в будущем в приложении будет добавлен фоновый доступ к местоположению, это будет отдельно указано в интерфейсе приложения, описании разрешений и настройках мобильного устройства.</p>
-          </section>
+                <section class="policy-section" id="en-purpose">
+                    <h2>3. Processing purposes</h2>
+                    <p>ParkTrack processes data for the following purposes:</p>
+                    <ul>
+                        <li>providing access to the website, mobile application, API and admin panel;</li>
+                        <li>registration, sign-in and account management;</li>
+                        <li>account recovery;</li>
+                        <li>displaying parking areas and available spaces on the map;</li>
+                        <li>finding parking near the user;</li>
+                        <li>building routes;</li>
+                        <li>analyzing parking zone occupancy;</li>
+                        <li>forecasting parking availability;</li>
+                        <li>operating the admin panel;</li>
+                        <li>managing users, partners, cameras, zones and data sources;</li>
+                        <li>ensuring service security;</li>
+                        <li>preventing abuse and unauthorized access;</li>
+                        <li>diagnosing errors and improving stability;</li>
+                        <li>providing technical support to users and partners;</li>
+                        <li>complying with applicable legal requirements.</li>
+                    </ul>
+                </section>
 
-          <section class="policy-section" id="ru-third">
-            <h2>6. Сторонние сервисы и передача данных</h2>
-            <p>Для работы ParkTrack могут использоваться сторонние сервисы и провайдеры, включая картографические сервисы, хостинг и инфраструктурные провайдеры, сервисы отправки email, сервисы хранения и обработки данных, сервисы мониторинга, диагностики и логирования, инструменты аналитики, магазины приложений и платформенные сервисы мобильных устройств.</p>
-            <p>Сторонние сервисы могут обрабатывать данные в соответствии со своими собственными правилами конфиденциальности.</p>
-            <p>ParkTrack не продаёт персональные данные пользователей третьим лицам.</p>
-            <p>ParkTrack может передавать данные третьим лицам только если это необходимо для работы ParkTrack, если данные передаются техническим подрядчикам или сервис-провайдерам, если пользователь дал согласие, если передача требуется по закону, либо если это необходимо для защиты прав, безопасности и законных интересов ParkTrack, пользователей или партнёров.</p>
-          </section>
+                <section class="policy-section" id="en-legal">
+                    <h2>4. Legal basis for processing</h2>
+                    <p>Depending on applicable law, data may be processed on the following legal bases:</p>
+                    <ul>
+                        <li><strong>user consent</strong> — for example, when the user grants access to location data;
+                        </li>
+                        <li><strong>performance of the user agreement</strong> — when data is required for ParkTrack to
+                            operate;
+                        </li>
+                        <li><strong>ParkTrack's legitimate interest</strong> — for example, for security, error
+                            diagnostics, abuse prevention and service improvement;
+                        </li>
+                        <li><strong>compliance with legal requirements</strong> — if processing is required under
+                            applicable law.
+                        </li>
+                    </ul>
+                    <p>The user may withdraw consent where processing is based on consent. For example, location access
+                        can be disabled in device or browser settings. Withdrawal of consent does not affect the
+                        lawfulness of processing carried out before such withdrawal.</p>
+                </section>
 
-          <section class="policy-section" id="ru-transfer">
-            <h2>7. Трансграничная передача данных</h2>
-            <p>Данные могут обрабатываться на серверах или сервисах, расположенных в разных странах. Если данные передаются за пределы страны пользователя, ParkTrack принимает разумные меры для защиты таких данных в соответствии с применимыми требованиями законодательства.</p>
-          </section>
+                <section class="policy-section" id="en-location">
+                    <h2>5. Location data</h2>
+                    <p>ParkTrack uses location data only for features related to the map, parking search and
+                        routing.</p>
+                    <p>ParkTrack does not use location data for hidden continuous tracking of the user.</p>
+                    <p>If background location access is added to the application in the future, this will be separately
+                        indicated in the application interface, permission descriptions and mobile device settings.</p>
+                </section>
 
-          <section class="policy-section" id="ru-retention">
-            <h2>8. Сроки хранения данных</h2>
-            <p>ParkTrack хранит данные не дольше, чем это необходимо для целей, указанных в настоящей Политике, если более длительный срок хранения не требуется по закону, для безопасности, защиты прав или технической необходимости.</p>
-            <ul>
-              <li>данные аккаунта — пока аккаунт активен;</li>
-              <li>данные сессий — в течение срока действия сессии и разумного периода после него для безопасности;</li>
-              <li>данные восстановления пароля — до истечения срока действия токена и разумного технического периода после этого;</li>
-              <li>маршруты и данные навигации — пока они нужны для работы сервиса, аналитики и улучшения качества маршрутизации;</li>
-              <li>технические логи — в течение срока, необходимого для диагностики, безопасности и стабильности;</li>
-              <li>данные камер и занятости парковок — пока они нужны для отображения парковочной доступности, аналитики, проверки качества и улучшения моделей;</li>
-              <li>данные партнёров и администраторов — пока существует соответствующий аккаунт, партнёрская связь или необходимость в администрировании.</li>
-            </ul>
-            <p>Если пользователь удаляет аккаунт или запрашивает удаление данных, ParkTrack удаляет или обезличивает данные, если их дальнейшее хранение не требуется законом, безопасностью, защитой прав или технической необходимостью.</p>
-          </section>
+                <section class="policy-section" id="en-third">
+                    <h2>6. Third-party services and data sharing</h2>
+                    <p>ParkTrack may use third-party services and providers, including map services, hosting and
+                        infrastructure providers, email delivery services, data storage and processing services,
+                        monitoring, diagnostics and logging tools, analytics tools, app stores and mobile platform
+                        services.</p>
+                    <p>Third-party services may process data under their own privacy policies.</p>
+                    <p>ParkTrack does not sell users' personal data to third parties.</p>
+                    <p>ParkTrack may share data with third parties only when it is necessary for ParkTrack to operate,
+                        when data is shared with technical contractors or service providers, when the user has given
+                        consent, when disclosure is required by law, or when it is necessary to protect the rights,
+                        security and legitimate interests of ParkTrack, users or partners.</p>
+                </section>
 
-          <section class="policy-section" id="ru-security">
-            <h2>9. Защита данных</h2>
-            <p>ParkTrack принимает разумные технические и организационные меры для защиты данных, включая хранение паролей в виде хешей, использование токенов сессий, разграничение прав доступа, ограничение доступа к административным функциям, использование защищённых соединений, контроль доступа к внутренним системам, техническое логирование и мониторинг, резервное копирование, если оно используется, обновление и поддержку программной инфраструктуры.</p>
-            <p>При этом ни один способ передачи и хранения данных в интернете не может быть абсолютно безопасным.</p>
-          </section>
+                <section class="policy-section" id="en-transfer">
+                    <h2>7. International data transfers</h2>
+                    <p>Data may be processed on servers or services located in different countries. If data is
+                        transferred outside the user's country, ParkTrack takes reasonable measures to protect such data
+                        in accordance with applicable legal requirements.</p>
+                </section>
 
-          <section class="policy-section" id="ru-rights">
-            <h2>10. Права пользователя</h2>
-            <p>В зависимости от применимого законодательства пользователь может иметь право:</p>
-            <ul>
-              <li>получить информацию о том, какие данные обрабатываются;</li>
-              <li>запросить копию своих данных;</li>
-              <li>исправить неточные данные;</li>
-              <li>удалить аккаунт или связанные с ним данные;</li>
-              <li>ограничить обработку данных;</li>
-              <li>отозвать согласие на обработку данных;</li>
-              <li>возразить против обработки данных;</li>
-              <li>запросить перенос данных;</li>
-              <li>обратиться с жалобой в уполномоченный орган по защите данных.</li>
-            </ul>
-            <p>Для реализации прав пользователь может написать на <a href="mailto:privacy@parktrack.live">privacy@parktrack.live</a>. В обращении желательно указать email аккаунта ParkTrack и суть запроса.</p>
-          </section>
+                <section class="policy-section" id="en-retention">
+                    <h2>8. Data retention</h2>
+                    <p>ParkTrack stores data no longer than necessary for the purposes described in this Privacy Policy,
+                        unless a longer retention period is required by law, security, rights protection or technical
+                        necessity.</p>
+                    <ul>
+                        <li>account data — while the account is active;</li>
+                        <li>session data — during the session validity period and a reasonable period afterwards for
+                            security purposes;
+                        </li>
+                        <li>password recovery data — until the recovery token expires and for a reasonable technical
+                            period afterwards;
+                        </li>
+                        <li>route and navigation data — while needed for service operation, analytics and route quality
+                            improvement;
+                        </li>
+                        <li>technical logs — for the period necessary for diagnostics, security and stability;</li>
+                        <li>camera and parking occupancy data — while needed to display parking availability, perform
+                            analytics, verify quality and improve models;
+                        </li>
+                        <li>partner and administrator data — while the relevant account, partnership or administrative
+                            need exists.
+                        </li>
+                    </ul>
+                    <p>If the user deletes their account or requests data deletion, ParkTrack deletes or anonymizes the
+                        data unless further storage is required by law, security, rights protection or technical
+                        necessity.</p>
+                </section>
 
-          <section class="policy-section" id="ru-delete">
-            <h2>11. Удаление аккаунта</h2>
-            <p>Пользователь может запросить удаление аккаунта и связанных с ним данных, отправив обращение на <a href="mailto:privacy@parktrack.live">privacy@parktrack.live</a>.</p>
-            <p>В запросе необходимо указать email аккаунта ParkTrack, который требуется удалить. После получения запроса ParkTrack может запросить дополнительное подтверждение, чтобы убедиться, что запрос отправлен владельцем аккаунта.</p>
-            <p>После подтверждения ParkTrack удалит или обезличит данные аккаунта, если их дальнейшее хранение не требуется законом, безопасностью, защитой прав или технической необходимостью.</p>
-          </section>
+                <section class="policy-section" id="en-security">
+                    <h2>9. Data protection</h2>
+                    <p>ParkTrack takes reasonable technical and organizational measures to protect data, including
+                        storing passwords as hashes, using session tokens, access control, limiting access to
+                        administrative features, using secure connections where available, controlling access to
+                        internal systems, technical logging and monitoring, backups where used, and maintaining the
+                        software infrastructure.</p>
+                    <p>However, no method of transmitting or storing data on the internet can be absolutely secure.</p>
+                </section>
 
-          <section class="policy-section" id="ru-children">
-            <h2>12. Дети</h2>
-            <p>ParkTrack не предназначен специально для детей младше возраста, с которого они могут самостоятельно давать согласие на обработку персональных данных по применимому законодательству.</p>
-            <p>Если ParkTrack узнает, что получил данные ребёнка без необходимого согласия родителя или законного представителя, команда ParkTrack примет разумные меры для удаления таких данных.</p>
-          </section>
+                <section class="policy-section" id="en-rights">
+                    <h2>10. User rights</h2>
+                    <p>Depending on applicable law, the user may have the right to:</p>
+                    <ul>
+                        <li>receive information about what data is processed;</li>
+                        <li>request a copy of their data;</li>
+                        <li>correct inaccurate data;</li>
+                        <li>delete their account or related data;</li>
+                        <li>restrict data processing;</li>
+                        <li>withdraw consent to processing;</li>
+                        <li>object to processing;</li>
+                        <li>request data portability;</li>
+                        <li>file a complaint with a competent data protection authority.</li>
+                    </ul>
+                    <p>To exercise these rights, the user may contact <a href="mailto:privacy@parktrack.live">privacy@parktrack.live</a>.
+                        The request should preferably include the ParkTrack account email and the nature of the request.
+                    </p>
+                </section>
 
-          <section class="policy-section" id="ru-partners">
-            <h2>13. Партнёрские данные</h2>
-            <p>Партнёры ParkTrack могут предоставлять данные о парковках, камерах, источниках данных, объектах городской инфраструктуры и иной информации, связанной с парковочной доступностью.</p>
-            <p>Если партнёр предоставляет данные, содержащие персональные данные, он должен иметь законные основания для такой передачи и обработки.</p>
-            <p>ParkTrack использует партнёрские данные только для работы сервиса, аналитики парковочной доступности, отображения информации на карте, прогнозирования занятости и улучшения качества продукта.</p>
-          </section>
+                <section class="policy-section" id="en-delete">
+                    <h2>11. Account deletion</h2>
+                    <p>The user may request deletion of their account and related data by sending a request to <a
+                            href="mailto:privacy@parktrack.live">privacy@parktrack.live</a>.</p>
+                    <p>The request must include the ParkTrack account email that should be deleted. After receiving the
+                        request, ParkTrack may ask for additional confirmation to verify that the request was sent by
+                        the account owner.</p>
+                    <p>After confirmation, ParkTrack will delete or anonymize the account data unless further storage is
+                        required by law, security, rights protection or technical necessity.</p>
+                </section>
 
-          <section class="policy-section" id="ru-changes">
-            <h2>14. Изменения Политики</h2>
-            <p>ParkTrack может периодически обновлять настоящую Политику. Актуальная версия публикуется на сайте ParkTrack или в мобильном приложении.</p>
-            <p>Если изменения являются существенными, ParkTrack может дополнительно уведомить пользователей доступным способом. Продолжение использования ParkTrack после публикации обновлённой Политики означает ознакомление пользователя с её новой редакцией.</p>
-          </section>
+                <section class="policy-section" id="en-children">
+                    <h2>12. Children</h2>
+                    <p>ParkTrack is not specifically intended for children below the age at which they can independently
+                        consent to personal data processing under applicable law.</p>
+                    <p>If ParkTrack learns that it has received a child's data without the necessary consent of a parent
+                        or legal guardian, the ParkTrack team will take reasonable steps to delete such data.</p>
+                </section>
 
-          <section class="policy-section" id="ru-contact">
-            <h2>15. Контакты</h2>
-            <p>По вопросам конфиденциальности, обработки данных, удаления аккаунта или реализации прав пользователя можно связаться с командой ParkTrack:</p>
-            <div class="contact-list">
-              <div class="contact-row"><strong>Email по вопросам данных:</strong> <a href="mailto:privacy@parktrack.live">privacy@parktrack.live</a></div>
-              <div class="contact-row"><strong>Сайт:</strong> <a href="https://parktrack.live">parktrack.live</a></div>
-              <div class="contact-row"><strong>Документация:</strong> <a href="https://docs.parktrack.live">docs.parktrack.live</a></div>
+                <section class="policy-section" id="en-partners">
+                    <h2>13. Partner data</h2>
+                    <p>ParkTrack partners may provide data about parking areas, cameras, data sources, urban
+                        infrastructure objects and other information related to parking availability.</p>
+                    <p>If a partner provides data that contains personal data, the partner must have a lawful basis for
+                        such transfer and processing.</p>
+                    <p>ParkTrack uses partner data only to operate the service, analyze parking availability, display
+                        information on the map, forecast occupancy and improve product quality.</p>
+                </section>
+
+                <section class="policy-section" id="en-changes">
+                    <h2>14. Changes to this Policy</h2>
+                    <p>ParkTrack may update this Privacy Policy from time to time. The current version is published on
+                        the ParkTrack website or in the mobile application.</p>
+                    <p>If changes are material, ParkTrack may additionally notify users by an available method.
+                        Continued use of ParkTrack after the updated Policy is published means that the user has read
+                        the new version.</p>
+                </section>
+
+                <section class="policy-section" id="en-contact">
+                    <h2>15. Contacts</h2>
+                    <p>For questions about privacy, data processing, account deletion or exercising user rights, contact
+                        the ParkTrack team:</p>
+                    <div class="contact-list">
+                        <div class="contact-row"><strong>Privacy email:</strong> <a
+                                href="mailto:privacy@parktrack.live">privacy@parktrack.live</a></div>
+                        <div class="contact-row"><strong>Website:</strong> <a href="https://parktrack.live">parktrack.live</a>
+                        </div>
+                        <div class="contact-row"><strong>Documentation:</strong> <a href="https://docs.parktrack.live">docs.parktrack.live</a>
+                        </div>
+                    </div>
+                </section>
             </div>
-          </section>
-        </div>
-
-        <div data-lang-section="en" hidden>
-          <section class="policy-section" id="en-intro">
-            <h2>ParkTrack Privacy Policy</h2>
-            <p><strong>Last updated:</strong> 08 July 2026</p>
-            <p>This Privacy Policy explains what data <strong>ParkTrack</strong> collects, stores and processes through the ParkTrack website, mobile application, admin panel, API and other related ParkTrack services.</p>
-            <p>ParkTrack is a service for finding available parking spaces, displaying parking availability on a map, analyzing parking occupancy and building routes to selected parking areas.</p>
-            <p>By using the ParkTrack website, mobile application or other ParkTrack services, the user confirms that they have read this Privacy Policy.</p>
-          </section>
-
-          <section class="policy-section" id="en-who">
-            <h2>1. Who processes data</h2>
-            <p>The data operator is <strong>ParkTrack Project</strong>, the ParkTrack team.</p>
-            <div class="contact-list">
-              <div class="contact-row"><strong>Privacy email:</strong> <a href="mailto:privacy@parktrack.live">privacy@parktrack.live</a></div>
-              <div class="contact-row"><strong>Website:</strong> <a href="https://parktrack.live">parktrack.live</a></div>
-              <div class="contact-row"><strong>Documentation:</strong> <a href="https://docs.parktrack.live">docs.parktrack.live</a></div>
-              <div class="contact-row"><strong>Partnership inquiries:</strong> <a href="mailto:partners@parktrack.live">partners@parktrack.live</a></div>
-            </div>
-          </section>
-
-          <section class="policy-section" id="en-data">
-            <h2>2. What data we may collect</h2>
-            <h3>2.1. Account data</h3>
-            <p>If a user registers or signs in, ParkTrack may process:</p>
-            <ul>
-              <li>email address;</li>
-              <li>name or full name;</li>
-              <li>phone number, if provided;</li>
-              <li>password in the form of a protected hash;</li>
-              <li>user role;</li>
-              <li>account activity status;</li>
-              <li>account creation and update dates.</li>
-            </ul>
-            <p>ParkTrack does not store user passwords in plain text.</p>
-
-            <h3>2.2. Authentication and session data</h3>
-            <p>To sign users in, maintain sessions and protect the service, ParkTrack may process:</p>
-            <ul>
-              <li>session tokens in a protected form;</li>
-              <li>session creation date;</li>
-              <li>session expiration date;</li>
-              <li>session termination or revocation date;</li>
-              <li>IP address;</li>
-              <li>browser or application user-agent;</li>
-              <li>data related to password recovery.</li>
-            </ul>
-            <p>This data is used for authentication, account protection, prevention of unauthorized access and service security.</p>
-
-            <h3>2.3. Location data</h3>
-            <p>The ParkTrack website and mobile application may request access to the user's location. Location data is used to show the user on the map, find nearby parking, select a suitable parking area, build a route, calculate distance and estimate arrival time.</p>
-            <p>Location access is provided only with the user's permission. The user can disable location access in browser or mobile device settings. If location access is disabled, some ParkTrack features may be unavailable or limited.</p>
-
-            <h3>2.4. Route data</h3>
-            <p>To provide routing features, ParkTrack may process route start coordinates, destination coordinates, selected parking area, estimated arrival time, route line, a link for opening the route in a navigation application and route status.</p>
-
-            <h3>2.5. Parking zones, cameras and data sources</h3>
-            <p>ParkTrack processes parking infrastructure data, including parking zones, coordinates, capacity, zone type, availability status, occupancy data, occupancy forecasts, camera information, data source information and technical data required to analyze the parking situation.</p>
-
-            <h3>2.6. Camera and computer vision data</h3>
-            <p>ParkTrack may use images or video streams from city, partner or other connected cameras to determine parking space occupancy.</p>
-            <p>Such data may be used to detect vehicles, estimate parking zone occupancy, update information about available spaces, check recognition quality and improve computer vision algorithms.</p>
-            <p>ParkTrack does not aim to identify drivers, vehicle owners, pedestrians or other individuals. If images may contain people, vehicles or license plates, such data is processed only to the extent necessary to estimate parking occupancy and operate the service.</p>
-
-            <h3>2.7. Partner and admin data</h3>
-            <p>If a user works with the ParkTrack admin panel or represents a partner, ParkTrack may process administrator or partner employee profile data, email, phone number, role and access rights, partner organization affiliation and actions related to managing cameras, zones, data sources and users.</p>
-
-            <h3>2.8. Technical data</h3>
-            <p>When the website, application, API or admin panel is used, ParkTrack may automatically receive IP address, device type and model, operating system, application version, browser type and version, interface language, request date and time, technical logs, error messages, performance and stability data.</p>
-
-            <h3>2.9. Cookies, localStorage and similar technologies</h3>
-            <p>The ParkTrack website and admin panel may use cookies, localStorage and similar technologies. They may be used to maintain user sessions, authenticate users, save interface settings, protect against unauthorized access, ensure correct operation of the website and diagnose technical issues.</p>
-            <p>The user may limit or disable cookies in browser settings. In this case, some website or admin panel features may not work correctly.</p>
-          </section>
-
-          <section class="policy-section" id="en-purpose">
-            <h2>3. Processing purposes</h2>
-            <p>ParkTrack processes data for the following purposes:</p>
-            <ul>
-              <li>providing access to the website, mobile application, API and admin panel;</li>
-              <li>registration, sign-in and account management;</li>
-              <li>account recovery;</li>
-              <li>displaying parking areas and available spaces on the map;</li>
-              <li>finding parking near the user;</li>
-              <li>building routes;</li>
-              <li>analyzing parking zone occupancy;</li>
-              <li>forecasting parking availability;</li>
-              <li>operating the admin panel;</li>
-              <li>managing users, partners, cameras, zones and data sources;</li>
-              <li>ensuring service security;</li>
-              <li>preventing abuse and unauthorized access;</li>
-              <li>diagnosing errors and improving stability;</li>
-              <li>providing technical support to users and partners;</li>
-              <li>complying with applicable legal requirements.</li>
-            </ul>
-          </section>
-
-          <section class="policy-section" id="en-legal">
-            <h2>4. Legal basis for processing</h2>
-            <p>Depending on applicable law, data may be processed on the following legal bases:</p>
-            <ul>
-              <li><strong>user consent</strong> — for example, when the user grants access to location data;</li>
-              <li><strong>performance of the user agreement</strong> — when data is required for ParkTrack to operate;</li>
-              <li><strong>ParkTrack's legitimate interest</strong> — for example, for security, error diagnostics, abuse prevention and service improvement;</li>
-              <li><strong>compliance with legal requirements</strong> — if processing is required under applicable law.</li>
-            </ul>
-            <p>The user may withdraw consent where processing is based on consent. For example, location access can be disabled in device or browser settings. Withdrawal of consent does not affect the lawfulness of processing carried out before such withdrawal.</p>
-          </section>
-
-          <section class="policy-section" id="en-location">
-            <h2>5. Location data</h2>
-            <p>ParkTrack uses location data only for features related to the map, parking search and routing.</p>
-            <p>ParkTrack does not use location data for hidden continuous tracking of the user.</p>
-            <p>If background location access is added to the application in the future, this will be separately indicated in the application interface, permission descriptions and mobile device settings.</p>
-          </section>
-
-          <section class="policy-section" id="en-third">
-            <h2>6. Third-party services and data sharing</h2>
-            <p>ParkTrack may use third-party services and providers, including map services, hosting and infrastructure providers, email delivery services, data storage and processing services, monitoring, diagnostics and logging tools, analytics tools, app stores and mobile platform services.</p>
-            <p>Third-party services may process data under their own privacy policies.</p>
-            <p>ParkTrack does not sell users' personal data to third parties.</p>
-            <p>ParkTrack may share data with third parties only when it is necessary for ParkTrack to operate, when data is shared with technical contractors or service providers, when the user has given consent, when disclosure is required by law, or when it is necessary to protect the rights, security and legitimate interests of ParkTrack, users or partners.</p>
-          </section>
-
-          <section class="policy-section" id="en-transfer">
-            <h2>7. International data transfers</h2>
-            <p>Data may be processed on servers or services located in different countries. If data is transferred outside the user's country, ParkTrack takes reasonable measures to protect such data in accordance with applicable legal requirements.</p>
-          </section>
-
-          <section class="policy-section" id="en-retention">
-            <h2>8. Data retention</h2>
-            <p>ParkTrack stores data no longer than necessary for the purposes described in this Privacy Policy, unless a longer retention period is required by law, security, rights protection or technical necessity.</p>
-            <ul>
-              <li>account data — while the account is active;</li>
-              <li>session data — during the session validity period and a reasonable period afterwards for security purposes;</li>
-              <li>password recovery data — until the recovery token expires and for a reasonable technical period afterwards;</li>
-              <li>route and navigation data — while needed for service operation, analytics and route quality improvement;</li>
-              <li>technical logs — for the period necessary for diagnostics, security and stability;</li>
-              <li>camera and parking occupancy data — while needed to display parking availability, perform analytics, verify quality and improve models;</li>
-              <li>partner and administrator data — while the relevant account, partnership or administrative need exists.</li>
-            </ul>
-            <p>If the user deletes their account or requests data deletion, ParkTrack deletes or anonymizes the data unless further storage is required by law, security, rights protection or technical necessity.</p>
-          </section>
-
-          <section class="policy-section" id="en-security">
-            <h2>9. Data protection</h2>
-            <p>ParkTrack takes reasonable technical and organizational measures to protect data, including storing passwords as hashes, using session tokens, access control, limiting access to administrative features, using secure connections where available, controlling access to internal systems, technical logging and monitoring, backups where used, and maintaining the software infrastructure.</p>
-            <p>However, no method of transmitting or storing data on the internet can be absolutely secure.</p>
-          </section>
-
-          <section class="policy-section" id="en-rights">
-            <h2>10. User rights</h2>
-            <p>Depending on applicable law, the user may have the right to:</p>
-            <ul>
-              <li>receive information about what data is processed;</li>
-              <li>request a copy of their data;</li>
-              <li>correct inaccurate data;</li>
-              <li>delete their account or related data;</li>
-              <li>restrict data processing;</li>
-              <li>withdraw consent to processing;</li>
-              <li>object to processing;</li>
-              <li>request data portability;</li>
-              <li>file a complaint with a competent data protection authority.</li>
-            </ul>
-            <p>To exercise these rights, the user may contact <a href="mailto:privacy@parktrack.live">privacy@parktrack.live</a>. The request should preferably include the ParkTrack account email and the nature of the request.</p>
-          </section>
-
-          <section class="policy-section" id="en-delete">
-            <h2>11. Account deletion</h2>
-            <p>The user may request deletion of their account and related data by sending a request to <a href="mailto:privacy@parktrack.live">privacy@parktrack.live</a>.</p>
-            <p>The request must include the ParkTrack account email that should be deleted. After receiving the request, ParkTrack may ask for additional confirmation to verify that the request was sent by the account owner.</p>
-            <p>After confirmation, ParkTrack will delete or anonymize the account data unless further storage is required by law, security, rights protection or technical necessity.</p>
-          </section>
-
-          <section class="policy-section" id="en-children">
-            <h2>12. Children</h2>
-            <p>ParkTrack is not specifically intended for children below the age at which they can independently consent to personal data processing under applicable law.</p>
-            <p>If ParkTrack learns that it has received a child's data without the necessary consent of a parent or legal guardian, the ParkTrack team will take reasonable steps to delete such data.</p>
-          </section>
-
-          <section class="policy-section" id="en-partners">
-            <h2>13. Partner data</h2>
-            <p>ParkTrack partners may provide data about parking areas, cameras, data sources, urban infrastructure objects and other information related to parking availability.</p>
-            <p>If a partner provides data that contains personal data, the partner must have a lawful basis for such transfer and processing.</p>
-            <p>ParkTrack uses partner data only to operate the service, analyze parking availability, display information on the map, forecast occupancy and improve product quality.</p>
-          </section>
-
-          <section class="policy-section" id="en-changes">
-            <h2>14. Changes to this Policy</h2>
-            <p>ParkTrack may update this Privacy Policy from time to time. The current version is published on the ParkTrack website or in the mobile application.</p>
-            <p>If changes are material, ParkTrack may additionally notify users by an available method. Continued use of ParkTrack after the updated Policy is published means that the user has read the new version.</p>
-          </section>
-
-          <section class="policy-section" id="en-contact">
-            <h2>15. Contacts</h2>
-            <p>For questions about privacy, data processing, account deletion or exercising user rights, contact the ParkTrack team:</p>
-            <div class="contact-list">
-              <div class="contact-row"><strong>Privacy email:</strong> <a href="mailto:privacy@parktrack.live">privacy@parktrack.live</a></div>
-              <div class="contact-row"><strong>Website:</strong> <a href="https://parktrack.live">parktrack.live</a></div>
-              <div class="contact-row"><strong>Documentation:</strong> <a href="https://docs.parktrack.live">docs.parktrack.live</a></div>
-            </div>
-          </section>
-        </div>
-      </article>
+        </article>
     </div>
-  </main>
+</main>
 
-  <footer class="footer">
+<footer class="footer">
     <div class="page-shell">© 2026 ParkTrack Project</div>
-  </footer>
+</footer>
 
-  <script>
+<script>
     const dictionary = {
-      ru: {
-        homeButton: '← На главную',
-        breadcrumb: 'Справка · Конфиденциальность',
-        heroTitle: 'Политика конфиденциальности',
-        heroText: 'Как ParkTrack собирает, использует и защищает данные пользователей сайта, мобильного приложения, API и связанных сервисов.',
-        updatedLabel: 'Обновлено',
-        operatorLabel: 'Оператор',
-        contactLabel: 'Контакт',
-        tocTitle: 'Разделы',
-        footerText: ''
-      },
-      en: {
-        homeButton: '← Back home',
-        breadcrumb: 'Help · Privacy',
-        heroTitle: 'Privacy Policy',
-        heroText: 'How ParkTrack collects, uses and protects data from the website, mobile application, API and related services.',
-        updatedLabel: 'Updated',
-        operatorLabel: 'Operator',
-        contactLabel: 'Contact',
-        tocTitle: 'Sections',
-        footerText: ''
-      }
+        ru: {
+            homeButton: '← На главную',
+            breadcrumb: 'Справка · Конфиденциальность',
+            heroTitle: 'Политика конфиденциальности',
+            heroText: 'Как ParkTrack собирает, использует и защищает данные пользователей сайта, мобильного приложения, API и связанных сервисов.',
+            updatedLabel: 'Обновлено',
+            operatorLabel: 'Оператор',
+            contactLabel: 'Контакт',
+            tocTitle: 'Разделы',
+            footerText: ''
+        },
+        en: {
+            homeButton: '← Back home',
+            breadcrumb: 'Help · Privacy',
+            heroTitle: 'Privacy Policy',
+            heroText: 'How ParkTrack collects, uses and protects data from the website, mobile application, API and related services.',
+            updatedLabel: 'Updated',
+            operatorLabel: 'Operator',
+            contactLabel: 'Contact',
+            tocTitle: 'Sections',
+            footerText: ''
+        }
     };
 
     function setLanguage(lang) {
-      const safeLang = lang === 'en' ? 'en' : 'ru';
-      document.documentElement.lang = safeLang;
-      document.title = safeLang === 'ru' ? 'Политика конфиденциальности — ParkTrack' : 'Privacy Policy — ParkTrack';
+        const safeLang = lang === 'en' ? 'en' : 'ru';
+        document.documentElement.lang = safeLang;
+        document.title = safeLang === 'ru' ? 'Политика конфиденциальности — ParkTrack' : 'Privacy Policy — ParkTrack';
 
-      document.querySelectorAll('[data-lang-section]').forEach((section) => {
-        section.hidden = section.dataset.langSection !== safeLang;
-      });
+        document.querySelectorAll('[data-lang-section]').forEach((section) => {
+            section.hidden = section.dataset.langSection !== safeLang;
+        });
 
-      document.querySelectorAll('[data-toc]').forEach((toc) => {
-        toc.hidden = toc.dataset.toc !== safeLang;
-      });
+        document.querySelectorAll('[data-toc]').forEach((toc) => {
+            toc.hidden = toc.dataset.toc !== safeLang;
+        });
 
-      document.querySelectorAll('[data-i18n]').forEach((node) => {
-        const key = node.dataset.i18n;
-        node.textContent = dictionary[safeLang][key];
-      });
+        document.querySelectorAll('[data-i18n]').forEach((node) => {
+            const key = node.dataset.i18n;
+            node.textContent = dictionary[safeLang][key];
+        });
 
-      document.querySelectorAll('[data-set-lang]').forEach((button) => {
-        const isActive = button.dataset.setLang === safeLang;
-        button.classList.toggle('is-active', isActive);
-        button.setAttribute('aria-pressed', String(isActive));
-      });
+        document.querySelectorAll('[data-set-lang]').forEach((button) => {
+            const isActive = button.dataset.setLang === safeLang;
+            button.classList.toggle('is-active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
+        });
 
-      const url = new URL(window.location.href);
-      url.searchParams.set('lang', safeLang);
-      window.history.replaceState({}, '', url);
+        const url = new URL(window.location.href);
+        url.searchParams.set('lang', safeLang);
+        window.history.replaceState({}, '', url);
     }
 
     document.querySelectorAll('[data-set-lang]').forEach((button) => {
-      button.addEventListener('click', () => setLanguage(button.dataset.setLang));
+        button.addEventListener('click', () => setLanguage(button.dataset.setLang));
     });
 
-    const initial = new URLSearchParams(window.location.search).get('lang') || (navigator.language || '').slice(0, 2);
+    const initial = new URLSearchParams(window.location.search).get('lang') || 'ru';
     setLanguage(initial === 'en' ? 'en' : 'ru');
-  </script>
+</script>
 </body>
 </html>
