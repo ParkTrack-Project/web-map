@@ -1,5 +1,5 @@
-// D-06 / D-10: vaul snap [0.95] — full-screen workflow для фильтров.
-// На мобильном popover'ы не используются (всё уже на 95% экрана) — slider'ы и
+// D-06 / D-10: высокий drawer для mobile workflow фильтров.
+// На мобильном popover'ы не используются — slider'ы и
 // чек-боксы как form-list. Reset-кнопка находится в заголовке. Apply-кнопки нет —
 // изменения применяются live (FILTER-08 «без перезагрузки»).
 import { Drawer } from 'vaul';
@@ -29,10 +29,11 @@ export function MobileFiltersDrawer({ open, onOpenChange }: Props) {
   };
 
   return (
-    <Drawer.Root open={open} onOpenChange={onOpenChange} snapPoints={[0.95]} dismissible>
+    <Drawer.Root open={open} onOpenChange={onOpenChange} dismissible>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden dark:bg-black/60" />
         <Drawer.Content
+          aria-describedby={undefined}
           className="fixed inset-x-0 bottom-0 z-50 flex max-h-[95dvh] flex-col overflow-hidden rounded-t-2xl border-t border-zinc-200 bg-white text-zinc-950 outline-none lg:hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
           style={{ maxHeight: 'calc(var(--keyboard-aware-height, 100dvh) - 80px)' }}
         >
