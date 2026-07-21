@@ -23,7 +23,7 @@ export function FiltersToolbar() {
 
   return (
     <div
-      className="flex items-center gap-2 overflow-x-auto bg-white/95 px-4 py-2 shadow-sm backdrop-blur"
+      className="flex items-center gap-2 overflow-x-auto bg-white/95 px-4 py-2 shadow-sm backdrop-blur [&_input]:accent-emerald-800"
       role="toolbar"
       aria-label={t('filters.title')}
     >
@@ -79,7 +79,9 @@ export function FiltersToolbar() {
 
       {/* FILTER-03: chip + popover-slider (D-09) */}
       <FilterPopoverChip
-        label={`Цена ≤ ${f.filters.maxPay === null ? '∞' : `${f.filters.maxPay} ₽`}`}
+        label={t('filters.price', {
+          price: f.filters.maxPay === null ? '∞' : `${f.filters.maxPay} ₽`,
+        })}
         active={f.filters.maxPay !== null}
         ariaLabel={t('filters.priceAria')}
       >

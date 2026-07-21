@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog';
-import { Code, ExternalLink, Smartphone, X } from 'lucide-react';
+import { Code, ExternalLink, ShieldCheck, Smartphone, UserRoundX, X } from 'lucide-react';
 import { useState } from 'react';
 import { useI18n } from '@/shared/lib/i18n';
 import { currentMobilePlatform } from '../model/platform';
@@ -15,9 +15,9 @@ export function ProjectLinks() {
   const { t } = useI18n();
   const [choiceOpen, setChoiceOpen] = useState(false);
   const links = [
-    ['https://parktrack.live/privacy', t('links.privacy')],
-    ['https://parktrack.live/data-erasure', t('links.erasure')],
-    ['https://github.com/ParkTrack-Project', t('links.github')],
+    ['https://parktrack.live/privacy', t('links.privacy'), ShieldCheck],
+    ['https://parktrack.live/data-erasure', t('links.erasure'), UserRoundX],
+    ['https://github.com/ParkTrack-Project', t('links.github'), Code],
   ] as const;
 
   const openMobile = () => {
@@ -36,7 +36,7 @@ export function ProjectLinks() {
         {t('links.title')}
       </h2>
       <div className="flex flex-col gap-1">
-        {links.map(([href, label], index) => (
+        {links.map(([href, label, Icon]) => (
           <a
             key={href}
             href={href}
@@ -46,7 +46,7 @@ export function ProjectLinks() {
             className="flex min-h-11 items-center justify-between rounded-lg px-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
           >
             <span className="flex items-center gap-2">
-              {index === 2 && <Code size={16} aria-hidden />}
+              <Icon size={16} aria-hidden />
               {label}
             </span>
             <ExternalLink size={15} aria-hidden className="text-zinc-400" />

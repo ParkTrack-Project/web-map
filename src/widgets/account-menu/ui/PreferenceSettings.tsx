@@ -1,4 +1,4 @@
-import { Languages, Moon, Sun } from 'lucide-react';
+import { Languages, Moon, Palette, Sun } from 'lucide-react';
 import { usePreferences, type Theme } from '@/features/preferences';
 import { useI18n, type Language } from '@/shared/lib/i18n';
 
@@ -35,7 +35,8 @@ export function PreferenceSettings() {
         {t('settings.title')}
       </h2>
       <div>
-        <div className="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+        <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+          <Palette size={14} aria-hidden />
           {t('settings.theme')}
         </div>
         <div role="radiogroup" aria-label={t('settings.theme')} className="flex gap-2">

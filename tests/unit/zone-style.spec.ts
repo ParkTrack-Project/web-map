@@ -76,6 +76,27 @@ describe('computeZoneStyle — семантическая раскраска (D-
     expect(s.strokeWidth).toBe(3);
   });
 
+  it('uses brighter fills on the dark map theme', () => {
+    const light = computeZoneStyle({
+      ...base,
+      zoneId: 60,
+      free_count: 5,
+      confidence: 0.95,
+      is_active: true,
+      theme: 'light',
+    });
+    const dark = computeZoneStyle({
+      ...base,
+      zoneId: 60,
+      free_count: 5,
+      confidence: 0.95,
+      is_active: true,
+      theme: 'dark',
+    });
+    expect(dark.fill).not.toBe(light.fill);
+    expect(dark.fill).toBe('#4ade80e6');
+  });
+
   it('memoization: тот же reference для одинаковых ключей', () => {
     const k = {
       ...base,

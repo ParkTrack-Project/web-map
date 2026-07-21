@@ -12,6 +12,7 @@ import { ZONE_BADGE_MIN_ZOOM, MAP_Z } from '@/shared/config';
 import { computeZoneStyle } from '../model/zone-style';
 import { useZoneClusters } from '../model/useZoneClusters';
 import { useI18n } from '@/shared/lib/i18n';
+import { usePreferences } from '@/features/preferences';
 
 interface Props {
   zoom: number;
@@ -46,6 +47,7 @@ export function ZoneBadgesLayer({ zoom }: Props) {
   const { data } = useFilteredZones();
   const { setSelectedZone } = useSelectedZone();
   const { singletonIds } = useZoneClusters(zoom);
+  const theme = usePreferences((state) => state.theme);
 
   if (zoom < ZONE_BADGE_MIN_ZOOM) return null;
   if (!data) return null;
@@ -69,6 +71,7 @@ export function ZoneBadgesLayer({ zoom }: Props) {
           is_active: z.is_active,
           mode: 'now',
           selected: false,
+          theme,
         });
 
         return (

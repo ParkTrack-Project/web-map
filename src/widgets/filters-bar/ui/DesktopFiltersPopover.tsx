@@ -47,7 +47,7 @@ export function DesktopFiltersPopover() {
           className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 z-50 max-h-[80vh] w-[360px] overflow-y-auto rounded-xl border border-zinc-200 bg-white p-5 shadow-md outline-none"
         >
           <h3 className="mb-3 text-base font-semibold">{t('filters.title')}</h3>
-          <div className="flex flex-col gap-4 text-sm">
+          <div className="flex flex-col gap-4 text-sm [&_input]:accent-emerald-800">
             <label className="flex items-center justify-between">
               {t('filters.onlyFree')}
               <input

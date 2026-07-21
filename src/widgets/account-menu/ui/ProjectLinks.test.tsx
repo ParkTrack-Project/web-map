@@ -35,7 +35,7 @@ describe('ProjectLinks', () => {
     renderLinks();
     await userEvent.click(screen.getByRole('button', { name: 'Мобильное приложение' }));
     expect(screen.getByRole('dialog', { name: 'Выберите приложение' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Get it on Google Play' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Google Play' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Веб-приложение (iOS)' })).toBeInTheDocument();
   });
 

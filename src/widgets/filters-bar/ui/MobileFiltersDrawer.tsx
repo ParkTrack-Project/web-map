@@ -40,7 +40,7 @@ export function MobileFiltersDrawer({ open, onOpenChange }: Props) {
             {t('filters.title')}
           </Drawer.Title>
           <div className="mx-auto my-2 h-1.5 w-12 rounded-full bg-zinc-300" aria-hidden />
-          <div className="flex flex-col gap-4 overflow-y-auto p-5">
+          <div className="flex flex-col gap-4 overflow-y-auto p-5 [&_input]:accent-emerald-800">
             <label className="flex items-center justify-between">
               {t('filters.onlyFree')}
               <input
