@@ -17,7 +17,6 @@ export function AccountPanel({ onNavigate }: Props) {
   const user = useSession((state) => state.user);
   return (
     <div className="flex flex-col gap-5">
-      <h2 className="text-lg font-semibold">{t('account.title')}</h2>
       {status === 'loading' ? (
         <div role="status" className="py-5 text-center text-sm text-zinc-500">
           {t('common.loading')}

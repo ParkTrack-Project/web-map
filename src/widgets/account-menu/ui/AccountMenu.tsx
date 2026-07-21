@@ -52,23 +52,27 @@ export function AccountMenu({ placement }: Props) {
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 z-[60] bg-black/50" />
           <Drawer.Content className="fixed inset-x-0 bottom-0 z-[61] h-auto max-h-[calc(100dvh-env(safe-area-inset-top)-0.5rem)] overflow-hidden rounded-t-2xl border-t border-zinc-200 bg-white text-zinc-950 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50">
-            <Drawer.Title className="sr-only">{t('account.title')}</Drawer.Title>
             <Drawer.Description className="sr-only">
               {t('account.panelDescription')}
             </Drawer.Description>
             <div className="max-h-[calc(100dvh-env(safe-area-inset-top)-0.5rem)] overflow-y-auto overscroll-contain p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]">
-              <div className="mb-3 flex min-h-10 items-center justify-between">
+              <div className="mb-2 flex min-h-10 items-center justify-between">
                 {screen !== 'home' ? (
-                  <button
-                    type="button"
-                    onClick={() => setScreen('home')}
-                    aria-label={t('common.back')}
-                    className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                  >
-                    <ArrowLeft size={20} aria-hidden />
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setScreen('home')}
+                      aria-label={t('common.back')}
+                      className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    >
+                      <ArrowLeft size={20} aria-hidden />
+                    </button>
+                    <Drawer.Title className="sr-only">{t('account.title')}</Drawer.Title>
+                  </>
                 ) : (
-                  <span />
+                  <Drawer.Title className="text-lg font-semibold">
+                    {t('account.title')}
+                  </Drawer.Title>
                 )}
                 <Drawer.Close asChild>
                   <button
@@ -108,7 +112,7 @@ export function AccountMenu({ placement }: Props) {
                 <ArrowLeft size={20} aria-hidden />
               </button>
             ) : (
-              <span />
+              <h2 className="text-lg font-semibold">{t('account.title')}</h2>
             )}
             <Popover.Close asChild>
               <button
