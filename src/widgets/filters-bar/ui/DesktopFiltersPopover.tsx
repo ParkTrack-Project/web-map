@@ -46,8 +46,18 @@ export function DesktopFiltersPopover() {
           sideOffset={6}
           className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 z-50 max-h-[80vh] w-[360px] overflow-y-auto rounded-xl border border-zinc-200 bg-white p-5 shadow-md outline-none"
         >
-          <h3 className="mb-3 text-base font-semibold">{t('filters.title')}</h3>
-          <div className="flex flex-col gap-4 text-sm [&_input]:accent-emerald-800">
+          <div className="mb-3 flex min-h-10 items-center justify-between gap-3">
+            <h3 className="text-base font-semibold">{t('filters.title')}</h3>
+            <button
+              type="button"
+              onClick={f.resetAll}
+              disabled={f.activeCount === 0}
+              className="min-h-10 rounded-lg px-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:text-zinc-400 disabled:hover:bg-transparent"
+            >
+              {t('filters.resetShort')}
+            </button>
+          </div>
+          <div className="flex flex-col gap-4 text-sm [&_input]:accent-emerald-600">
             <label className="flex items-center justify-between">
               {t('filters.onlyFree')}
               <input
@@ -148,15 +158,6 @@ export function DesktopFiltersPopover() {
                 className="h-5 w-5"
               />
             </label>
-            {f.activeCount > 0 && (
-              <button
-                type="button"
-                onClick={f.resetAll}
-                className="mt-2 rounded-md bg-zinc-200 px-4 py-2 text-sm hover:bg-zinc-300"
-              >
-                {t('filters.reset')}
-              </button>
-            )}
           </div>
         </Popover.Content>
       </Popover.Portal>

@@ -23,7 +23,7 @@ export function FiltersToolbar() {
 
   return (
     <div
-      className="flex items-center gap-2 overflow-x-auto bg-white/95 px-4 py-2 shadow-sm backdrop-blur [&_input]:accent-emerald-800"
+      className="flex items-center gap-2 overflow-x-auto bg-white/95 px-4 py-2 shadow-sm backdrop-blur [&_input]:accent-emerald-600"
       role="toolbar"
       aria-label={t('filters.title')}
     >

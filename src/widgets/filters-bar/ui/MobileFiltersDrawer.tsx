@@ -1,6 +1,6 @@
 // D-06 / D-10: vaul snap [0.95] — full-screen workflow для фильтров.
 // На мобильном popover'ы не используются (всё уже на 95% экрана) — slider'ы и
-// чек-боксы как form-list. Reset-кнопка внизу. Apply-кнопки нет —
+// чек-боксы как form-list. Reset-кнопка находится в заголовке. Apply-кнопки нет —
 // изменения применяются live (FILTER-08 «без перезагрузки»).
 import { Drawer } from 'vaul';
 import { useFiltersHydration, useFilters } from '@/features/filter-zones';
@@ -36,11 +36,19 @@ export function MobileFiltersDrawer({ open, onOpenChange }: Props) {
           className="fixed inset-x-0 bottom-0 z-50 flex max-h-[95dvh] flex-col rounded-t-2xl bg-white outline-none lg:hidden"
           style={{ maxHeight: 'calc(var(--keyboard-aware-height, 100dvh) - 80px)' }}
         >
-          <Drawer.Title className="px-5 pt-4 text-lg font-semibold">
-            {t('filters.title')}
-          </Drawer.Title>
           <div className="mx-auto my-2 h-1.5 w-12 rounded-full bg-zinc-300" aria-hidden />
-          <div className="flex flex-col gap-4 overflow-y-auto p-5 [&_input]:accent-emerald-800">
+          <div className="flex items-center justify-between gap-3 px-5 pb-2">
+            <Drawer.Title className="text-lg font-semibold">{t('filters.title')}</Drawer.Title>
+            <button
+              type="button"
+              onClick={f.resetAll}
+              disabled={f.activeCount === 0}
+              className="min-h-10 rounded-lg px-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:text-zinc-400 disabled:hover:bg-transparent"
+            >
+              {t('filters.resetShort')}
+            </button>
+          </div>
+          <div className="flex flex-col gap-4 overflow-y-auto px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] [&_input]:accent-emerald-600">
             <label className="flex items-center justify-between">
               {t('filters.onlyFree')}
               <input
@@ -110,7 +118,7 @@ export function MobileFiltersDrawer({ open, onOpenChange }: Props) {
               />
             </label>
             <fieldset className="flex flex-col gap-2">
-              <legend>{t('filters.locationType')}</legend>
+              <legend className="mb-2 font-semibold">{t('filters.locationType')}</legend>
               {ALL_LOCATION_TYPES.map((locationType) => (
                 <label key={locationType} className="flex items-center justify-between">
                   {t(`location.${locationType}` as MessageKey)}
@@ -132,13 +140,6 @@ export function MobileFiltersDrawer({ open, onOpenChange }: Props) {
                 className="h-5 w-5"
               />
             </label>
-            <button
-              type="button"
-              onClick={f.resetAll}
-              className="mt-4 rounded-md bg-zinc-200 px-4 py-2 hover:bg-zinc-300"
-            >
-              {t('filters.reset')}
-            </button>
           </div>
         </Drawer.Content>
       </Drawer.Portal>
