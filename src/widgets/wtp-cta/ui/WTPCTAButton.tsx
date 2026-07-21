@@ -9,8 +9,8 @@
 // Fix 2026-05-26: пропс `onManualEntry` удалён — кнопка «Указать вручную» из
 // PreFlightDialog убрана, callback некому вызывать.
 import { useCallback } from 'react';
-import { CarFront } from 'lucide-react';
 import { Z_INDEX } from '@/shared/config';
+import { ClassicCarIcon } from '@/shared/ui';
 import {
   useGeolocationRequest,
   useFromCoords,
@@ -73,7 +73,7 @@ export function WTPCTAButton() {
         style={{ zIndex: Z_INDEX.wtpCtaDesktop }}
         className="hidden items-center gap-2 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:bg-emerald-700 active:scale-[0.98] lg:inline-flex"
       >
-        <CarFront size={17} aria-hidden />
+        <ClassicCarIcon size={18} aria-hidden />
         {t('wtp.action')}
       </button>
       <PreFlightDialog open={open} onOpenChange={setOpen} onAllow={requestGeolocation} />

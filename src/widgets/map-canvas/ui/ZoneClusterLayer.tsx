@@ -108,7 +108,7 @@ export function ZoneClusterLayer({ zoom }: Props) {
                 aria-label={t('map.clusterLabel', { count: cl.zoneCount, free: cl.freeSum })}
                 title={t('map.clusterTitle', { count: cl.zoneCount, free: cl.freeSum })}
                 onClick={() => drillIn(cl.center, cl.zoneIds)}
-                className="absolute flex cursor-pointer items-center justify-center rounded-full font-semibold text-white shadow-md ring-2 ring-white/70"
+                className={`absolute flex cursor-pointer items-center justify-center rounded-full font-semibold shadow-md ring-2 ring-white/70 ${theme === 'dark' ? 'text-zinc-950' : 'text-white'}`}
                 style={{
                   left: 0,
                   top: 0,

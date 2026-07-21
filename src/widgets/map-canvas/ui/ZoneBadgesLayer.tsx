@@ -87,7 +87,7 @@ export function ZoneBadgesLayer({ zoom }: Props) {
                 data-testid="zone-badge"
                 aria-label={t('map.parkingLabel', { id: z.zone_id, free: z.free_count })}
                 onClick={() => setSelectedZone(z.zone_id)}
-                className="absolute cursor-pointer rounded-full border-0 px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap text-white shadow"
+                className={`absolute cursor-pointer rounded-full border-0 px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap shadow ${theme === 'dark' ? 'text-zinc-950' : 'text-white'}`}
                 style={{
                   left: 0,
                   top: 0,

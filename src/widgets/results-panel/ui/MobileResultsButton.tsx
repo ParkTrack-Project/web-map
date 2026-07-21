@@ -9,7 +9,7 @@
 //
 // Permissions API: skip pre-flight если permission='granted' (как WTPCTAButton).
 import { useCallback, useState } from 'react';
-import { CarFront, ListChecks } from 'lucide-react';
+import { ListChecks } from 'lucide-react';
 import {
   useFromCoords,
   useGeolocationRequest,
@@ -18,6 +18,7 @@ import {
 import { useFilteredCandidates } from '@/features/filter-zones';
 import { useIsMobile } from '@/shared/lib/responsive';
 import { useI18n } from '@/shared/lib/i18n';
+import { ClassicCarIcon } from '@/shared/ui';
 import { PreFlightDrawer } from '@/widgets/wtp-cta';
 import { useRoutingResults } from '../model/useRoutingResults';
 
@@ -71,10 +72,10 @@ export function MobileResultsButton({ hidden, onOpenSheet }: MobileResultsButton
 
   // Determine label + icon by state
   let label: string;
-  let Icon: typeof CarFront | typeof ListChecks;
+  let Icon: typeof ClassicCarIcon | typeof ListChecks;
   if (!from) {
     label = state.status === 'requesting' ? t('results.locating') : t('results.findNearby');
-    Icon = CarFront;
+    Icon = ClassicCarIcon;
   } else if (isFetching && !data) {
     label = t('results.loading');
     Icon = ListChecks;

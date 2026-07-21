@@ -3,3 +3,4 @@ export { Banner } from './Banner';
 export type { BannerProps } from './Banner';
 export { toast } from './Toast';
 export type { ExternalToast } from './Toast';
+export { ClassicCarIcon } from './ClassicCarIcon';
