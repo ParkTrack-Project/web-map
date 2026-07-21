@@ -4,9 +4,10 @@
 // (не при mount), иначе SR зачитает «Режим: Сейчас» при каждом mount страницы.
 import { useEffect, useRef, useState } from 'react';
 import { useTimeMode } from '@/features/select-time-mode';
-import { formatTimeLabelRu } from '@/shared/lib/i18n';
+import { formatTimeLabel, useI18n } from '@/shared/lib/i18n';
 
 export function TimeModeLiveRegion() {
+  const { t, language } = useI18n();
   const { mode } = useTimeMode();
   const [announcement, setAnnouncement] = useState('');
   const isFirstRef = useRef(true);
@@ -16,11 +17,11 @@ export function TimeModeLiveRegion() {
       isFirstRef.current = false;
       return; // skip initial announcement
     }
-    const t = setTimeout(() => {
-      setAnnouncement(`Режим: ${formatTimeLabelRu(mode, { full: true })}`);
+    const timer = setTimeout(() => {
+      setAnnouncement(t('time.mode', { label: formatTimeLabel(mode, language, { full: true }) }));
     }, 500);
-    return () => clearTimeout(t);
-  }, [mode]);
+    return () => clearTimeout(timer);
+  }, [language, mode, t]);
 
   return (
     <output

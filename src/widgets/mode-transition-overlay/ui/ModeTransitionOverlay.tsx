@@ -23,6 +23,7 @@ import { useIsFetching } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { useTimeMode } from '@/features/select-time-mode';
 import type { TimeMode } from '@/entities/zone';
+import { useI18n } from '@/shared/lib/i18n';
 
 function modeChanged(prev: TimeMode, next: TimeMode): boolean {
   if (prev.kind !== next.kind) return true;
@@ -32,6 +33,7 @@ function modeChanged(prev: TimeMode, next: TimeMode): boolean {
 }
 
 export function ModeTransitionOverlay() {
+  const { t } = useI18n();
   const { mode } = useTimeMode();
   const prevModeRef = useRef<TimeMode>(mode);
   const [shouldShow, setShouldShow] = useState(false);
@@ -93,10 +95,10 @@ export function ModeTransitionOverlay() {
   // routing-search активный → «Поиск парковок…»; иначе zones — «Загрузка данных…».
   const message =
     fetchingRouting > 0
-      ? 'Поиск парковок…'
+      ? t('results.loading')
       : fetchingZones > 0
-        ? 'Загрузка данных за выбранное время…'
-        : 'Загрузка…';
+        ? t('time.loadingData')
+        : t('common.loading');
 
   return (
     <div

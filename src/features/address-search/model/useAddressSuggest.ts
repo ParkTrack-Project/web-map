@@ -6,9 +6,8 @@
 // - AbortSignal автоматически от TanStack Query при смене queryKey (cancellation на typing)
 // - retry:false — на 429 ждём пользовательского нового ввода (или 60s manual retry в widget)
 //
-// Fix 2026-05-26 (viewport bias): передаём текущий ?bbox в suggestAddresses →
-// ymaps3.search получает `bounds` и ранжирует улицы/POI внутри viewport'а
-// выше. В подсказках первыми идут адреса рядом с тем, что юзер видит сейчас.
+// Bbox даёт nearby-first выдачу, но suggestAddresses также делает глобальный
+// поиск и добавляет дальние уникальные результаты после локальных.
 // bbox в queryKey округлён до 1 знака (~11км) — чтобы микропан не инвалидил
 // кэш на каждом дрейфе карты, при этом смена района перезагружает подсказки.
 import { useState } from 'react';

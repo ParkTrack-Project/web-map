@@ -38,18 +38,18 @@ export async function fetchZones(
   // error_description, throw'им TimeModeUnavailableError. Просто wrap без
   // error_description → fallback на items или [].
   if (!Array.isArray(res.data)) {
-  const data = res.data;
+    const data = res.data;
 
-  if (data?.error_description) {
-    throw new TimeModeUnavailableError(data.error_description, mode);
-  }
+    if (data?.error_description) {
+      throw new TimeModeUnavailableError(data.error_description, mode);
+    }
 
-  const items = Array.isArray(data?.items) ? data.items : [];
+    const items = Array.isArray(data?.items) ? data.items : [];
 
-  return dedupeZonesByNearestTime(
-    items as unknown as ApiZoneLike[],
-    mode.kind === 'now' ? undefined : mode.at,
-  ).map((item) => normalizeZoneFields(item, mode.kind)) as unknown as ZoneMapItem[];
+    return dedupeZonesByNearestTime(
+      items as unknown as ApiZoneLike[],
+      mode.kind === 'now' ? undefined : mode.at,
+    ).map((item) => normalizeZoneFields(item, mode.kind)) as unknown as ZoneMapItem[];
   }
 
   return dedupeZonesByNearestTime(
@@ -86,10 +86,7 @@ function getConfidenceLevel(confidence: number): 'very_low' | 'low' | 'medium' |
   return 'high';
 }
 
-function normalizeZoneFields(
-  item: ApiZoneLike,
-  modeKind: TimeMode['kind'] = 'now',
-): ApiZoneLike {
+function normalizeZoneFields(item: ApiZoneLike, modeKind: TimeMode['kind'] = 'now'): ApiZoneLike {
   const normalized: ApiZoneLike = { ...item };
 
   const capacityRaw = normalized['capacity'];
@@ -98,26 +95,26 @@ function normalizeZoneFields(
 
   const freeCountRaw =
     modeKind === 'future'
-      ? normalized['predicted_free_count'] ??
+      ? (normalized['predicted_free_count'] ??
         normalized['forecasted_free_count'] ??
         normalized['free_count'] ??
-        normalized['current_free_count']
-      : normalized['free_count'] ??
+        normalized['current_free_count'])
+      : (normalized['free_count'] ??
         normalized['predicted_free_count'] ??
         normalized['forecasted_free_count'] ??
-        normalized['current_free_count'];
+        normalized['current_free_count']);
 
   const freeCount =
     typeof freeCountRaw === 'number' && Number.isFinite(freeCountRaw) ? freeCountRaw : 0;
 
   const occupiedRaw =
     modeKind === 'future'
-      ? normalized['predicted_occupied'] ??
+      ? (normalized['predicted_occupied'] ??
         normalized['forecasted_occupied'] ??
-        normalized['occupied']
-      : normalized['occupied'] ??
+        normalized['occupied'])
+      : (normalized['occupied'] ??
         normalized['predicted_occupied'] ??
-        normalized['forecasted_occupied'];
+        normalized['forecasted_occupied']);
 
   const occupied =
     typeof occupiedRaw === 'number' && Number.isFinite(occupiedRaw)
@@ -125,31 +122,31 @@ function normalizeZoneFields(
       : Math.max(0, capacity - freeCount);
 
   const confidenceRaw =
-  modeKind === 'future'
-    ? normalized['forecast_confidence'] ??
-      normalized['prediction_confidence'] ??
-      normalized['predicted_confidence'] ??
-      normalized['model_confidence'] ??
-      normalized['forecast_probability'] ??
-      normalized['confidence']
-    : normalized['confidence'] ??
-      normalized['forecast_confidence'] ??
-      normalized['prediction_confidence'] ??
-      normalized['predicted_confidence'] ??
-      normalized['model_confidence'];
+    modeKind === 'future'
+      ? (normalized['forecast_confidence'] ??
+        normalized['prediction_confidence'] ??
+        normalized['predicted_confidence'] ??
+        normalized['model_confidence'] ??
+        normalized['forecast_probability'] ??
+        normalized['confidence'])
+      : (normalized['confidence'] ??
+        normalized['forecast_confidence'] ??
+        normalized['prediction_confidence'] ??
+        normalized['predicted_confidence'] ??
+        normalized['model_confidence']);
 
   const confidenceNumber =
-  typeof confidenceRaw === 'number'
-    ? confidenceRaw
-    : typeof confidenceRaw === 'string'
-      ? Number(confidenceRaw)
-      : 0;
+    typeof confidenceRaw === 'number'
+      ? confidenceRaw
+      : typeof confidenceRaw === 'string'
+        ? Number(confidenceRaw)
+        : 0;
 
-const confidence = Number.isFinite(confidenceNumber)
-  ? confidenceNumber > 1
-    ? confidenceNumber / 100
-    : confidenceNumber
-  : 0;
+  const confidence = Number.isFinite(confidenceNumber)
+    ? confidenceNumber > 1
+      ? confidenceNumber / 100
+      : confidenceNumber
+    : 0;
 
   const observedAt =
     normalized['observed_at'] ??
@@ -271,27 +268,27 @@ export async function fetchZoneById(
   mode: TimeMode = { kind: 'now' },
 ): Promise<Zone> {
   if (mode.kind === 'now') {
-    const res = await apiClient.get<Zone>(`/zones/${id}`, {signal});
+    const res = await apiClient.get<Zone>(`/zones/${id}`, { signal });
     return normalizeZoneFields(res.data as unknown as ApiZoneLike, 'now') as unknown as Zone;
   }
   // past/future: dispatch через timeModeAdapter, override view='card' и
   // zone_id=:id (вместо bbox для card-context).
-  const {endpoint, extraParams} = timeModeAdapter(mode);
+  const { endpoint, extraParams } = timeModeAdapter(mode);
 
   const [modeRes, baseRes] = await Promise.all([
     apiClient.get<Zone | Zone[] | { error_description?: string; items?: Zone[] }>(endpoint, {
-      params: {...extraParams, view: 'card', zone_id: String(id)},
+      params: { ...extraParams, view: 'card', zone_id: String(id) },
       signal,
     }),
-    apiClient.get<Zone>(`/zones/${id}`, {signal}),
+    apiClient.get<Zone>(`/zones/${id}`, { signal }),
   ]);
 
   if (
-      modeRes.data &&
-      typeof modeRes.data === 'object' &&
-      !Array.isArray(modeRes.data) &&
-      'error_description' in modeRes.data &&
-      modeRes.data.error_description
+    modeRes.data &&
+    typeof modeRes.data === 'object' &&
+    !Array.isArray(modeRes.data) &&
+    'error_description' in modeRes.data &&
+    modeRes.data.error_description
   ) {
     throw new TimeModeUnavailableError(modeRes.data.error_description, mode);
   }
@@ -305,55 +302,55 @@ export async function fetchZoneById(
   const baseZone = baseRes.data as unknown as ApiZoneLike;
 
   const merged = {
-  ...baseZone,
-  ...dynamicZone,
+    ...baseZone,
+    ...dynamicZone,
 
-  geometry: dynamicZone['geometry'] ?? baseZone['geometry'],
-  zone_type: dynamicZone['zone_type'] ?? baseZone['zone_type'],
-  location_type: dynamicZone['location_type'] ?? baseZone['location_type'],
-  pay: dynamicZone['pay'] ?? baseZone['pay'],
-  is_private: dynamicZone['is_private'] ?? baseZone['is_private'],
-  is_accessible: dynamicZone['is_accessible'] ?? baseZone['is_accessible'],
-  image_polygon: dynamicZone['image_polygon'] ?? baseZone['image_polygon'],
-  camera_id: dynamicZone['camera_id'] ?? baseZone['camera_id'],
-  partner_id: dynamicZone['partner_id'] ?? baseZone['partner_id'],
-  created_by_user_id: dynamicZone['created_by_user_id'] ?? baseZone['created_by_user_id'],
+    geometry: dynamicZone['geometry'] ?? baseZone['geometry'],
+    zone_type: dynamicZone['zone_type'] ?? baseZone['zone_type'],
+    location_type: dynamicZone['location_type'] ?? baseZone['location_type'],
+    pay: dynamicZone['pay'] ?? baseZone['pay'],
+    is_private: dynamicZone['is_private'] ?? baseZone['is_private'],
+    is_accessible: dynamicZone['is_accessible'] ?? baseZone['is_accessible'],
+    image_polygon: dynamicZone['image_polygon'] ?? baseZone['image_polygon'],
+    camera_id: dynamicZone['camera_id'] ?? baseZone['camera_id'],
+    partner_id: dynamicZone['partner_id'] ?? baseZone['partner_id'],
+    created_by_user_id: dynamicZone['created_by_user_id'] ?? baseZone['created_by_user_id'],
 
-  forecast_created_at:
-    dynamicZone['forecast_created_at'] ??
-    dynamicZone['generated_at'] ??
-    dynamicZone['model_run_at'] ??
-    dynamicZone['created_at'] ??
-    dynamicZone['ingested_at'] ??
-    null,
+    forecast_created_at:
+      dynamicZone['forecast_created_at'] ??
+      dynamicZone['generated_at'] ??
+      dynamicZone['model_run_at'] ??
+      dynamicZone['created_at'] ??
+      dynamicZone['ingested_at'] ??
+      null,
 
-  displayed_at:
-    dynamicZone['displayed_at'] ??
-    dynamicZone['predicted_for'] ??
-    dynamicZone['forecasted_at'] ??
-    dynamicZone['forecast_at'] ??
-    dynamicZone['at'] ??
-    null,
+    displayed_at:
+      dynamicZone['displayed_at'] ??
+      dynamicZone['predicted_for'] ??
+      dynamicZone['forecasted_at'] ??
+      dynamicZone['forecast_at'] ??
+      dynamicZone['at'] ??
+      null,
 
-  forecast_confidence:
-    dynamicZone['forecast_confidence'] ??
-    dynamicZone['prediction_confidence'] ??
-    dynamicZone['predicted_confidence'] ??
-    dynamicZone['model_confidence'] ??
-    dynamicZone['confidence'] ??
-    null,
+    forecast_confidence:
+      dynamicZone['forecast_confidence'] ??
+      dynamicZone['prediction_confidence'] ??
+      dynamicZone['predicted_confidence'] ??
+      dynamicZone['model_confidence'] ??
+      dynamicZone['confidence'] ??
+      null,
 
-  created_at: dynamicZone['created_at'] ?? baseZone['created_at'],
-  updated_at: dynamicZone['updated_at'] ?? baseZone['updated_at'],
-};
+    created_at: dynamicZone['created_at'] ?? baseZone['created_at'],
+    updated_at: dynamicZone['updated_at'] ?? baseZone['updated_at'],
+  };
 
   console.log('[forecast card merge]', {
-  baseConfidence: baseZone['confidence'],
-  dynamicConfidence: dynamicZone['confidence'],
-  dynamicForecastConfidence: dynamicZone['forecast_confidence'],
-  mergedForecastConfidence: merged['forecast_confidence'],
-  modeKind: mode.kind,
-});
+    baseConfidence: baseZone['confidence'],
+    dynamicConfidence: dynamicZone['confidence'],
+    dynamicForecastConfidence: dynamicZone['forecast_confidence'],
+    mergedForecastConfidence: merged['forecast_confidence'],
+    modeKind: mode.kind,
+  });
 
   return normalizeZoneFields(merged, mode.kind) as unknown as Zone;
 }

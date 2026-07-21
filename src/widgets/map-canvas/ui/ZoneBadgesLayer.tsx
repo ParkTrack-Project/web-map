@@ -11,6 +11,8 @@ import { zoneCentroid } from '@/shared/lib/geo';
 import { ZONE_BADGE_MIN_ZOOM, MAP_Z } from '@/shared/config';
 import { computeZoneStyle } from '../model/zone-style';
 import { useZoneClusters } from '../model/useZoneClusters';
+import { useI18n } from '@/shared/lib/i18n';
+import { usePreferences } from '@/features/preferences';
 
 interface Props {
   zoom: number;
@@ -41,9 +43,11 @@ const YMapFeatureDataSource =
 const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 
 export function ZoneBadgesLayer({ zoom }: Props) {
+  const { t } = useI18n();
   const { data } = useFilteredZones();
   const { setSelectedZone } = useSelectedZone();
   const { singletonIds } = useZoneClusters(zoom);
+  const theme = usePreferences((state) => state.theme);
 
   if (zoom < ZONE_BADGE_MIN_ZOOM) return null;
   if (!data) return null;
@@ -67,6 +71,7 @@ export function ZoneBadgesLayer({ zoom }: Props) {
           is_active: z.is_active,
           mode: 'now',
           selected: false,
+          theme,
         });
 
         return (
@@ -80,9 +85,9 @@ export function ZoneBadgesLayer({ zoom }: Props) {
               <button
                 type="button"
                 data-testid="zone-badge"
-                aria-label={`Парковка #${z.zone_id}, свободно ${z.free_count}. Открыть`}
+                aria-label={t('map.parkingLabel', { id: z.zone_id, free: z.free_count })}
                 onClick={() => setSelectedZone(z.zone_id)}
-                className="absolute cursor-pointer whitespace-nowrap rounded-full border-0 px-1.5 py-0.5 text-xs font-semibold text-white shadow"
+                className={`absolute cursor-pointer rounded-full border-0 px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap shadow ${theme === 'dark' ? 'text-zinc-950' : 'text-white'}`}
                 style={{
                   left: 0,
                   top: 0,

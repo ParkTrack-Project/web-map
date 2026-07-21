@@ -5,6 +5,7 @@ import * as Popover from '@radix-ui/react-popover';
 import { Navigation, ArrowRightCircle } from 'lucide-react';
 import { Z_INDEX } from '@/shared/config';
 import { useNavigatorLauncher } from '../model/useNavigatorLauncher';
+import { useI18n } from '@/shared/lib/i18n';
 
 interface Props {
   from: [number, number] | null;
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function DesktopDeeplinkPopover({ from, to, coordsValid }: Props) {
+  const { t } = useI18n();
   const { launchYandexNavigator, launchYandexMapsWeb, launchGoogleMaps } = useNavigatorLauncher();
 
   return (
@@ -24,7 +26,7 @@ export function DesktopDeeplinkPopover({ from, to, coordsValid }: Props) {
           className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
           data-testid="in-put-button"
         >
-          <ArrowRightCircle size={16} aria-hidden /> В путь
+          <ArrowRightCircle size={16} aria-hidden /> {t('route.go')}
         </button>
       </Popover.Trigger>
       <Popover.Portal>
@@ -41,14 +43,14 @@ export function DesktopDeeplinkPopover({ from, to, coordsValid }: Props) {
             onClick={() => launchYandexNavigator(from, to)}
             className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-emerald-50"
           >
-            <Navigation size={14} aria-hidden /> Яндекс Навигатор
+            <Navigation size={14} aria-hidden /> {t('route.yandexNavigator')}
           </button>
           <button
             type="button"
             onClick={() => launchYandexMapsWeb(from, to)}
             className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-emerald-50"
           >
-            Яндекс Карты (web)
+            {t('route.yandexMaps')}
           </button>
           <button
             type="button"

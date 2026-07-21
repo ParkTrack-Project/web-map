@@ -5,6 +5,7 @@
 // - error code → discriminated status; error message русский, ready для inline banner (D-12)
 import { useState } from 'react';
 import { GEOLOCATION_TIMEOUT_MS } from '@/shared/config';
+import { useI18n } from '@/shared/lib/i18n';
 
 export interface GeolocationRequestState {
   status: 'idle' | 'requesting' | 'success' | 'denied' | 'unavailable' | 'timeout';
@@ -15,15 +16,23 @@ export interface GeolocationRequestState {
 const INITIAL: GeolocationRequestState = { status: 'idle', position: null, error: null };
 
 export function useGeolocationRequest() {
+  const { t } = useI18n();
   const [state, setState] = useState<GeolocationRequestState>(INITIAL);
 
-  const request = (): Promise<[number, number] | null> => {
+  const request = (fallbackPosition?: [number, number]): Promise<[number, number] | null> => {
     return new Promise((resolve) => {
+      const applyFallback = () => {
+        if (!fallbackPosition) return false;
+        setState({ status: 'success', position: fallbackPosition, error: null });
+        resolve(fallbackPosition);
+        return true;
+      };
       if (typeof navigator === 'undefined' || !navigator.geolocation) {
+        if (applyFallback()) return;
         setState({
           status: 'unavailable',
           position: null,
-          error: 'Geolocation API недоступен в этом браузере',
+          error: t('wtp.unavailable'),
         });
         resolve(null);
         return;
@@ -37,17 +46,18 @@ export function useGeolocationRequest() {
         },
         (err) => {
           let status: GeolocationRequestState['status'] = 'unavailable';
-          let message = 'Не удалось определить местоположение';
+          let message = t('wtp.failed');
           if (err.code === err.PERMISSION_DENIED) {
             status = 'denied';
-            message =
-              'Геолокация запрещена. Введите адрес стартовой точки или включите геолокацию в настройках браузера';
+            message = t('wtp.denied');
           } else if (err.code === err.POSITION_UNAVAILABLE) {
+            if (applyFallback()) return;
             status = 'unavailable';
-            message = 'Не удалось определить местоположение';
+            message = t('wtp.failed');
           } else if (err.code === err.TIMEOUT) {
+            if (applyFallback()) return;
             status = 'timeout';
-            message = 'Не удалось определить местоположение (timeout)';
+            message = t('wtp.timeout');
           }
           setState({ status, position: null, error: message });
           resolve(null);

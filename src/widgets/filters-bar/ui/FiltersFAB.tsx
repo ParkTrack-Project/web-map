@@ -5,19 +5,23 @@
 // Tap → открывает MobileFiltersDrawer (vaul). aria-label включает activeCount для скринридеров.
 import { Filter } from 'lucide-react';
 import { useFilters } from '@/features/filter-zones';
+import { useI18n } from '@/shared/lib/i18n';
 
 interface Props {
   onClick: () => void;
 }
 
 export function FiltersFAB({ onClick }: Props) {
+  const { t } = useI18n();
   const { activeCount } = useFilters();
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={activeCount > 0 ? `Открыть фильтры (${activeCount} активных)` : 'Открыть фильтры'}
-      className="absolute top-2 right-2 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-lg hover:bg-zinc-50 active:scale-[0.98] lg:hidden"
+      aria-label={
+        activeCount > 0 ? t('filters.openActive', { count: activeCount }) : t('filters.open')
+      }
+      className="absolute top-[calc(env(safe-area-inset-top)+4rem)] right-2 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-lg hover:bg-zinc-50 active:scale-[0.98] lg:hidden dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
     >
       <Filter size={18} aria-hidden />
       {activeCount > 0 && (

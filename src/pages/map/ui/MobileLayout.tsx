@@ -12,7 +12,7 @@
 // Phase 4 Plan 02 / D-05 + D-09 + CO-04:
 // - MobileSearchBar (top-2 left-2 right-20) — top-bar input
 // - DestPromptBanner — рендерится в top-bar когда ?dest && !?from (CO-03)
-// - MobileResultsButton — unified entry-point chip (bottom-center): «Найти парковки рядом» →
+// - MobileResultsButton — unified entry-point chip (bottom-center): «Припарковаться» →
 //   запрос геолокации → «N парковок рядом» → tap открывает sheet. Заменил отдельный WTPMobileFAB
 //   круглый FAB на компактный pill chip — single CTA для всего mobile-сценария.
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
@@ -30,6 +30,7 @@ import { MobileSearchBar, DestPromptBanner } from '@/widgets/search-bar';
 import { MobileResultsSheet, MobileResultsButton } from '@/widgets/results-panel';
 // Phase 4 Plan 04 / ROUTE-04: FitToRouteButton — bottom-right map area, gates сам себя по ?route.
 import { FitToRouteButton } from '@/widgets/route-preview-summary';
+import { AccountMenu } from '@/widgets/account-menu';
 
 const MapCanvas = lazy(() =>
   import('@/widgets/map-canvas/ui/MapCanvas').then((m) => ({ default: m.MapCanvas })),
@@ -67,40 +68,41 @@ export function MobileLayout() {
 
   return (
     <MapRefContext.Provider value={mapRef}>
-    <div className="relative flex h-dvh w-screen flex-col lg:hidden">
-      <div className="relative flex-1 overflow-hidden">
-        <MapErrorBoundary>
-          <Suspense fallback={<MapSkeleton />}>
-            <MapCanvas mapRef={mapRef} />
-          </Suspense>
-        </MapErrorBoundary>
-        {/* I-1: FiltersFAB top-4 right-4 z-30; TimeSelectorChip top-16 right-4 z-30 — стек ПОД FAB */}
-        <FiltersFAB onClick={() => setFiltersOpen(true)} />
-        <TimeSelectorChip onClick={() => setTimeSheetOpen(true)} />
-        {/* Phase 4: top-bar SearchBar (left side, FABs справа не пересекаются — right-20) */}
-        <MobileSearchBar />
-        {/* Phase 4 / CO-03: DestPromptBanner ниже top-bar (top-14 чтобы под input).
+      <div className="relative flex h-dvh w-screen flex-col lg:hidden">
+        <div className="relative flex-1 overflow-hidden">
+          <MapErrorBoundary>
+            <Suspense fallback={<MapSkeleton />}>
+              <MapCanvas mapRef={mapRef} />
+            </Suspense>
+          </MapErrorBoundary>
+          {/* Filters справа под аккаунтом; время слева под строкой поиска. */}
+          <FiltersFAB onClick={() => setFiltersOpen(true)} />
+          <TimeSelectorChip onClick={() => setTimeSheetOpen(true)} />
+          {/* Phase 4: top-bar SearchBar (left side, FABs справа не пересекаются — right-20) */}
+          <MobileSearchBar />
+          {/* Phase 4 / CO-03: DestPromptBanner ниже top-bar (top-14 чтобы под input).
             right-14 — синхронизировано с MobileSearchBar (44px FiltersFAB + gap). */}
-        <div className="absolute top-14 right-14 left-2 z-30">
-          <DestPromptBanner />
-        </div>
-        {/* Unified mobile entry-point: bottom-center chip «Найти парковки рядом» / «N парковок рядом».
+          <div className="absolute top-14 right-14 left-2 z-30">
+            <DestPromptBanner />
+          </div>
+          {/* Unified mobile entry-point: bottom-center chip «Припарковаться» / «N парковок рядом».
             Сам ведёт WTP flow (permissions check + pre-flight Drawer). При sheet open — скрывается. */}
-        <MobileResultsButton
-          hidden={resultsSheetOpen}
-          onOpenSheet={() => setResultsSheetOpen(true)}
-        />
-        {/* Phase 4 Plan 04: FitToRouteButton сам gates рендер по ?route */}
-        <FitToRouteButton />
-      </div>
-      <MobileFiltersDrawer open={filtersOpen} onOpenChange={setFiltersOpen} />
-      <MobileTimeSelectorSheet open={timeSheetOpen} onOpenChange={setTimeSheetOpen} />
-      {/* Phase 4 Plan 03: ResultsSheet mutually exclusive с MobileZoneCard через selectedZoneId logic (CO-02).
+          <MobileResultsButton
+            hidden={resultsSheetOpen}
+            onOpenSheet={() => setResultsSheetOpen(true)}
+          />
+          {/* Phase 4 Plan 04: FitToRouteButton сам gates рендер по ?route */}
+          <FitToRouteButton />
+          <AccountMenu placement="mobile" />
+        </div>
+        <MobileFiltersDrawer open={filtersOpen} onOpenChange={setFiltersOpen} />
+        <MobileTimeSelectorSheet open={timeSheetOpen} onOpenChange={setTimeSheetOpen} />
+        {/* Phase 4 Plan 03: ResultsSheet mutually exclusive с MobileZoneCard через selectedZoneId logic (CO-02).
           Open controlled by Layout — user тапает MobileResultsButton chip чтобы открыть. */}
-      <MobileResultsSheet open={resultsSheetOpen} onOpenChange={setResultsSheetOpen} />
-      {/* Plan 02 mobile vaul + CARD-07 pan */}
-      <MobileZoneCard />
-    </div>
+        <MobileResultsSheet open={resultsSheetOpen} onOpenChange={setResultsSheetOpen} />
+        {/* Plan 02 mobile vaul + CARD-07 pan */}
+        <MobileZoneCard />
+      </div>
     </MapRefContext.Provider>
   );
 }

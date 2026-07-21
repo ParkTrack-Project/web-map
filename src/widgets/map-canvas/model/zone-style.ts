@@ -8,7 +8,7 @@
 // семантику D-01 + selected: 3px stroke (D-08). Outer-glow рисуется как
 // дублирующий feature в ZoneLayer (Plan 02 wires selected по-настоящему,
 // сейчас Plan 01 ставит selected=false для всех — см. ZoneLayer.tsx).
-import { zonePalette, CONFIDENCE_THRESHOLD } from '@/shared/config/zone-palette';
+import { getZonePalette, CONFIDENCE_THRESHOLD } from '@/shared/config/zone-palette';
 
 export type StyleKey = {
   zoneId: number;
@@ -17,6 +17,7 @@ export type StyleKey = {
   is_active: boolean;
   mode: 'now' | 'past' | 'future';
   selected: boolean;
+  theme?: 'light' | 'dark';
 };
 
 export type ZoneStyle = {
@@ -28,10 +29,11 @@ export type ZoneStyle = {
 const cache = new Map<string, ZoneStyle>();
 
 function keyOf(k: StyleKey): string {
-  return `${k.zoneId}|${k.free_count}|${k.confidence}|${k.is_active}|${k.mode}|${k.selected}`;
+  return `${k.zoneId}|${k.free_count}|${k.confidence}|${k.is_active}|${k.mode}|${k.selected}|${k.theme ?? 'light'}`;
 }
 
 function pickPalette(k: StyleKey): { fill: string; stroke: string } {
+  const zonePalette = getZonePalette(k.theme ?? 'light');
   // D-01 правила в строгом порядке (раннее правило важнее позднего):
   if (!k.is_active) return zonePalette.inactive;
   if (k.free_count === 0) return zonePalette.full;

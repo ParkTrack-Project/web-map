@@ -66,8 +66,16 @@ export async function suggestAddresses(
           [bbox[2], bbox[3]],
         ]
       : undefined;
-    const hits = await searchGeo(text, bounds);
+    const nearbyHits = bounds ? await searchGeo(text, bounds) : [];
+    const globalHits = await searchGeo(text);
     if (signal.aborted) return [];
+    const seen = new Set<string>();
+    const hits = [...nearbyHits, ...globalHits].filter((hit) => {
+      const key = `${hit.title}|${hit.coords[0]}|${hit.coords[1]}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
     return hits.map((h) => ({
       title: { text: h.title },
       ...(h.subtitle ? { subtitle: { text: h.subtitle } } : {}),

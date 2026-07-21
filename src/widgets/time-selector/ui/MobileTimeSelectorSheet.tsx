@@ -5,6 +5,7 @@
 import { Drawer } from 'vaul';
 import { useVisualViewportHeight } from '@/shared/lib/dom';
 import { TimeSelectorContent } from './TimeSelectorContent';
+import { useI18n } from '@/shared/lib/i18n';
 
 interface Props {
   open: boolean;
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function MobileTimeSelectorSheet({ open, onOpenChange }: Props) {
+  const { t } = useI18n();
   // Phase 5 D-03: keyboard-aware sizing — datetime-local input на mobile тянет keyboard.
   useVisualViewportHeight();
   return (
@@ -25,7 +27,7 @@ export function MobileTimeSelectorSheet({ open, onOpenChange }: Props) {
         >
           <div className="mx-auto mt-2 mb-1 h-1 w-10 rounded-full bg-zinc-300" aria-hidden />
           <Drawer.Title className="px-5 pt-2 pb-1 text-base font-semibold text-zinc-900">
-            Время
+            {t('time.title')}
           </Drawer.Title>
           <div className="overflow-y-auto pb-4">
             <TimeSelectorContent />

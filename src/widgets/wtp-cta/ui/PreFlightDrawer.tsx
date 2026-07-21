@@ -7,6 +7,7 @@
 // синхронно с PreFlightDialog).
 import { Drawer } from 'vaul';
 import { Locate } from 'lucide-react';
+import { useI18n } from '@/shared/lib/i18n';
 
 interface PreFlightDrawerProps {
   open: boolean;
@@ -14,10 +15,8 @@ interface PreFlightDrawerProps {
   onAllow: () => Promise<void> | void;
 }
 
-const EXPLAINER_TEXT =
-  'Для поиска ближайших парковок нужен доступ к вашей геолокации. Координаты используются только для запроса к серверу и не сохраняются.';
-
 export function PreFlightDrawer({ open, onOpenChange, onAllow }: PreFlightDrawerProps) {
+  const { t } = useI18n();
   const handleAllow = async () => {
     await onAllow();
     onOpenChange(false);
@@ -34,16 +33,16 @@ export function PreFlightDrawer({ open, onOpenChange, onAllow }: PreFlightDrawer
           <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-zinc-300" aria-hidden />
           <Drawer.Title className="mb-3 flex items-center gap-2 text-lg font-semibold">
             <Locate size={20} aria-hidden className="text-emerald-600" />
-            Где припарковаться?
+            {t('wtp.title')}
           </Drawer.Title>
-          <p className="text-sm leading-relaxed text-zinc-700">{EXPLAINER_TEXT}</p>
+          <p className="text-sm leading-relaxed text-zinc-700">{t('wtp.explainer')}</p>
           <div className="mt-5 flex flex-col gap-2">
             <button
               type="button"
               onClick={handleAllow}
               className="min-h-[44px] rounded-md bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
             >
-              Разрешить геолокацию
+              {t('wtp.allow')}
             </button>
           </div>
         </Drawer.Content>

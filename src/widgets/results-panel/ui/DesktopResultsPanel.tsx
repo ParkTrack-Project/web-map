@@ -15,10 +15,12 @@ import { useRoutingResults } from '../model/useRoutingResults';
 import { useAutoSelectBestVariant } from '../model/useAutoSelectBestVariant';
 import { ResultsList } from './ResultsList';
 import { EmptyResultsState } from './EmptyResultsState';
+import { useI18n } from '@/shared/lib/i18n';
 
 // Phase 5 D-31 (NFR-03): React.memo — react-virtual handles internal virtualization,
 // но wrapper memo предотвращает rerender DesktopResultsPanel при unrelated parent state changes.
 function DesktopResultsPanelInner() {
+  const { t } = useI18n();
   const { from, clearFromCoords } = useFromCoords();
   const { dest, clearDestination } = useDestination();
   const { closeCard } = useSelectedZone();
@@ -43,25 +45,27 @@ function DesktopResultsPanelInner() {
   // прятался под top-row кнопками (z-30 поверх z-20).
   return (
     <aside
-      className="absolute top-16 bottom-0 left-0 hidden overflow-hidden bg-white shadow-2xl lg:flex lg:flex-col"
+      className="surface-opaque absolute top-16 bottom-0 left-0 hidden overflow-hidden bg-white shadow-2xl lg:flex lg:flex-col dark:bg-zinc-900"
       style={{ width: RESULTS_PANEL_WIDTH_PX, zIndex: Z_INDEX.resultsPanel }}
-      aria-label="Результаты поиска парковок"
+      aria-label={t('results.title')}
       data-testid="desktop-results-panel"
     >
       <header className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
         <div>
           <h2 className="text-base font-semibold">
-            {dest && from ? 'Парковки у адреса' : 'Парковки рядом'}
+            {dest && from ? t('results.byAddress') : t('results.near')}
           </h2>
           {data && (
-            <p className="text-xs text-zinc-500">Всего вариантов: {data.total_candidates}</p>
+            <p className="text-xs text-zinc-500">
+              {t('results.total', { count: data.total_candidates })}
+            </p>
           )}
         </div>
         <button
           type="button"
           onClick={handleCloseResults}
-          aria-label="Закрыть результаты"
-          className="rounded p-1 hover:bg-zinc-100"
+          aria-label={t('results.close')}
+          className="rounded p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800"
         >
           <X size={18} aria-hidden />
         </button>
@@ -69,12 +73,12 @@ function DesktopResultsPanelInner() {
       {/* min-h-0 нужно для flex-child overflow-scroll (overflow-hidden ломал ResultsList scroll
           точно так же, как на mobile MobileResultsSheet — единый fix). */}
       <div className="flex min-h-0 flex-1 flex-col">
-        {isFetching && !data && <Spinner label="Поиск парковок…" />}
+        {isFetching && !data && <Spinner label={t('results.loading')} />}
         {isError && (
           <div role="alert" className="m-4 rounded bg-red-50 p-3 text-sm text-red-700">
-            Не удалось загрузить результаты.{' '}
+            {t('results.error')}{' '}
             <button onClick={() => refetch()} className="underline">
-              Повторить
+              {t('common.retry')}
             </button>
           </div>
         )}

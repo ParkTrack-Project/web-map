@@ -6,12 +6,14 @@ import type { RouteCandidate } from '@/entities/zone';
 import { RESULTS_LIST_ITEM_HEIGHT_PX } from '@/shared/config';
 import { ResultItem } from './ResultItem';
 import { useResultsScrollSync } from '../model/useResultsScrollSync';
+import { useI18n } from '@/shared/lib/i18n';
 
 interface ResultsListProps {
   candidates: RouteCandidate[];
 }
 
 export function ResultsList({ candidates }: ResultsListProps) {
+  const { t } = useI18n();
   const parentRef = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({
     count: candidates.length,
@@ -33,7 +35,7 @@ export function ResultsList({ candidates }: ResultsListProps) {
     >
       <div
         role="listbox"
-        aria-label="Парковки в результате поиска"
+        aria-label={t('results.list')}
         style={{ height: virtualizer.getTotalSize(), position: 'relative' }}
       >
         {virtualizer.getVirtualItems().map((vi) => {

@@ -19,19 +19,11 @@ async function enableMocking() {
   });
 }
 
-enableMocking().then(() => {
+function renderApp() {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <BrowserRouter>
         <AppProviders>
-          {/* 2026-05-16: авторизация полностью удалена (по запросу). Нет
-              LoginPage / AuthGuard / tokenStore / Bearer-интерсептора /
-              авто-редиректа на 401. Карта работает без входа (публичный
-              GET /zones?view=map). Эндпоинты, которые backend гейтит
-              permissions'ами (/zones/:id, /routing/*, /occupancy, /forecasts),
-              для анонима вернут 401 — фронт просто покажет error-state в
-              соответствующем месте (без редиректа), т.к. auth-слоя больше нет.
-              В mock-режиме MSW отдаёт всё без токена. */}
           <Routes>
             <Route path="/" element={<MapPage />} />
             <Route path="/map" element={<MapPage />} />
@@ -40,4 +32,10 @@ enableMocking().then(() => {
       </BrowserRouter>
     </StrictMode>,
   );
-});
+}
+
+void enableMocking()
+  .catch((error: unknown) => {
+    console.error('[bootstrap] Mock Service Worker failed to start:', error);
+  })
+  .finally(renderApp);

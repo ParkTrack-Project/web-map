@@ -1,6 +1,6 @@
 // Mobile: unified entry-point chip — заменяет WTPMobileFAB+отдельный «Показать»-button.
 // Три состояния:
-// - idle (нет ?from): «Найти парковки рядом» (иконка Locate) — click → запрос геолокации
+// - idle (нет ?from): «Припарковаться» (parking icon) — click → запрос геолокации
 //   (instant если permission granted, pre-flight Drawer иначе).
 // - loading (есть ?from + isFetching): «Поиск парковок…»
 // - ready (есть ?from + data): «N парковок рядом» (иконка ListChecks) — click → открывает sheet.
@@ -9,11 +9,16 @@
 //
 // Permissions API: skip pre-flight если permission='granted' (как WTPCTAButton).
 import { useCallback, useState } from 'react';
-import { Locate, ListChecks } from 'lucide-react';
-import { useFromCoords, useGeolocationRequest } from '@/features/request-geolocation';
+import { ListChecks } from 'lucide-react';
+import {
+  useFromCoords,
+  useGeolocationRequest,
+  useViewportSearchOrigin,
+} from '@/features/request-geolocation';
 import { useFilteredCandidates } from '@/features/filter-zones';
 import { useIsMobile } from '@/shared/lib/responsive';
-import { pluralizeRu } from '@/shared/lib/i18n';
+import { useI18n } from '@/shared/lib/i18n';
+import { ClassicCarIcon } from '@/shared/ui';
 import { PreFlightDrawer } from '@/widgets/wtp-cta';
 import { useRoutingResults } from '../model/useRoutingResults';
 
@@ -35,17 +40,19 @@ async function isGeolocationAlreadyGranted(): Promise<boolean> {
 }
 
 export function MobileResultsButton({ hidden, onOpenSheet }: MobileResultsButtonProps) {
+  const { t, formatCount } = useI18n();
   const { from, setFromCoords } = useFromCoords();
   const { data, isFetching } = useRoutingResults();
   const filtered = useFilteredCandidates(data?.candidates);
   const isMobile = useIsMobile();
   const { request, state } = useGeolocationRequest();
+  const viewportOrigin = useViewportSearchOrigin();
   const [preFlightOpen, setPreFlightOpen] = useState(false);
 
   const requestGeolocation = useCallback(async () => {
-    const coords = await request();
+    const coords = await request(viewportOrigin);
     if (coords) setFromCoords(coords);
-  }, [request, setFromCoords]);
+  }, [request, setFromCoords, viewportOrigin]);
 
   const handleClick = useCallback(async () => {
     if (from) {
@@ -65,17 +72,16 @@ export function MobileResultsButton({ hidden, onOpenSheet }: MobileResultsButton
 
   // Determine label + icon by state
   let label: string;
-  let Icon: typeof Locate | typeof ListChecks;
+  let Icon: typeof ClassicCarIcon | typeof ListChecks;
   if (!from) {
-    label = state.status === 'requesting' ? 'Определяем местоположение…' : 'Найти парковки рядом';
-    Icon = Locate;
+    label = state.status === 'requesting' ? t('results.locating') : t('results.findNearby');
+    Icon = ClassicCarIcon;
   } else if (isFetching && !data) {
-    label = 'Поиск парковок…';
+    label = t('results.loading');
     Icon = ListChecks;
   } else {
     const count = filtered.length;
-    const noun = pluralizeRu(count, { one: 'парковка', few: 'парковки', many: 'парковок' });
-    label = `${count} ${noun} рядом`;
+    label = t('results.nearbyCount', { count: formatCount('parking', count) });
     Icon = ListChecks;
   }
 

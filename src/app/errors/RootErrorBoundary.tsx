@@ -3,15 +3,17 @@
 // видит fallback с кнопкой «Перезагрузить».
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 import type { PropsWithChildren } from 'react';
+import { useI18n } from '@/shared/lib/i18n';
 
 function Fallback({ error, resetErrorBoundary }: FallbackProps) {
+  const { t } = useI18n();
   const message = error instanceof Error ? error.message : String(error);
   return (
     <div role="alert" className="p-8">
-      <h1 className="text-xl font-semibold">Что-то сломалось</h1>
+      <h1 className="text-xl font-semibold">{t('app.crashed')}</h1>
       <pre className="mt-2 text-sm whitespace-pre-wrap">{message}</pre>
       <button type="button" onClick={resetErrorBoundary} className="mt-4 rounded border px-3 py-1">
-        Перезагрузить
+        {t('app.reload')}
       </button>
     </div>
   );

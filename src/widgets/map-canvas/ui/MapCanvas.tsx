@@ -48,6 +48,7 @@ import { ZoneStateOverlay } from './ZoneStateOverlay';
 import { RoutePreviewLayer } from './RoutePreviewLayer';
 import { DestinationMarkerLayer } from './DestinationMarkerLayer';
 import { ModeTransitionOverlay } from '@/widgets/mode-transition-overlay';
+import { usePreferences } from '@/features/preferences';
 
 type Point = [number, number];
 
@@ -78,6 +79,7 @@ const YMap = YMapRaw as unknown as ComponentType<{
   behaviors?: string[];
   distribution?: boolean;
   mode?: string;
+  theme?: 'light' | 'dark';
   children?: ReactNode;
 }>;
 
@@ -115,6 +117,7 @@ const MAP_BEHAVIORS = [
 export function MapCanvas({ mapRef }: MapCanvasProps) {
   const { bbox, zoom: urlZoom, writeViewport, setBbox } = useBboxTracking();
   const zoom = urlZoom ?? DEFAULT_ZOOM;
+  const theme = usePreferences((state) => state.theme);
 
   // Quick-fix 2026-05-17 (iter.2): кластеризация ведётся по ЖИВОМУ дробному
   // зуму карты, квантованному CLUSTER_ZOOM_STEP, а не по округлённому URL ?z —
@@ -165,13 +168,19 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
     const h = typeof window !== 'undefined' ? window.innerHeight : 800;
 
     setBbox(
-      roundBbox5(
-        bboxFromCenterZoom(initialLocationValue.center, initialLocationValue.zoom, w, h),
-      ),
+      roundBbox5(bboxFromCenterZoom(initialLocationValue.center, initialLocationValue.zoom, w, h)),
     );
     // mount-only seed; initialLocationValue стабилен (lazy-useState snapshot).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    (
+      mapRef.current as unknown as { update?: (value: { theme: 'light' | 'dark' }) => void }
+    )?.update?.({
+      theme,
+    });
+  }, [mapRef, theme]);
 
   return (
     <div ref={rootRef} className="map-controls-shifted-container relative h-full w-full">
@@ -182,6 +191,7 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
         behaviors={MAP_BEHAVIORS}
         mode="vector"
         distribution={false}
+        theme={theme}
       >
         <YMapDefaultSchemeLayer />
         {/* MAP-03: встроенный парковочный слой Yandex входит в default features layer */}

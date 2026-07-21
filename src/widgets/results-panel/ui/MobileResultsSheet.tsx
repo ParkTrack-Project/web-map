@@ -28,6 +28,7 @@ import { useRoutingResults } from '../model/useRoutingResults';
 import { useAutoSelectBestVariant } from '../model/useAutoSelectBestVariant';
 import { ResultsList } from './ResultsList';
 import { EmptyResultsState } from './EmptyResultsState';
+import { useI18n } from '@/shared/lib/i18n';
 
 interface MobileResultsSheetProps {
   // Controlled — Layout owns mobileResultsSheetOpen state.
@@ -38,6 +39,7 @@ interface MobileResultsSheetProps {
 }
 
 export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResultsSheetProps) {
+  const { t } = useI18n();
   // Phase 5 D-03: keyboard-aware. ResultsList не имеет input'ов, но ResultItem'ы
   // с длинным title могут переехать под keyboard если pop'ится из soft-keyboard
   // event (например, user открыл sheet поверх focused MobileSearchBar).
@@ -83,16 +85,16 @@ export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResul
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
         <Drawer.Content
-          className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[95dvh] flex-col rounded-t-2xl bg-white outline-none lg:hidden"
+          className="surface-opaque fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[95dvh] flex-col rounded-t-2xl bg-white outline-none lg:hidden dark:bg-zinc-900"
           aria-describedby={undefined}
           data-testid="mobile-results-sheet"
           style={{ maxHeight: 'calc(var(--keyboard-aware-height, 100dvh) - 80px)' }}
         >
-          <Drawer.Title className="sr-only">Результаты поиска парковок</Drawer.Title>
+          <Drawer.Title className="sr-only">{t('results.title')}</Drawer.Title>
           <div className="mx-auto my-2 h-1.5 w-12 rounded-full bg-zinc-300" aria-hidden />
           <header className="flex items-center justify-between px-4 py-2">
             <h2 className="text-base font-semibold">
-              {dest && from ? 'Парковки у адреса' : 'Парковки рядом'}
+              {dest && from ? t('results.byAddress') : t('results.near')}
               {data && (
                 <span className="ml-2 text-xs font-normal text-zinc-500">
                   ({data.total_candidates})
@@ -102,8 +104,8 @@ export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResul
             <button
               type="button"
               onClick={handleCloseAndClear}
-              aria-label="Закрыть результаты"
-              className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-zinc-100"
+              aria-label={t('results.close')}
+              className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
             >
               <X size={18} aria-hidden />
             </button>
@@ -111,12 +113,12 @@ export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResul
           {/* min-h-0 нужно для flex-child overflow scroll (overflow-hidden ломал ResultsList scroll).
               ResultsList parent получит data-vaul-no-drag через prop, чтобы vaul не перехватывал touchmove. */}
           <div className="flex min-h-0 flex-1 flex-col">
-            {isFetching && !data && <Spinner label="Поиск парковок…" />}
+            {isFetching && !data && <Spinner label={t('results.loading')} />}
             {isError && (
               <div role="alert" className="m-4 rounded bg-red-50 p-3 text-sm text-red-700">
-                Не удалось загрузить результаты.{' '}
+                {t('results.error')}{' '}
                 <button onClick={() => refetch()} className="min-h-[44px] underline">
-                  Повторить
+                  {t('common.retry')}
                 </button>
               </div>
             )}

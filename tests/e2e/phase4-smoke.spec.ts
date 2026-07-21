@@ -42,9 +42,7 @@ test.describe('Phase 4 — full purchase scenario', () => {
 
     // 5. ResultsPanel visible (desktop or mobile)
     await expect(
-      page
-        .getByTestId('desktop-results-panel')
-        .or(page.getByTestId('mobile-results-sheet')),
+      page.getByTestId('desktop-results-panel').or(page.getByTestId('mobile-results-sheet')),
     ).toBeVisible({ timeout: 10_000 });
 
     // 6. Click first result item

@@ -4,7 +4,16 @@
 // фона (D-20 — реализуется в ZoneBadgesLayer).
 // Phase 5: UI-kit Миши заменит values, не consumers — палитра подключается только
 // через named tokens, поэтому замена value не сломает downstream.
-export const zonePalette = {
+export interface ZonePalette {
+  inactive: { fill: string; stroke: string };
+  full: { fill: string; stroke: string };
+  one: { fill: string; stroke: string };
+  freeLow: { fill: string; stroke: string };
+  freeHigh: { fill: string; stroke: string };
+  selected: { stroke: string; glow: string };
+}
+
+export const zonePalette: ZonePalette = {
   // is_active=false / нет данных
   inactive: { fill: '#9ca3af8c', stroke: '#4b5563' },
   // free_count=0
@@ -17,6 +26,19 @@ export const zonePalette = {
   freeHigh: { fill: '#16a34aaa', stroke: '#155e2a' },
   // D-08 — outer-glow для selected zone (альфа 0.3 на brand-green)
   selected: { stroke: '#16a34a', glow: '#16a34a4d' },
-} as const;
+};
+
+export const darkZonePalette: ZonePalette = {
+  inactive: { fill: '#e4e4e7d9', stroke: '#d4d4d8' },
+  full: { fill: 'rgba(255,82,82,0.9)', stroke: '#ff5252' },
+  one: { fill: 'rgba(255,193,7,0.92)', stroke: '#ffc107' },
+  freeLow: { fill: 'rgba(74,222,128,0.88)', stroke: '#4ade80' },
+  freeHigh: { fill: 'rgba(0,230,118,0.92)', stroke: '#00e676' },
+  selected: { stroke: '#b9f6ca', glow: '#00e67699' },
+};
+
+export function getZonePalette(theme: 'light' | 'dark') {
+  return theme === 'dark' ? darkZonePalette : zonePalette;
+}
 
 export const CONFIDENCE_THRESHOLD = 0.75;

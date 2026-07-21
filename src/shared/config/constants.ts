@@ -3,6 +3,10 @@
 // Yandex Maps API v3 expects [longitude, latitude] order — DO NOT swap (PITFALLS #2).
 export const ITMO_CENTER: [number, number] = [34.359757, 61.789114];
 export const DEFAULT_ZOOM = 15;
+// Фактический верхний предел векторной карты Yandex Maps v3. Все imperative
+// zoom-переходы используют эту общую константу как fallback, если инстанс карты
+// не отдал собственный zoomRange.
+export const MAP_MAX_ZOOM = 21;
 export const VIEWPORT_DEBOUNCE_MS = 400;
 export const BBOX_ROUND_DECIMALS = 5;
 
@@ -45,6 +49,11 @@ export const CLUSTER_MERGE_PX = 22;
 // итерация на 13.5 между 13 и 14 (scale-фактор ~1.41 на шаг). Мельче (0.25)
 // → ещё плавнее, но чаще пересчёт; 1 = старое поведение (по целым).
 export const CLUSTER_ZOOM_STEP = 0.5;
+
+// Клик по кластеру ищет ближайшую точку его распада чаще, чем обновляются
+// отрисованные кванты, и добавляет небольшой запас после найденной границы.
+export const CLUSTER_EXPANSION_SEARCH_STEP = 0.25;
+export const CLUSTER_EXPANSION_ZOOM_BUFFER = 0.25;
 
 // Quick-fix 2026-05-17 (iter.4): потолок суммы СВОБОДНЫХ МЕСТ в ОДНОЙ ноде
 // по зуму (не число зон — число свободных парковок). На обзорных зумах один
@@ -101,11 +110,3 @@ export const RESULTS_LIST_ITEM_HEIGHT_PX = 140;
 // Phase 4 / SEARCH-01: минимум символов перед triggering Suggest fetch
 // (research Pitfall 5 — single-letter API hits убивают free-tier quota).
 export const SUGGEST_MIN_QUERY_LENGTH = 2;
-
-// 2026-05-17: лестница радиусов «парковка ≤ N м от адреса» для /routing/search.
-// Раньше было жёстко 500 м (D-14) → для многих адресов 0 вариантов, хотя
-// парковки рядом есть (центроид длинной parallel-зоны + погрешность геокодера).
-// Теперь при 0 кандидатов поиск авто-расширяется 500 → 1500 → 3000 м
-// (см. useRoutingResults). На /routing/new (явный выбор парковки) этот фильтр
-// вообще не отправляется — ZoneCard его вырезает (иначе backend 422).
-export const ROUTING_DEST_RADII_M = [500, 1500, 3000] as const;

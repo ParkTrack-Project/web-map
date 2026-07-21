@@ -1,7 +1,7 @@
 // THE single load-bearing module touching window.ymaps3 (Anti-Pattern #5: больше нигде в src/
 // нельзя ссылаться на window.ymaps3 — всё через этот barrel).
 //
-// FOUND-03: Yandex Maps API v3 загружается как runtime-only через CDN-script в index.html.
+// FOUND-03: Yandex Maps API v3 загружается как runtime-only через CDN-script здесь.
 // Внешние пакеты UI-контролов НЕ импортируем обычным Vite import(...).
 // Их нужно грузить через ymaps3.import(...), предварительно зарегистрировав CDN-loader.
 //
@@ -20,6 +20,11 @@ type Ymaps3ImportFn = {
 type Ymaps3Runtime = object & {
   ready: Promise<unknown>;
   import: Ymaps3ImportFn;
+};
+
+type Ymaps3Window = typeof globalThis & {
+  ymaps3?: Ymaps3Runtime;
+  __parktrackYmapsReady?: Promise<void>;
 };
 
 type ReactifiedComponents = Record<string, React.ComponentType<Record<string, unknown>>>;
@@ -44,11 +49,53 @@ function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promi
   ]);
 }
 
-const ymaps3Global = (globalThis as unknown as { ymaps3?: Ymaps3Runtime }).ymaps3;
+function runtimeMessage(ru: string, en: string): string {
+  return typeof document !== 'undefined' && document.documentElement.lang === 'en' ? en : ru;
+}
+
+const ymapsWindow = globalThis as Ymaps3Window;
+
+function loadYmaps(): Promise<void> {
+  if (ymapsWindow.ymaps3) return Promise.resolve();
+  if (ymapsWindow.__parktrackYmapsReady) return ymapsWindow.__parktrackYmapsReady;
+
+  const locale = document.documentElement.lang === 'en' ? 'en_US' : 'ru_RU';
+  const params = new URLSearchParams({
+    apikey: import.meta.env.VITE_YMAP_KEY,
+    lang: locale,
+    csp: '202512',
+  });
+  const ready = new Promise<void>((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `https://api-maps.yandex.ru/v3/?${params.toString()}`;
+    script.dataset.parktrackYmaps = locale;
+    script.addEventListener('load', () => resolve(), { once: true });
+    script.addEventListener('error', () => reject(new Error('Yandex Maps script failed to load')), {
+      once: true,
+    });
+    document.head.append(script);
+  });
+  ymapsWindow.__parktrackYmapsReady = ready;
+  return ready;
+}
+
+await withTimeout(
+  loadYmaps(),
+  15_000,
+  runtimeMessage(
+    'Яндекс Карты слишком долго загружаются. Проверьте сеть или VPN.',
+    'Yandex Maps is taking too long to load. Check your network or VPN.',
+  ),
+);
+
+const ymaps3Global = ymapsWindow.ymaps3;
 
 if (!ymaps3Global) {
   throw new Error(
-    'Яндекс Карты не загрузились. Проверьте VPN и доступ к api-maps.yandex.ru / yastatic.net.',
+    runtimeMessage(
+      'Яндекс Карты не загрузились. Проверьте VPN и доступ к api-maps.yandex.ru / yastatic.net.',
+      'Yandex Maps did not load. Check your VPN and access to api-maps.yandex.ru / yastatic.net.',
+    ),
   );
 }
 
@@ -64,12 +111,18 @@ const [ymaps3React] = await Promise.all([
   withTimeout(
     ymaps3Global.import('@yandex/ymaps3-reactify') as Promise<Ymaps3ReactifyModule>,
     15_000,
-    'Не удалось загрузить React-модуль Яндекс Карт. Возможная причина: VPN или блокировка yastatic.net.',
+    runtimeMessage(
+      'Не удалось загрузить React-модуль Яндекс Карт. Возможная причина: VPN или блокировка yastatic.net.',
+      'The Yandex Maps React module could not be loaded. A VPN or blocked yastatic.net may be the cause.',
+    ),
   ),
   withTimeout(
     ymaps3Global.ready,
     15_000,
-    'Яндекс Карты слишком долго загружаются. Возможная причина: VPN или блокировка yastatic.net.',
+    runtimeMessage(
+      'Яндекс Карты слишком долго загружаются. Возможная причина: VPN или блокировка yastatic.net.',
+      'Yandex Maps is taking too long to load. A VPN or blocked yastatic.net may be the cause.',
+    ),
   ),
 ]);
 
@@ -95,11 +148,15 @@ export const {
 const controlsModule = await withTimeout(
   ymaps3Global.import('@yandex/ymaps3-default-ui-theme'),
   15_000,
-  'Не удалось загрузить контролы Яндекс Карт. Возможная причина: VPN, блокировка yastatic.net или cdn.jsdelivr.net.',
+  runtimeMessage(
+    'Не удалось загрузить контролы Яндекс Карт. Возможная причина: VPN, блокировка yastatic.net или cdn.jsdelivr.net.',
+    'Yandex Maps controls could not be loaded. A VPN or blocked yastatic.net or cdn.jsdelivr.net may be the cause.',
+  ),
 );
 
-export const { YMapZoomControl, YMapGeolocationControl, YMapRotateTiltControl } =
-  reactify.module(controlsModule as object);
+export const { YMapZoomControl, YMapGeolocationControl, YMapRotateTiltControl } = reactify.module(
+  controlsModule as object,
+);
 
 export const useDefault = reactify.useDefault;
 

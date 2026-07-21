@@ -31,6 +31,7 @@ import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { useSelectedZone } from '@/features/select-zone';
 import { computeZoneStyle, toDrawingStyle } from '../model/zone-style';
 import { useZoomToZone } from '../model/useZoomToZone';
+import { usePreferences } from '@/features/preferences';
 
 type PolygonGeometry = {
   type: 'Polygon';
@@ -74,6 +75,7 @@ function ZoneLayerInner() {
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
   const zoomToZone = useZoomToZone();
+  const theme = usePreferences((state) => state.theme);
 
   // Quick-fix 2026-05-16 (п.1): рендерим, пока есть данные (keepPreviousData),
   // не гасим зоны на транзиентной ошибке/pending — иначе они «пропадают до F5».
@@ -99,6 +101,7 @@ function ZoneLayerInner() {
           is_active: z.is_active,
           mode: 'now', // Phase 3 forward-compat
           selected: z.zone_id === selectedZoneId, // D-08 highlight
+          theme,
         });
 
         const geometry: PolygonGeometry = {

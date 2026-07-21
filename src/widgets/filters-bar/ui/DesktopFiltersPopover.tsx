@@ -6,16 +6,10 @@ import * as Popover from '@radix-ui/react-popover';
 import { Filter } from 'lucide-react';
 import { useFiltersHydration, useFilters } from '@/features/filter-zones';
 import { ALL_LOCATION_TYPES, type LocationType } from '@/entities/filters';
-
-const LOC_LABEL: Record<LocationType, string> = {
-  street: 'Улица',
-  yard: 'Двор',
-  open_lot: 'Площадка',
-  underground: 'Подземная',
-  multilevel: 'Многоуровневая',
-};
+import { useI18n, type MessageKey } from '@/shared/lib/i18n';
 
 export function DesktopFiltersPopover() {
+  const { t } = useI18n();
   useFiltersHydration();
   const f = useFilters();
 
@@ -32,9 +26,11 @@ export function DesktopFiltersPopover() {
         <button
           type="button"
           aria-label={
-            f.activeCount > 0 ? `Открыть фильтры (${f.activeCount} активных)` : 'Открыть фильтры'
+            f.activeCount > 0
+              ? t('filters.openActive', { count: f.activeCount })
+              : t('filters.open')
           }
-          className="relative hidden h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-zinc-200 hover:bg-zinc-50 active:scale-[0.98] lg:inline-flex"
+          className="relative hidden h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-zinc-200 transition-colors hover:bg-zinc-100 active:scale-[0.98] lg:inline-flex dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-800"
         >
           <Filter size={16} aria-hidden />
           {f.activeCount > 0 && (
@@ -48,116 +44,127 @@ export function DesktopFiltersPopover() {
         <Popover.Content
           align="start"
           sideOffset={6}
-          className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 z-50 max-h-[80vh] w-[360px] overflow-y-auto rounded-xl border border-zinc-200 bg-white p-5 shadow-md outline-none"
+          className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 z-50 max-h-[80vh] w-[360px] overflow-y-auto rounded-xl border border-zinc-200 bg-white p-5 text-zinc-950 shadow-md outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
         >
-          <h3 className="mb-3 text-base font-semibold">Фильтры парковок</h3>
-          <div className="flex flex-col gap-4 text-sm">
-            <label className="flex items-center justify-between">
-              Только свободные
+          <div className="mb-3 flex min-h-10 items-center justify-between gap-3">
+            <h3 className="text-base font-semibold">{t('filters.title')}</h3>
+            <button
+              type="button"
+              onClick={f.resetAll}
+              disabled={f.activeCount === 0}
+              className="min-h-10 cursor-pointer rounded-lg px-3 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:text-zinc-400 disabled:hover:bg-transparent dark:text-emerald-400 dark:hover:bg-emerald-950/60 dark:disabled:text-zinc-600 dark:disabled:hover:bg-transparent"
+            >
+              {t('filters.resetShort')}
+            </button>
+          </div>
+          <div className="flex flex-col gap-4 text-sm [&_input]:accent-emerald-600">
+            <label className="flex cursor-pointer items-center justify-between">
+              {t('filters.onlyFree')}
               <input
-                  type="checkbox"
-                  checked={f.filters.hideNoFree}
-                  onChange={(e) => f.setHideNoFree(e.target.checked)}
-                  className="h-5 w-5"
+                type="checkbox"
+                checked={f.filters.hideNoFree}
+                onChange={(e) => f.setHideNoFree(e.target.checked)}
+                className="h-5 w-5 cursor-pointer"
               />
             </label>
             <label className="flex flex-col gap-1">
-              <span>Свободных мест ≥ {f.filters.minFreeCount}</span>
+              <span>{t('filters.minFree', { count: f.filters.minFreeCount })}</span>
               <input
-                  type="number"
-                  min={0}
-                  step={1}
-                  value={f.filters.minFreeCount}
-                  onChange={(e) => {
-                    const n = Number(e.target.value);
-                    f.setMinFreeCount(Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0);
-                  }}
-                  aria-label="Минимальное число свободных мест"
-                  className="rounded-md border border-zinc-200 px-2 py-1"
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span>Уверенность ≥ {Math.round(f.filters.minConf * 100)}%</span>
-              <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  value={f.filters.minConf}
-                  onChange={(e) => f.setMinConf(Number(e.target.value))}
-                  aria-label="Минимальная уверенность данных"
+                type="number"
+                min={0}
+                step={1}
+                value={f.filters.minFreeCount}
+                onChange={(e) => {
+                  const n = Number(e.target.value);
+                  f.setMinFreeCount(Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0);
+                }}
+                aria-label={t('filters.minFreeAria')}
+                className="rounded-md border border-zinc-200 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-800"
               />
             </label>
             <label className="flex flex-col gap-1">
               <span>
-                Цена ≤ {f.filters.maxPay === null ? 'без ограничения' : `${f.filters.maxPay} ₽`}
+                {t('filters.confidence', { percent: Math.round(f.filters.minConf * 100) })}
               </span>
               <input
-                  type="range"
-                  min={0}
-                  max={500}
-                  step={10}
-                  value={f.filters.maxPay ?? 500}
-                  onChange={(e) => {
-                    const v = Number(e.target.value);
-                    f.setMaxPay(v >= 500 ? null : v);
-                  }}
-                  aria-label="Максимальная цена в час"
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={f.filters.minConf}
+                onChange={(e) => f.setMinConf(Number(e.target.value))}
+                aria-label={t('filters.confidenceAria')}
+                className="cursor-grab active:cursor-grabbing"
               />
             </label>
-            <label className="flex items-center justify-between">
-              Скрыть частные
+            <label className="flex flex-col gap-1">
+              <span>
+                {t('filters.price', {
+                  price:
+                    f.filters.maxPay === null ? t('filters.unlimited') : `${f.filters.maxPay} ₽`,
+                })}
+              </span>
               <input
-                  type="checkbox"
-                  checked={f.filters.hidePrivate}
-                  onChange={(e) => f.setHidePrivate(e.target.checked)}
-                  className="h-5 w-5"
+                type="range"
+                min={0}
+                max={500}
+                step={10}
+                value={f.filters.maxPay ?? 500}
+                onChange={(e) => {
+                  const v = Number(e.target.value);
+                  f.setMaxPay(v >= 500 ? null : v);
+                }}
+                aria-label={t('filters.priceAria')}
+                className="cursor-grab active:cursor-grabbing"
               />
             </label>
-            <label className="flex items-center justify-between">
-              Скрыть для инвалидов
+            <label className="flex cursor-pointer items-center justify-between">
+              {t('filters.hidePrivate')}
               <input
-                  type="checkbox"
-                  checked={f.filters.hideAccessible}
-                  onChange={(e) => f.setHideAccessible(e.target.checked)}
-                  className="h-5 w-5"
+                type="checkbox"
+                checked={f.filters.hidePrivate}
+                onChange={(e) => f.setHidePrivate(e.target.checked)}
+                className="h-5 w-5 cursor-pointer"
+              />
+            </label>
+            <label className="flex cursor-pointer items-center justify-between">
+              {t('filters.hideAccessible')}
+              <input
+                type="checkbox"
+                checked={f.filters.hideAccessible}
+                onChange={(e) => f.setHideAccessible(e.target.checked)}
+                className="h-5 w-5 cursor-pointer"
               />
             </label>
             <fieldset className="flex flex-col gap-2">
-              <legend className="font-semibold">Тип расположения</legend>
-              {ALL_LOCATION_TYPES.map((t) => (
-                  <label key={t} className="flex items-center justify-between">
-                    {LOC_LABEL[t]}
-                    <input
-                        type="checkbox"
-                        checked={f.filters.locationType.includes(t)}
-                        onChange={() => toggleLoc(t)}
-                        className="h-5 w-5"
-                    />
-                  </label>
+              <legend className="mb-2 font-semibold">{t('filters.locationType')}</legend>
+              {ALL_LOCATION_TYPES.map((locationType) => (
+                <label
+                  key={locationType}
+                  className="flex cursor-pointer items-center justify-between"
+                >
+                  {t(`location.${locationType}` as MessageKey)}
+                  <input
+                    type="checkbox"
+                    checked={f.filters.locationType.includes(locationType)}
+                    onChange={() => toggleLoc(locationType)}
+                    className="h-5 w-5 cursor-pointer"
+                  />
+                </label>
               ))}
-              <p className="text-xs text-zinc-500">
-                Если ничего не выбрано — показываются все типы
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                {t('filters.allTypesHint')}
               </p>
             </fieldset>
-            <label className="flex items-center justify-between">
-              Скрыть неактивные
+            <label className="flex cursor-pointer items-center justify-between">
+              {t('filters.hideInactive')}
               <input
-                  type="checkbox"
-                  checked={f.filters.hideInactive}
-                  onChange={(e) => f.setHideInactive(e.target.checked)}
-                  className="h-5 w-5"
+                type="checkbox"
+                checked={f.filters.hideInactive}
+                onChange={(e) => f.setHideInactive(e.target.checked)}
+                className="h-5 w-5 cursor-pointer"
               />
             </label>
-            {f.activeCount > 0 && (
-                <button
-                    type="button"
-                    onClick={f.resetAll}
-                    className="mt-2 rounded-md bg-zinc-200 px-4 py-2 text-sm hover:bg-zinc-300"
-                >
-                  Сбросить все
-                </button>
-            )}
           </div>
         </Popover.Content>
       </Popover.Portal>

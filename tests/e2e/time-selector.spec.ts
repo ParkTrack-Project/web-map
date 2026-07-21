@@ -34,7 +34,10 @@ test.describe('Phase 3 — TimeSelector URL serialization', () => {
     await page.getByRole('button', { name: 'Прошлое' }).click();
     await expect(page).toHaveURL(/[?&]t=past/);
     // В strip справа есть Reset CTA (D-03); .first() — duplicate'а внутри Content тоже подойдёт
-    await page.getByRole('button', { name: /Вернуться к Сейчас/ }).first().click();
+    await page
+      .getByRole('button', { name: /Вернуться к Сейчас/ })
+      .first()
+      .click();
     await expect(page).not.toHaveURL(/[?&]t=/);
   });
 

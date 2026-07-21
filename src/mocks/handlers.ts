@@ -3,6 +3,7 @@
 import { http, HttpResponse } from 'msw';
 import { env, MAX_PAST_DAYS, MAX_FUTURE_HOURS } from '@/shared/config';
 import { generateMockUserProfile } from './generators/users';
+import { generateMockAuthUser } from './generators/auth';
 import {
   generateMockZones,
   parseBbox,
@@ -18,6 +19,12 @@ import { generateOccupancyTimeseries, generateOccupancyZoneSnapshot } from './ge
 import { generateForecasts, generateForecastZoneSnapshot } from './generators/forecasts';
 
 const baseUrl = env.VITE_API_BASE_URL;
+const MOCK_ACCESS_TOKEN = 'mock-access-token';
+let mockAuthUser = generateMockAuthUser();
+
+function isAuthorized(request: Request): boolean {
+  return request.headers.get('Authorization') === `Bearer ${MOCK_ACCESS_TOKEN}`;
+}
 
 // Singleton-набор зон. Детерминирован — seed=42, count=200.
 const ZONES: ZoneMapItem[] = generateMockZones({ seed: 42, count: 200 });
@@ -262,6 +269,66 @@ function buildRoute(body: RoutingSearchBody & { selected_zone_id?: number }): Ro
 }
 
 export const handlers = [
+  // ---- Access-token auth ----
+  http.post(`${baseUrl}/api/v1/auth/login`, async ({ request }) => {
+    const body = (await request.json()) as { login?: string; password?: string };
+    if (!body.login || !body.password) {
+      return HttpResponse.json({ error_description: 'Invalid login or password' }, { status: 401 });
+    }
+    mockAuthUser = {
+      ...mockAuthUser,
+      email: body.login.includes('@') ? body.login : mockAuthUser.email,
+    };
+    return HttpResponse.json({
+      access_token: MOCK_ACCESS_TOKEN,
+      token_type: 'bearer',
+      expires_in: 3600,
+      user: mockAuthUser,
+    });
+  }),
+  http.post(`${baseUrl}/api/v1/auth/register`, async ({ request }) => {
+    const body = (await request.json()) as { email: string; full_name?: string };
+    mockAuthUser = generateMockAuthUser({ email: body.email, full_name: body.full_name ?? null });
+    return HttpResponse.json(
+      {
+        access_token: MOCK_ACCESS_TOKEN,
+        token_type: 'bearer',
+        expires_in: 3600,
+        user: mockAuthUser,
+      },
+      { status: 201 },
+    );
+  }),
+  http.post(`${baseUrl}/api/v1/auth/password-reset/request`, async ({ request }) => {
+    const body = (await request.json()) as { email?: string };
+    if (!body.email?.includes('@')) {
+      return HttpResponse.json({ error_description: 'Invalid email' }, { status: 422 });
+    }
+    return HttpResponse.json({ ok: true, reset_token: null });
+  }),
+  http.get(`${baseUrl}/api/v1/auth/me`, ({ request }) =>
+    isAuthorized(request)
+      ? HttpResponse.json(mockAuthUser)
+      : HttpResponse.json({ error_description: 'Session expired' }, { status: 401 }),
+  ),
+  http.get(`${baseUrl}/api/v1/users/me`, ({ request }) =>
+    isAuthorized(request)
+      ? HttpResponse.json({ user: mockAuthUser, partner_memberships: [] })
+      : HttpResponse.json({ error_description: 'Session expired' }, { status: 401 }),
+  ),
+  http.put(`${baseUrl}/api/v1/users/me`, async ({ request }) => {
+    if (!isAuthorized(request)) {
+      return HttpResponse.json({ error_description: 'Session expired' }, { status: 401 });
+    }
+    const body = (await request.json()) as { full_name: string };
+    mockAuthUser = { ...mockAuthUser, full_name: body.full_name };
+    return HttpResponse.json(mockAuthUser);
+  }),
+  http.post(`${baseUrl}/api/v1/auth/logout`, ({ request }) =>
+    isAuthorized(request)
+      ? new HttpResponse(null, { status: 204 })
+      : HttpResponse.json({ error_description: 'Session expired' }, { status: 401 }),
+  ),
   // ---- Users ----
   http.get(`${baseUrl}/users/me`, () => {
     return HttpResponse.json(generateMockUserProfile());

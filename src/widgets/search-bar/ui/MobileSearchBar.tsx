@@ -9,12 +9,16 @@ import { useContext, useRef, useState } from 'react';
 import { Search, X, ArrowLeft } from 'lucide-react';
 import { useAddressSuggest, useDestination } from '@/features/address-search';
 import { useSelectedZone } from '@/features/select-zone';
+import { useFromCoords } from '@/features/request-geolocation';
 import { MapRefContext } from '@/widgets/map-canvas';
 import { useVisualViewportHeight } from '@/shared/lib/dom';
 import type { SuggestResult } from '@/shared/lib/yandex';
 import { SuggestionsList } from './SuggestionsList';
+import { useI18n } from '@/shared/lib/i18n';
+import { originForAddressSelection } from '../model/search-origin';
 
 export function MobileSearchBar() {
+  const { t } = useI18n();
   // Phase 5 D-03 (RESP-05): главный driver — search input открывает on-screen
   // keyboard, suggestions list ниже него должен помещаться в visible-viewport.
   // Side-effect устанавливает --keyboard-aware-height на :root; suggestions
@@ -23,6 +27,7 @@ export function MobileSearchBar() {
   const { text, setText, results, isFetching, error } = useAddressSuggest();
   const { setDestination } = useDestination();
   const { closeCard } = useSelectedZone();
+  const { from, setFromCoords } = useFromCoords();
   const mapRef = useContext(MapRefContext);
   const inputRef = useRef<HTMLInputElement>(null);
   const [overlayOpen, setOverlayOpen] = useState(false);
@@ -31,6 +36,8 @@ export function MobileSearchBar() {
     if (!sug.coords) return;
     const coords = sug.coords;
     setDestination(coords);
+    const addressOrigin = originForAddressSelection(from, coords);
+    if (addressOrigin) setFromCoords(addressOrigin);
     mapRef?.current?.setLocation({ center: [coords[1], coords[0]], zoom: 16, duration: 300 });
     closeCard();
     setText(sug.title.text);
@@ -47,8 +54,8 @@ export function MobileSearchBar() {
           ref={inputRef}
           type="search"
           role="searchbox"
-          aria-label="Где искать парковку?"
-          placeholder="Где искать парковку?"
+          aria-label={t('search.placeholder')}
+          placeholder={t('search.placeholder')}
           inputMode="search"
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -71,8 +78,8 @@ export function MobileSearchBar() {
         <button
           type="button"
           onClick={() => setOverlayOpen(false)}
-          aria-label="Закрыть поиск"
-          className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-zinc-100"
+          aria-label={t('search.close')}
+          className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
         >
           <ArrowLeft size={20} aria-hidden />
         </button>
@@ -80,8 +87,8 @@ export function MobileSearchBar() {
           <Search size={14} aria-hidden className="absolute left-3 text-zinc-400" />
           <input
             type="search"
-            aria-label="Где искать парковку?"
-            placeholder="Где искать парковку?"
+            aria-label={t('search.placeholder')}
+            placeholder={t('search.placeholder')}
             inputMode="search"
             autoFocus
             value={text}
@@ -93,8 +100,8 @@ export function MobileSearchBar() {
             <button
               type="button"
               onClick={() => setText('')}
-              aria-label="Очистить поиск"
-              className="absolute right-2 flex h-9 w-9 items-center justify-center rounded-full hover:bg-zinc-100"
+              aria-label={t('search.clear')}
+              className="absolute right-2 flex h-9 w-9 items-center justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
             >
               <X size={14} aria-hidden />
             </button>
@@ -104,7 +111,7 @@ export function MobileSearchBar() {
       <div className="flex-1 overflow-y-auto">
         {isFetching && (
           <div role="status" className="px-4 py-3 text-sm text-zinc-500">
-            Загрузка…
+            {t('common.loading')}
           </div>
         )}
         <SuggestionsList results={results} onSelect={onSelect} error={error} />

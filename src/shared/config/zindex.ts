@@ -27,6 +27,7 @@ export const MAP_Z = {
 } as const;
 
 export const Z_INDEX = {
+  accountTrigger: 10, // кнопка аккаунта ниже всех карточек и map-overlay панелей
   zoneStateOverlay: 20, // empty/error overlay поверх карты
   modeTransitionOverlay: 30, // mode-switch skeleton (Phase 3 TIME-06)
   filtersFab: 30, // mobile FAB фильтры

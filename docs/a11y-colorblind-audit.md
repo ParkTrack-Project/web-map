@@ -9,14 +9,14 @@ Verify all 5 zone semantic states (red / yellow / light-green / dark-green / gre
 
 ## Test matrix
 
-| Vision mode    | Expected outcome                                                              |
-| -------------- | ----------------------------------------------------------------------------- |
-| None           | All 5 colors visually distinct                                                |
-| Achromatopsia  | Distinguishable via free_count badge (Phase 2 D-02 redundant encoding)        |
-| Protanopia     | Red/dark-green may merge → free_count badge differentiates                    |
-| Deuteranopia   | Similar to Protanopia → free_count badge differentiates                       |
-| Tritanopia     | Yellow/green pair may shift → free_count badge differentiates                 |
-| Blurred vision | Color still distinguishable; badge readability tested at zoom_level=14+       |
+| Vision mode    | Expected outcome                                                        |
+| -------------- | ----------------------------------------------------------------------- |
+| None           | All 5 colors visually distinct                                          |
+| Achromatopsia  | Distinguishable via free_count badge (Phase 2 D-02 redundant encoding)  |
+| Protanopia     | Red/dark-green may merge → free_count badge differentiates              |
+| Deuteranopia   | Similar to Protanopia → free_count badge differentiates                 |
+| Tritanopia     | Yellow/green pair may shift → free_count badge differentiates           |
+| Blurred vision | Color still distinguishable; badge readability tested at zoom_level=14+ |
 
 ## Test procedure
 

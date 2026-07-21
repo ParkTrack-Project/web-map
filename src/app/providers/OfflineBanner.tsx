@@ -4,21 +4,23 @@
 import { useEffect, useState } from 'react';
 import { onlineManager } from '@tanstack/react-query';
 import { toast } from '@/shared/ui';
+import { useI18n } from '@/shared/lib/i18n';
 
 export function OfflineBanner() {
+  const { t } = useI18n();
   const [isOffline, setIsOffline] = useState(() => !onlineManager.isOnline());
 
   useEffect(() => {
     return onlineManager.subscribe((isOnline) => {
       setIsOffline(!isOnline);
       if (!isOnline) {
-        toast.error('Нет соединения с сервером', { id: 'offline', duration: Infinity });
+        toast.error(t('network.offline'), { id: 'offline', duration: Infinity });
       } else {
         toast.dismiss('offline');
-        toast.success('Соединение восстановлено', { duration: 3000 });
+        toast.success(t('network.online'), { duration: 3000 });
       }
     });
-  }, []);
+  }, [t]);
 
   if (!isOffline) return null;
   return (
@@ -26,7 +28,7 @@ export function OfflineBanner() {
       role="status"
       className="fixed top-0 right-0 left-0 z-[200] bg-amber-100 py-2 text-center text-sm text-amber-900"
     >
-      Нет соединения с сервером
+      {t('network.offline')}
     </div>
   );
 }

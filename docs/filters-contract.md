@@ -69,15 +69,15 @@ Before flipping `VITE_API_MODE=real` for production:
 
 ### Verification status (filled by Plan 05-05 UAT)
 
-| UI filter      | Server param         | Real-API smoke status | Action if unsupported                  |
-| -------------- | -------------------- | --------------------- | -------------------------------------- |
-| hideNoFree     | `min_free_count`     | unverified            | Drop from buildServerQuery             |
-| minConf        | `min_confidence`     | unverified            | Already client-side too (safety-net)   |
-| maxPay         | `max_pay`            | unverified            | Already client-side too (safety-net)   |
-| hidePrivate    | `include_private`    | unverified            | Drop from buildServerQuery             |
-| hideAccessible | `include_accessible` | unverified            | Drop from buildServerQuery             |
-| locationType   | `hide_location_types`| unverified            | Drop, locationType remains client-only |
-| hideInactive   | `is_active`          | unverified            | Drop from buildServerQuery             |
+| UI filter      | Server param          | Real-API smoke status | Action if unsupported                  |
+| -------------- | --------------------- | --------------------- | -------------------------------------- |
+| hideNoFree     | `min_free_count`      | unverified            | Drop from buildServerQuery             |
+| minConf        | `min_confidence`      | unverified            | Already client-side too (safety-net)   |
+| maxPay         | `max_pay`             | unverified            | Already client-side too (safety-net)   |
+| hidePrivate    | `include_private`     | unverified            | Drop from buildServerQuery             |
+| hideAccessible | `include_accessible`  | unverified            | Drop from buildServerQuery             |
+| locationType   | `hide_location_types` | unverified            | Drop, locationType remains client-only |
+| hideInactive   | `is_active`           | unverified            | Drop from buildServerQuery             |
 
 Status legend:
 

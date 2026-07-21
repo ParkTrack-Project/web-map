@@ -12,6 +12,7 @@ import { useSelectedZone } from '@/features/select-zone';
 import { polygonToParallelLine } from '@/shared/lib/geo';
 import { computeZoneStyle } from '../model/zone-style';
 import { useZoomToZone } from '../model/useZoomToZone';
+import { usePreferences } from '@/features/preferences';
 
 type LineStringGeometry = {
   type: 'LineString';
@@ -52,6 +53,7 @@ function ParallelZoneLayerInner() {
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
   const zoomToZone = useZoomToZone();
+  const theme = usePreferences((state) => state.theme);
 
   if (!data) return null;
 
@@ -77,6 +79,7 @@ function ParallelZoneLayerInner() {
           is_active: z.is_active,
           mode: 'now',
           selected: z.zone_id === selectedZoneId,
+          theme,
         });
 
         const geometry: LineStringGeometry = {

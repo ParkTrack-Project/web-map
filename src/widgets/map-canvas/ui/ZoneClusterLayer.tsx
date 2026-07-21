@@ -5,10 +5,15 @@ import {
   YMapFeatureDataSource as YMapFeatureDataSourceRaw,
   YMapLayer as YMapLayerRaw,
 } from '@/shared/lib/ymaps';
-import { zonePalette, MAP_Z } from '@/shared/config';
+import { getZonePalette, MAP_Z } from '@/shared/config';
 import { MapRefContext } from '../model/map-ref-context';
+import { useFilteredZones } from '@/features/viewport-driven-zones';
+import { MAP_MAX_ZOOM } from '@/shared/config';
 import { useZoneClusters } from '../model/useZoneClusters';
 import { clusterBubbleSizePx } from '../model/cluster-zones';
+import { nextClusterExpansionZoom } from '../model/cluster-expansion';
+import { useI18n } from '@/shared/lib/i18n';
+import { usePreferences } from '@/features/preferences';
 
 interface Props {
   zoom: number;
@@ -38,26 +43,32 @@ const YMapFeatureDataSource =
 
 const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 
-function clusterColor(freeSum: number): string {
+function clusterColor(freeSum: number, theme: 'light' | 'dark'): string {
+  const zonePalette = getZonePalette(theme);
   if (freeSum === 0) return zonePalette.full.stroke;
   if (freeSum <= 2) return zonePalette.one.stroke;
   return zonePalette.freeHigh.stroke;
 }
 
 export function ZoneClusterLayer({ zoom }: Props) {
+  const { t } = useI18n();
   const { clusters } = useZoneClusters(zoom);
+  const { data: zones = [] } = useFilteredZones();
   const ctx = useContext(MapRefContext);
+  const theme = usePreferences((state) => state.theme);
 
   if (clusters.length === 0) return null;
 
-  const drillIn = (center: [number, number]) => {
+  const drillIn = (center: [number, number], zoneIds: number[]) => {
     const map = ctx?.current;
     if (!map) return;
 
     try {
+      const currentZoom = (map as { zoom?: number }).zoom ?? zoom;
+      const maxZoom = (map as { zoomRange?: { max?: number } }).zoomRange?.max ?? MAP_MAX_ZOOM;
       map.setLocation({
         center,
-        zoom: Math.min(Math.round(zoom) + 3, 18),
+        zoom: nextClusterExpansionZoom({ zones, zoneIds, currentZoom, maxZoom }),
         duration: 300,
       });
     } catch (e) {
@@ -94,17 +105,17 @@ export function ZoneClusterLayer({ zoom }: Props) {
               <button
                 type="button"
                 data-testid="zone-cluster"
-                aria-label={`${cl.zoneCount} парковок, свободно ${cl.freeSum}. Приблизить`}
-                title={`${cl.zoneCount} парковок · свободно ${cl.freeSum}`}
-                onClick={() => drillIn(cl.center)}
-                className="absolute flex cursor-pointer items-center justify-center rounded-full font-semibold text-white shadow-md ring-2 ring-white/70"
+                aria-label={t('map.clusterLabel', { count: cl.zoneCount, free: cl.freeSum })}
+                title={t('map.clusterTitle', { count: cl.zoneCount, free: cl.freeSum })}
+                onClick={() => drillIn(cl.center, cl.zoneIds)}
+                className={`absolute flex cursor-pointer items-center justify-center rounded-full font-semibold shadow-md ring-2 ring-white/70 ${theme === 'dark' ? 'text-zinc-950' : 'text-white'}`}
                 style={{
                   left: 0,
                   top: 0,
                   transform: 'translate(-50%, -50%)',
                   width: size,
                   height: size,
-                  backgroundColor: clusterColor(cl.freeSum),
+                  backgroundColor: clusterColor(cl.freeSum, theme),
                   fontSize: size >= 38 ? 13 : 11,
                 }}
               >

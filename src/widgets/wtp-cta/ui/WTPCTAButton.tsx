@@ -9,12 +9,17 @@
 // Fix 2026-05-26: пропс `onManualEntry` удалён — кнопка «Указать вручную» из
 // PreFlightDialog убрана, callback некому вызывать.
 import { useCallback } from 'react';
-import { Locate } from 'lucide-react';
 import { Z_INDEX } from '@/shared/config';
-import { useGeolocationRequest, useFromCoords } from '@/features/request-geolocation';
+import { ClassicCarIcon } from '@/shared/ui';
+import {
+  useGeolocationRequest,
+  useFromCoords,
+  useViewportSearchOrigin,
+} from '@/features/request-geolocation';
 import { useDestination } from '@/features/address-search';
 import { PreFlightDialog } from './PreFlightDialog';
 import { useWtpPrompt } from '../model/useWtpPrompt';
+import { useI18n } from '@/shared/lib/i18n';
 
 async function isGeolocationAlreadyGranted(): Promise<boolean> {
   if (typeof navigator === 'undefined' || !('permissions' in navigator)) return false;
@@ -28,18 +33,20 @@ async function isGeolocationAlreadyGranted(): Promise<boolean> {
 }
 
 export function WTPCTAButton() {
+  const { t } = useI18n();
   // Quick-fix 2026-05-16: open вынесен в общий стор — SearchBar открывает это
   // же окно после выбора адреса.
   const open = useWtpPrompt((s) => s.open);
   const setOpen = useWtpPrompt((s) => s.setOpen);
   const { request } = useGeolocationRequest();
+  const viewportOrigin = useViewportSearchOrigin();
   const { setFromCoords } = useFromCoords();
   const { clearDestination } = useDestination();
 
   const requestGeolocation = useCallback(async () => {
-    const coords = await request();
+    const coords = await request(viewportOrigin);
     if (coords) setFromCoords(coords);
-  }, [request, setFromCoords]);
+  }, [request, setFromCoords, viewportOrigin]);
 
   const handleClick = useCallback(async () => {
     // «Припарковаться» = искать парковки рядом с МОИМ местоположением. Если был
@@ -61,13 +68,13 @@ export function WTPCTAButton() {
     <>
       <button
         type="button"
-        aria-label="Припарковаться"
+        aria-label={t('wtp.action')}
         onClick={handleClick}
         style={{ zIndex: Z_INDEX.wtpCtaDesktop }}
         className="hidden items-center gap-2 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:bg-emerald-700 active:scale-[0.98] lg:inline-flex"
       >
-        <Locate size={16} aria-hidden />
-        Припарковаться
+        <ClassicCarIcon size={18} aria-hidden />
+        {t('wtp.action')}
       </button>
       <PreFlightDialog open={open} onOpenChange={setOpen} onAllow={requestGeolocation} />
     </>
