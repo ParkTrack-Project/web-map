@@ -31,31 +31,37 @@ export function MobileFiltersDrawer({ open, onOpenChange }: Props) {
   return (
     <Drawer.Root open={open} onOpenChange={onOpenChange} snapPoints={[0.95]} dismissible>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
+        <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden dark:bg-black/60" />
         <Drawer.Content
-          className="fixed inset-x-0 bottom-0 z-50 flex max-h-[95dvh] flex-col rounded-t-2xl bg-white outline-none lg:hidden"
+          className="fixed inset-x-0 bottom-0 z-50 flex max-h-[95dvh] flex-col overflow-hidden rounded-t-2xl border-t border-zinc-200 bg-white text-zinc-950 outline-none lg:hidden dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
           style={{ maxHeight: 'calc(var(--keyboard-aware-height, 100dvh) - 80px)' }}
         >
-          <div className="mx-auto my-2 h-1.5 w-12 rounded-full bg-zinc-300" aria-hidden />
+          <div
+            className="mx-auto my-2 h-1.5 w-12 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-600"
+            aria-hidden
+          />
           <div className="flex items-center justify-between gap-3 px-5 pb-2">
             <Drawer.Title className="text-lg font-semibold">{t('filters.title')}</Drawer.Title>
             <button
               type="button"
               onClick={f.resetAll}
               disabled={f.activeCount === 0}
-              className="min-h-10 rounded-lg px-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:text-zinc-400 disabled:hover:bg-transparent"
+              className="min-h-10 cursor-pointer rounded-lg px-3 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 disabled:cursor-not-allowed disabled:text-zinc-400 disabled:hover:bg-transparent dark:text-emerald-400 dark:hover:bg-emerald-950/60 dark:disabled:text-zinc-600 dark:disabled:hover:bg-transparent"
             >
               {t('filters.resetShort')}
             </button>
           </div>
-          <div className="flex flex-col gap-4 overflow-y-auto px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] [&_input]:accent-emerald-600">
-            <label className="flex items-center justify-between">
+          <div
+            data-vaul-no-drag
+            className="flex min-h-0 flex-1 touch-pan-y flex-col gap-4 overflow-y-auto overscroll-contain px-5 pt-3 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] [&_input]:accent-emerald-600"
+          >
+            <label className="flex cursor-pointer items-center justify-between">
               {t('filters.onlyFree')}
               <input
                 type="checkbox"
                 checked={f.filters.hideNoFree}
                 onChange={(e) => f.setHideNoFree(e.target.checked)}
-                className="h-5 w-5"
+                className="h-5 w-5 cursor-pointer"
               />
             </label>
             <label className="flex flex-col gap-1">
@@ -69,7 +75,7 @@ export function MobileFiltersDrawer({ open, onOpenChange }: Props) {
                   const n = Number(e.target.value);
                   f.setMinFreeCount(Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0);
                 }}
-                className="rounded-md border border-zinc-200 px-2 py-1"
+                className="rounded-md border border-zinc-200 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-800"
               />
             </label>
             <label className="flex flex-col gap-1">
@@ -81,6 +87,7 @@ export function MobileFiltersDrawer({ open, onOpenChange }: Props) {
                 step={0.05}
                 value={f.filters.minConf}
                 onChange={(e) => f.setMinConf(Number(e.target.value))}
+                className="cursor-grab active:cursor-grabbing"
               />
             </label>
             <label className="flex flex-col gap-1">
@@ -97,47 +104,51 @@ export function MobileFiltersDrawer({ open, onOpenChange }: Props) {
                   const v = Number(e.target.value);
                   f.setMaxPay(v >= 500 ? null : v);
                 }}
+                className="cursor-grab active:cursor-grabbing"
               />
             </label>
-            <label className="flex items-center justify-between">
+            <label className="flex cursor-pointer items-center justify-between">
               {t('filters.hidePrivate')}
               <input
                 type="checkbox"
                 checked={f.filters.hidePrivate}
                 onChange={(e) => f.setHidePrivate(e.target.checked)}
-                className="h-5 w-5"
+                className="h-5 w-5 cursor-pointer"
               />
             </label>
-            <label className="flex items-center justify-between">
+            <label className="flex cursor-pointer items-center justify-between">
               {t('filters.hideAccessible')}
               <input
                 type="checkbox"
                 checked={f.filters.hideAccessible}
                 onChange={(e) => f.setHideAccessible(e.target.checked)}
-                className="h-5 w-5"
+                className="h-5 w-5 cursor-pointer"
               />
             </label>
             <fieldset className="flex flex-col gap-2">
               <legend className="mb-2 font-semibold">{t('filters.locationType')}</legend>
               {ALL_LOCATION_TYPES.map((locationType) => (
-                <label key={locationType} className="flex items-center justify-between">
+                <label
+                  key={locationType}
+                  className="flex cursor-pointer items-center justify-between"
+                >
                   {t(`location.${locationType}` as MessageKey)}
                   <input
                     type="checkbox"
                     checked={f.filters.locationType.includes(locationType)}
                     onChange={() => toggleLoc(locationType)}
-                    className="h-5 w-5"
+                    className="h-5 w-5 cursor-pointer"
                   />
                 </label>
               ))}
             </fieldset>
-            <label className="flex items-center justify-between">
+            <label className="flex cursor-pointer items-center justify-between">
               {t('filters.hideInactive')}
               <input
                 type="checkbox"
                 checked={f.filters.hideInactive}
                 onChange={(e) => f.setHideInactive(e.target.checked)}
-                className="h-5 w-5"
+                className="h-5 w-5 cursor-pointer"
               />
             </label>
           </div>
