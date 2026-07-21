@@ -3,6 +3,10 @@
 // Yandex Maps API v3 expects [longitude, latitude] order — DO NOT swap (PITFALLS #2).
 export const ITMO_CENTER: [number, number] = [34.359757, 61.789114];
 export const DEFAULT_ZOOM = 15;
+// Фактический верхний предел векторной карты Yandex Maps v3. Все imperative
+// zoom-переходы используют эту общую константу как fallback, если инстанс карты
+// не отдал собственный zoomRange.
+export const MAP_MAX_ZOOM = 21;
 export const VIEWPORT_DEBOUNCE_MS = 400;
 export const BBOX_ROUND_DECIMALS = 5;
 
@@ -45,6 +49,11 @@ export const CLUSTER_MERGE_PX = 22;
 // итерация на 13.5 между 13 и 14 (scale-фактор ~1.41 на шаг). Мельче (0.25)
 // → ещё плавнее, но чаще пересчёт; 1 = старое поведение (по целым).
 export const CLUSTER_ZOOM_STEP = 0.5;
+
+// Клик по кластеру ищет ближайшую точку его распада чаще, чем обновляются
+// отрисованные кванты, и добавляет небольшой запас после найденной границы.
+export const CLUSTER_EXPANSION_SEARCH_STEP = 0.25;
+export const CLUSTER_EXPANSION_ZOOM_BUFFER = 0.25;
 
 // Quick-fix 2026-05-17 (iter.4): потолок суммы СВОБОДНЫХ МЕСТ в ОДНОЙ ноде
 // по зуму (не число зон — число свободных парковок). На обзорных зумах один

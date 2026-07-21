@@ -7,8 +7,11 @@ import {
 } from '@/shared/lib/ymaps';
 import { zonePalette, MAP_Z } from '@/shared/config';
 import { MapRefContext } from '../model/map-ref-context';
+import { useFilteredZones } from '@/features/viewport-driven-zones';
+import { MAP_MAX_ZOOM } from '@/shared/config';
 import { useZoneClusters } from '../model/useZoneClusters';
 import { clusterBubbleSizePx } from '../model/cluster-zones';
+import { nextClusterExpansionZoom } from '../model/cluster-expansion';
 
 interface Props {
   zoom: number;
@@ -46,18 +49,21 @@ function clusterColor(freeSum: number): string {
 
 export function ZoneClusterLayer({ zoom }: Props) {
   const { clusters } = useZoneClusters(zoom);
+  const { data: zones = [] } = useFilteredZones();
   const ctx = useContext(MapRefContext);
 
   if (clusters.length === 0) return null;
 
-  const drillIn = (center: [number, number]) => {
+  const drillIn = (center: [number, number], zoneIds: number[]) => {
     const map = ctx?.current;
     if (!map) return;
 
     try {
+      const currentZoom = (map as { zoom?: number }).zoom ?? zoom;
+      const maxZoom = (map as { zoomRange?: { max?: number } }).zoomRange?.max ?? MAP_MAX_ZOOM;
       map.setLocation({
         center,
-        zoom: Math.min(Math.round(zoom) + 3, 18),
+        zoom: nextClusterExpansionZoom({ zones, zoneIds, currentZoom, maxZoom }),
         duration: 300,
       });
     } catch (e) {
@@ -96,7 +102,7 @@ export function ZoneClusterLayer({ zoom }: Props) {
                 data-testid="zone-cluster"
                 aria-label={`${cl.zoneCount} парковок, свободно ${cl.freeSum}. Приблизить`}
                 title={`${cl.zoneCount} парковок · свободно ${cl.freeSum}`}
-                onClick={() => drillIn(cl.center)}
+                onClick={() => drillIn(cl.center, cl.zoneIds)}
                 className="absolute flex cursor-pointer items-center justify-center rounded-full font-semibold text-white shadow-md ring-2 ring-white/70"
                 style={{
                   left: 0,
