@@ -36,7 +36,7 @@ export function buildRoutingBody({
     mode: isToDest ? 'route_to_destination' : 'find_parking',
     origin: { latitude: latFrom, longitude: lonFrom },
     // D-14 hardcoded
-    limit: 100,
+    limit: 50,
     provider: 'geoapify',
     // D-41: use_forecast = true в past/future modes
     use_forecast: true,
