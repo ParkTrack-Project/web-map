@@ -45,7 +45,7 @@ function DesktopResultsPanelInner() {
   // прятался под top-row кнопками (z-30 поверх z-20).
   return (
     <aside
-      className="absolute top-16 bottom-0 left-0 hidden overflow-hidden bg-white shadow-2xl lg:flex lg:flex-col"
+      className="surface-opaque absolute top-16 bottom-0 left-0 hidden overflow-hidden bg-white shadow-2xl lg:flex lg:flex-col dark:bg-zinc-900"
       style={{ width: RESULTS_PANEL_WIDTH_PX, zIndex: Z_INDEX.resultsPanel }}
       aria-label={t('results.title')}
       data-testid="desktop-results-panel"

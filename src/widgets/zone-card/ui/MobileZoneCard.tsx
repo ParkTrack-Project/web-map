@@ -120,7 +120,7 @@ export function MobileZoneCard() {
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
         <Drawer.Content
-          className="fixed inset-x-0 bottom-0 z-50 mx-auto flex flex-col rounded-t-2xl bg-white outline-none lg:hidden"
+          className="surface-opaque fixed inset-x-0 bottom-0 z-50 mx-auto flex flex-col rounded-t-2xl bg-white outline-none lg:hidden dark:bg-zinc-900"
           aria-describedby={undefined}
           // Phase 5 hot-fix: drawer auto-fit to content height (без snapPoints).
           // pb-[15px] добавляет 15px отступа после кнопки «Построить маршрут» —

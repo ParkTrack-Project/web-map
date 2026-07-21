@@ -25,7 +25,7 @@ export function AccountPanel({ onNavigate }: Props) {
         <button
           type="button"
           onClick={() => onNavigate('profile')}
-          className="flex min-h-16 items-center gap-3 rounded-xl border border-zinc-200 p-3 text-left hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+          className="surface-opaque flex min-h-16 items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 text-left hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
         >
           <span className="min-w-0 flex-1">
             <span className="block truncate font-semibold">

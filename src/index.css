@@ -16,6 +16,26 @@
     outline-offset: 2px;
   }
 
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  a[href],
+  summary {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role='button'][aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  input[type='range'] {
+    cursor: grab;
+  }
+
+  input[type='range']:active {
+    cursor: grabbing;
+  }
+
   /* SEARCH-06 fix: <input type="search"> рисует НАТИВНЫЙ крестик очистки
      (WebKit ::-webkit-search-cancel-button / IE ::-ms-clear). В SearchBar'ах
      уже есть кастомная кнопка очистки (она ещё и возвращает фокус в input),
@@ -53,6 +73,23 @@ html[data-theme='dark'] #root {
 html[data-theme='dark'] [class~='bg-white'],
 html[data-theme='dark'] [class*='bg-white/'] {
   background-color: rgb(24 24 27 / 0.96) !important;
+}
+
+/* Карточки и панели должны полностью перекрывать карту и соседние слои. */
+html[data-theme='dark'] .surface-opaque {
+  background-color: #18181b !important;
+}
+
+html[data-theme='dark'] .surface-selected {
+  background-color: #052e16 !important;
+}
+
+html[data-theme='dark'] :is(button, [role='button'], a).surface-opaque:hover {
+  background-color: #27272a !important;
+}
+
+html[data-theme='dark'] :is(button, [role='button'], a).surface-selected:hover {
+  background-color: #064e3b !important;
 }
 
 html[data-theme='dark'] [class~='bg-zinc-50'],

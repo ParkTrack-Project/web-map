@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Drawer } from 'vaul';
 import { useIsMobile } from '@/shared/lib/responsive';
 import { useI18n } from '@/shared/lib/i18n';
+import { Z_INDEX } from '@/shared/config';
 import { AccountPanel, type AccountScreen } from './AccountPanel';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
@@ -48,7 +49,8 @@ export function AccountMenu({ placement }: Props) {
     <button
       type="button"
       aria-label={t('account.open')}
-      className={`${placement === 'desktop' ? 'absolute top-4 right-4' : 'absolute top-[calc(env(safe-area-inset-top)+0.5rem)] right-2'} z-40 flex h-11 w-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-800 shadow-lg hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800`}
+      style={{ zIndex: Z_INDEX.accountTrigger }}
+      className={`${placement === 'desktop' ? 'absolute top-4 right-4' : 'absolute top-[calc(env(safe-area-inset-top)+0.5rem)] right-2'} surface-opaque flex h-11 w-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-800 shadow-lg hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800`}
     >
       <UserRound size={20} aria-hidden />
     </button>
@@ -60,7 +62,7 @@ export function AccountMenu({ placement }: Props) {
         <Drawer.Trigger asChild>{trigger}</Drawer.Trigger>
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 z-[60] bg-black/50" />
-          <Drawer.Content className="fixed inset-x-0 bottom-0 z-[61] h-auto max-h-[calc(100dvh-env(safe-area-inset-top)-0.5rem)] overflow-hidden rounded-t-2xl border-t border-zinc-200 bg-white text-zinc-950 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50">
+          <Drawer.Content className="surface-opaque fixed inset-x-0 bottom-0 z-[61] h-auto max-h-[calc(100dvh-env(safe-area-inset-top)-0.5rem)] overflow-hidden rounded-t-2xl border-t border-zinc-200 bg-white text-zinc-950 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50">
             <Drawer.Description className="sr-only">
               {t('account.panelDescription')}
             </Drawer.Description>
@@ -108,7 +110,7 @@ export function AccountMenu({ placement }: Props) {
         <Popover.Content
           align="end"
           sideOffset={8}
-          className="z-[61] max-h-[calc(100dvh-5rem)] w-[360px] overflow-y-auto rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-950 shadow-2xl outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+          className="surface-opaque z-[61] max-h-[calc(100dvh-5rem)] w-[360px] overflow-y-auto rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-950 shadow-2xl outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
         >
           <div className="mb-2 flex min-h-10 items-center justify-between">
             {screen !== 'home' ? (

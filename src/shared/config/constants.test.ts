@@ -32,6 +32,11 @@ describe('Phase 4 constants', () => {
   it('Z_INDEX.resultsPanel ниже modeTransitionOverlay (overlay не перекрывается)', () => {
     expect(Z_INDEX.resultsPanel).toBeLessThan(Z_INDEX.modeTransitionOverlay);
   });
+
+  it('кнопка аккаунта находится под карточками и панелями карты', () => {
+    expect(Z_INDEX.accountTrigger).toBeLessThan(Z_INDEX.resultsPanel);
+    expect(Z_INDEX.accountTrigger).toBeLessThan(Z_INDEX.drawerContent);
+  });
   it('Z_INDEX.deeplinkPopover выше drawerContent (popover видно над vaul)', () => {
     expect(Z_INDEX.deeplinkPopover).toBeGreaterThan(Z_INDEX.drawerContent);
   });

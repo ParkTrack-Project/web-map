@@ -50,7 +50,7 @@ export function ZoneCard() {
 
   return (
     <aside
-      className="absolute top-0 right-0 z-30 hidden h-full w-[400px] overflow-y-auto bg-white shadow-2xl lg:block"
+      className="surface-opaque absolute top-0 right-0 z-30 hidden h-full w-[400px] overflow-y-auto bg-white shadow-2xl lg:block dark:bg-zinc-900"
       aria-label={t('zone.card')}
     >
       {/* D-08a: key={selectedZoneId} — React reconciliation вместо unmount/remount
@@ -110,7 +110,7 @@ export function ZoneCardContent({ zoneId, onClose }: ContentProps) {
         <div
           role="status"
           data-testid="zone-card-inactive"
-          className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm"
+          className="surface-opaque rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:bg-zinc-900"
         >
           <p className="text-sm text-zinc-700">{t('zone.inactive')}</p>
           {mode.kind !== 'now' && (

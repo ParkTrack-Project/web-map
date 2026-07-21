@@ -85,7 +85,7 @@ export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResul
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
         <Drawer.Content
-          className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[95dvh] flex-col rounded-t-2xl bg-white outline-none lg:hidden"
+          className="surface-opaque fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[95dvh] flex-col rounded-t-2xl bg-white outline-none lg:hidden dark:bg-zinc-900"
           aria-describedby={undefined}
           data-testid="mobile-results-sheet"
           style={{ maxHeight: 'calc(var(--keyboard-aware-height, 100dvh) - 80px)' }}

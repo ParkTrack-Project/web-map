@@ -53,7 +53,9 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
       onClick={handleClick}
       className={
         'flex w-full flex-col gap-1 rounded-md border-2 px-3 py-2 text-left text-sm hover:bg-emerald-50 ' +
-        (isSelected ? 'border-emerald-500 bg-emerald-50' : 'border-zinc-100 bg-white')
+        (isSelected
+          ? 'surface-selected border-emerald-500 bg-emerald-50'
+          : 'surface-opaque border-zinc-100 bg-white dark:bg-zinc-900')
       }
       style={{ height: 140 }}
     >
