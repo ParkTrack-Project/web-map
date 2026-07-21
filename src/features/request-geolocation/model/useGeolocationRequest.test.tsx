@@ -73,6 +73,26 @@ describe('useGeolocationRequest (D-11..D-13 / WTP-02 / Pitfall 4)', () => {
     expect(result.current.state.status).toBe('timeout');
   });
 
+  it('POSITION_UNAVAILABLE uses the supplied viewport fallback', async () => {
+    getCurrentPositionMock.mockImplementationOnce(
+      (_: PositionCallback, onError: PositionErrorCallback) =>
+        onError({
+          code: 2,
+          PERMISSION_DENIED: 1,
+          POSITION_UNAVAILABLE: 2,
+          TIMEOUT: 3,
+          message: 'CoreLocation location unknown',
+        } as GeolocationPositionError),
+    );
+    const { result } = renderHook(() => useGeolocationRequest());
+    let coords: [number, number] | null = null;
+    await act(async () => {
+      coords = await result.current.request([60, 31]);
+    });
+    expect(coords).toEqual([60, 31]);
+    expect(result.current.state).toMatchObject({ status: 'success', position: [60, 31] });
+  });
+
   it('passes options { enableHighAccuracy:false, timeout:10000, maximumAge:30000 }', async () => {
     getCurrentPositionMock.mockImplementationOnce((onSuccess: PositionCallback) =>
       onSuccess({ coords: { latitude: 0, longitude: 0 } } as GeolocationPosition),

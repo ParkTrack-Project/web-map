@@ -19,9 +19,16 @@ export function useGeolocationRequest() {
   const { t } = useI18n();
   const [state, setState] = useState<GeolocationRequestState>(INITIAL);
 
-  const request = (): Promise<[number, number] | null> => {
+  const request = (fallbackPosition?: [number, number]): Promise<[number, number] | null> => {
     return new Promise((resolve) => {
+      const applyFallback = () => {
+        if (!fallbackPosition) return false;
+        setState({ status: 'success', position: fallbackPosition, error: null });
+        resolve(fallbackPosition);
+        return true;
+      };
       if (typeof navigator === 'undefined' || !navigator.geolocation) {
+        if (applyFallback()) return;
         setState({
           status: 'unavailable',
           position: null,
@@ -44,9 +51,11 @@ export function useGeolocationRequest() {
             status = 'denied';
             message = t('wtp.denied');
           } else if (err.code === err.POSITION_UNAVAILABLE) {
+            if (applyFallback()) return;
             status = 'unavailable';
             message = t('wtp.failed');
           } else if (err.code === err.TIMEOUT) {
+            if (applyFallback()) return;
             status = 'timeout';
             message = t('wtp.timeout');
           }

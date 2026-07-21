@@ -28,13 +28,13 @@ describe('useRoutingSearchBody (D-14 / D-15)', () => {
     });
     expect(result.current?.mode).toBe('route_to_destination');
     expect(result.current?.destination).toEqual({ latitude: 59.95598, longitude: 30.30943 });
-    expect(result.current?.max_distance_to_destination_meters).toBe(500);
+    expect(result.current?.max_distance_to_destination_meters).toBeUndefined();
   });
-  it('limit=20 + provider=geoapify hardcoded (D-14)', () => {
+  it('requests up to 100 ranked candidates from geoapify', () => {
     const { result } = renderHook(() => useRoutingSearchBody(), {
       wrapper: wrap('?from=59.93863,30.31413'),
     });
-    expect(result.current?.limit).toBe(20);
+    expect(result.current?.limit).toBe(100);
     expect(result.current?.provider).toBe('geoapify');
   });
 });

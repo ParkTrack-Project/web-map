@@ -9,11 +9,13 @@ import { useContext, useRef, useState } from 'react';
 import { Search, X, ArrowLeft } from 'lucide-react';
 import { useAddressSuggest, useDestination } from '@/features/address-search';
 import { useSelectedZone } from '@/features/select-zone';
+import { useFromCoords } from '@/features/request-geolocation';
 import { MapRefContext } from '@/widgets/map-canvas';
 import { useVisualViewportHeight } from '@/shared/lib/dom';
 import type { SuggestResult } from '@/shared/lib/yandex';
 import { SuggestionsList } from './SuggestionsList';
 import { useI18n } from '@/shared/lib/i18n';
+import { originForAddressSelection } from '../model/search-origin';
 
 export function MobileSearchBar() {
   const { t } = useI18n();
@@ -25,6 +27,7 @@ export function MobileSearchBar() {
   const { text, setText, results, isFetching, error } = useAddressSuggest();
   const { setDestination } = useDestination();
   const { closeCard } = useSelectedZone();
+  const { from, setFromCoords } = useFromCoords();
   const mapRef = useContext(MapRefContext);
   const inputRef = useRef<HTMLInputElement>(null);
   const [overlayOpen, setOverlayOpen] = useState(false);
@@ -33,6 +36,8 @@ export function MobileSearchBar() {
     if (!sug.coords) return;
     const coords = sug.coords;
     setDestination(coords);
+    const addressOrigin = originForAddressSelection(from, coords);
+    if (addressOrigin) setFromCoords(addressOrigin);
     mapRef?.current?.setLocation({ center: [coords[1], coords[0]], zoom: 16, duration: 300 });
     closeCard();
     setText(sug.title.text);

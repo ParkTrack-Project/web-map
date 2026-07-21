@@ -19,9 +19,6 @@ export interface BuildRoutingBodyArgs {
   dest: [number, number] | null; // [lat, lon]
   filters: ZoneFilters;
   mode: TimeMode;
-  // D-14 был жёстко 500. Параметризуем для авто-расширения поиска
-  // (useRoutingResults: 500 → 1500 → 3000 при нуле кандидатов).
-  destRadiusMeters?: number;
 }
 
 export function buildRoutingBody({
@@ -31,7 +28,6 @@ export function buildRoutingBody({
   // `mode` остаётся в BuildRoutingBodyArgs (его передают вызывающие и он влияет
   // на queryKey/мемоизацию), но в самом body не используется: use_forecast
   // хардкожен true. Не деструктурируем — иначе noUnusedLocals падает на сборке.
-  destRadiusMeters = 500,
 }: BuildRoutingBodyArgs): RoutingSearchBody | null {
   if (!from) return null;
   const [latFrom, lonFrom] = from;
@@ -40,14 +36,13 @@ export function buildRoutingBody({
     mode: isToDest ? 'route_to_destination' : 'find_parking',
     origin: { latitude: latFrom, longitude: lonFrom },
     // D-14 hardcoded
-    limit: 20,
+    limit: 100,
     provider: 'geoapify',
     // D-41: use_forecast = true в past/future modes
     use_forecast: true,
   };
   if (isToDest && dest) {
     body.destination = { latitude: dest[0], longitude: dest[1] };
-    body.max_distance_to_destination_meters = destRadiusMeters;
   }
   // Map filters → body params (D-25)
   if (filters.maxPay !== null) body.max_pay = filters.maxPay;

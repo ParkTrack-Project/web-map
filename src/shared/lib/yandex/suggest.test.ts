@@ -31,8 +31,7 @@ describe('suggestAddresses (Quick-fix п.4 — ymaps3.search JS-API)', () => {
     ]);
     const ctrl = new AbortController();
     const out = await suggestAddresses('Кронверкский', ctrl.signal);
-    // bbox не передан → bounds undefined (без viewport bias).
-    expect(mockedSearchGeo).toHaveBeenCalledWith('Кронверкский', undefined);
+    expect(mockedSearchGeo).toHaveBeenCalledWith('Кронверкский');
     expect(out).toEqual([
       {
         title: { text: 'Кронверкский пр.' },
@@ -43,15 +42,21 @@ describe('suggestAddresses (Quick-fix п.4 — ymaps3.search JS-API)', () => {
     ]);
   });
 
-  it('viewport bias: bbox → searchGeo получает bounds [[swLon,swLat],[neLon,neLat]]', async () => {
-    mockedSearchGeo.mockResolvedValueOnce([]);
+  it('merges nearby-first and global results without duplicates', async () => {
+    mockedSearchGeo
+      .mockResolvedValueOnce([{ title: 'Nearby', subtitle: 'Local', coords: [59.9, 30.3] }])
+      .mockResolvedValueOnce([
+        { title: 'Nearby', subtitle: 'Local', coords: [59.9, 30.3] },
+        { title: 'Far away', subtitle: 'Global', coords: [55.7, 37.6] },
+      ]);
     const ctrl = new AbortController();
-    // bbox = [west, south, east, north]
-    await suggestAddresses('Кронв', ctrl.signal, [30.2, 59.9, 30.4, 60.0]);
-    expect(mockedSearchGeo).toHaveBeenCalledWith('Кронв', [
+    const out = await suggestAddresses('Кронв', ctrl.signal, [30.2, 59.9, 30.4, 60.0]);
+    expect(mockedSearchGeo).toHaveBeenNthCalledWith(1, 'Кронв', [
       [30.2, 59.9],
       [30.4, 60.0],
     ]);
+    expect(mockedSearchGeo).toHaveBeenNthCalledWith(2, 'Кронв');
+    expect(out.map((item) => item.title.text)).toEqual(['Nearby', 'Far away']);
   });
 
   it('пустой subtitle → поле subtitle отсутствует', async () => {

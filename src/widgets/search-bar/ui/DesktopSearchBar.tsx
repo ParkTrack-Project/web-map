@@ -20,19 +20,18 @@ import { Search, X } from 'lucide-react';
 import { useAddressSuggest, useDestination } from '@/features/address-search';
 import { useSelectedZone } from '@/features/select-zone';
 import { useFromCoords } from '@/features/request-geolocation';
-import { useWtpPrompt } from '@/widgets/wtp-cta';
 import { MapRefContext } from '@/widgets/map-canvas';
 import type { SuggestResult } from '@/shared/lib/yandex';
 import { SuggestionsList } from './SuggestionsList';
 import { useI18n } from '@/shared/lib/i18n';
+import { originForAddressSelection } from '../model/search-origin';
 
 export function DesktopSearchBar() {
   const { t } = useI18n();
   const { text, setText, results, isFetching, error } = useAddressSuggest();
   const { setDestination } = useDestination();
   const { closeCard } = useSelectedZone();
-  const { from } = useFromCoords();
-  const openWtpPrompt = useWtpPrompt((s) => s.setOpen);
+  const { from, setFromCoords } = useFromCoords();
   const mapRef = useContext(MapRefContext);
   const inputRef = useRef<HTMLInputElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -46,6 +45,8 @@ export function DesktopSearchBar() {
     const coords = sug.coords; // [lat, lon]
     // 1. setDestination — URL ?dest (→ розовый маркер адреса на карте)
     setDestination(coords);
+    const addressOrigin = originForAddressSelection(from, coords);
+    if (addressOrigin) setFromCoords(addressOrigin);
     // 2. center map (lon-lat order для Yandex setLocation)
     mapRef?.current?.setLocation({ center: [coords[1], coords[0]], zoom: 16, duration: 300 });
     // 3. close zone-card
@@ -54,11 +55,6 @@ export function DesktopSearchBar() {
     inputRef.current?.blur();
     setOpen(false);
     setText(sug.title.text);
-    // 5. Quick-fix 2026-05-16: сразу предлагаем указать стартовую точку —
-    //    открываем окно «Где припарковаться?». Только если ?from ещё нет:
-    //    при известном origin результаты и так открываются автоматически,
-    //    лишнее модальное окно не показываем.
-    if (!from) openWtpPrompt(true);
   };
 
   return (

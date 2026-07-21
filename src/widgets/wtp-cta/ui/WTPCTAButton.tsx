@@ -11,7 +11,11 @@
 import { useCallback } from 'react';
 import { Locate } from 'lucide-react';
 import { Z_INDEX } from '@/shared/config';
-import { useGeolocationRequest, useFromCoords } from '@/features/request-geolocation';
+import {
+  useGeolocationRequest,
+  useFromCoords,
+  useViewportSearchOrigin,
+} from '@/features/request-geolocation';
 import { useDestination } from '@/features/address-search';
 import { PreFlightDialog } from './PreFlightDialog';
 import { useWtpPrompt } from '../model/useWtpPrompt';
@@ -35,13 +39,14 @@ export function WTPCTAButton() {
   const open = useWtpPrompt((s) => s.open);
   const setOpen = useWtpPrompt((s) => s.setOpen);
   const { request } = useGeolocationRequest();
+  const viewportOrigin = useViewportSearchOrigin();
   const { setFromCoords } = useFromCoords();
   const { clearDestination } = useDestination();
 
   const requestGeolocation = useCallback(async () => {
-    const coords = await request();
+    const coords = await request(viewportOrigin);
     if (coords) setFromCoords(coords);
-  }, [request, setFromCoords]);
+  }, [request, setFromCoords, viewportOrigin]);
 
   const handleClick = useCallback(async () => {
     // «Припарковаться» = искать парковки рядом с МОИМ местоположением. Если был

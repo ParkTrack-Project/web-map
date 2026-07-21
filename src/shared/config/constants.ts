@@ -110,11 +110,3 @@ export const RESULTS_LIST_ITEM_HEIGHT_PX = 140;
 // Phase 4 / SEARCH-01: минимум символов перед triggering Suggest fetch
 // (research Pitfall 5 — single-letter API hits убивают free-tier quota).
 export const SUGGEST_MIN_QUERY_LENGTH = 2;
-
-// 2026-05-17: лестница радиусов «парковка ≤ N м от адреса» для /routing/search.
-// Раньше было жёстко 500 м (D-14) → для многих адресов 0 вариантов, хотя
-// парковки рядом есть (центроид длинной parallel-зоны + погрешность геокодера).
-// Теперь при 0 кандидатов поиск авто-расширяется 500 → 1500 → 3000 м
-// (см. useRoutingResults). На /routing/new (явный выбор парковки) этот фильтр
-// вообще не отправляется — ZoneCard его вырезает (иначе backend 422).
-export const ROUTING_DEST_RADII_M = [500, 1500, 3000] as const;
