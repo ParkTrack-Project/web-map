@@ -9,6 +9,7 @@ import { AccountPanel } from './AccountPanel';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 import { ProfileForm } from './ProfileForm';
+import { PasswordResetForm } from './PasswordResetForm';
 
 function wrap(node: React.ReactNode) {
   return render(<I18nProvider>{node}</I18nProvider>);
@@ -47,13 +48,28 @@ describe('account panel', () => {
 
   it('signs in successfully', async () => {
     const onBack = vi.fn();
-    wrap(<LoginForm onBack={onBack} />);
+    wrap(<LoginForm onBack={onBack} onForgotPassword={vi.fn()} />);
     await userEvent.type(screen.getByPlaceholderText('Email или логин'), 'person@example.com');
     await userEvent.type(screen.getByLabelText('Пароль'), 'password');
     await userEvent.click(screen.getByRole('button', { name: 'Войти' }));
     await waitFor(() => expect(useSession.getState().status).toBe('authenticated'));
     expect(useSession.getState().user?.email).toBe('person@example.com');
     expect(onBack).toHaveBeenCalled();
+  });
+
+  it('opens password reset from login and requests a reset link', async () => {
+    const onForgotPassword = vi.fn();
+    const { unmount } = wrap(<LoginForm onBack={vi.fn()} onForgotPassword={onForgotPassword} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Забыли пароль?' }));
+    expect(onForgotPassword).toHaveBeenCalledOnce();
+
+    unmount();
+    wrap(<PasswordResetForm onBack={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText('Email'), 'person@example.com');
+    await userEvent.click(screen.getByRole('button', { name: 'Отправить ссылку' }));
+    expect(
+      await screen.findByText('Если аккаунт существует, ссылка для сброса отправлена на почту.'),
+    ).toBeInTheDocument();
   });
 
   it('registers successfully', async () => {

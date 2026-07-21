@@ -37,6 +37,10 @@ export async function registerRequest(body: {
   return { accessToken: data.access_token, user: normalizeUser(data.user) };
 }
 
+export async function requestPasswordResetRequest(email: string): Promise<void> {
+  await apiClient.post('/api/v1/auth/password-reset/request', { email });
+}
+
 export async function currentUserRequest(): Promise<SessionUser> {
   const { data } = await apiClient.get<RawUser | { user: RawUser }>('/api/v1/auth/me');
   return normalizeUser('user' in data ? data.user : data);

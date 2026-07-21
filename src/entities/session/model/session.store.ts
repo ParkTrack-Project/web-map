@@ -4,6 +4,7 @@ import {
   loginRequest,
   logoutRequest,
   registerRequest,
+  requestPasswordResetRequest,
   updateUserRequest,
 } from '../api/session.api';
 import { readSession, writeSession, type SessionUser } from '@/shared/lib/session';
@@ -17,6 +18,7 @@ interface SessionState {
   bootstrap: () => Promise<void>;
   login: (body: { login: string; password: string }) => Promise<void>;
   register: (body: { email: string; password: string; full_name?: string }) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<void>;
   updateName: (fullName: string) => Promise<void>;
   logout: () => Promise<void>;
   clear: () => void;
@@ -53,6 +55,9 @@ export const useSession = create<SessionState>((set, get) => ({
     const session = await registerRequest(body);
     persist(session.accessToken, session.user);
     set({ status: 'authenticated', user: session.user });
+  },
+  requestPasswordReset: async (email) => {
+    await requestPasswordResetRequest(email);
   },
   updateName: async (fullName) => {
     const user = await updateUserRequest(fullName);

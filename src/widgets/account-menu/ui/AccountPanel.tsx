@@ -5,7 +5,7 @@ import { PreferenceSettings } from './PreferenceSettings';
 import { ProjectLinks } from './ProjectLinks';
 import { primaryButton, secondaryButton } from './form-fields';
 
-export type AccountScreen = 'home' | 'login' | 'register' | 'profile';
+export type AccountScreen = 'home' | 'login' | 'register' | 'reset-password' | 'profile';
 
 interface Props {
   onNavigate: (screen: AccountScreen) => void;

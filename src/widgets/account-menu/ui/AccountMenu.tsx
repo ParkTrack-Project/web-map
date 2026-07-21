@@ -8,6 +8,7 @@ import { AccountPanel, type AccountScreen } from './AccountPanel';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 import { ProfileForm } from './ProfileForm';
+import { PasswordResetForm } from './PasswordResetForm';
 
 interface Props {
   placement: 'desktop' | 'mobile';
@@ -20,8 +21,16 @@ function PanelContent({
   screen: AccountScreen;
   setScreen: (screen: AccountScreen) => void;
 }) {
-  if (screen === 'login') return <LoginForm onBack={() => setScreen('home')} />;
+  if (screen === 'login') {
+    return (
+      <LoginForm
+        onBack={() => setScreen('home')}
+        onForgotPassword={() => setScreen('reset-password')}
+      />
+    );
+  }
   if (screen === 'register') return <RegisterForm onBack={() => setScreen('home')} />;
+  if (screen === 'reset-password') return <PasswordResetForm onBack={() => setScreen('login')} />;
   if (screen === 'profile') return <ProfileForm onBack={() => setScreen('home')} />;
   return <AccountPanel onNavigate={setScreen} />;
 }

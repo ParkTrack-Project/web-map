@@ -9,9 +9,10 @@ import { FormField, primaryButton, secondaryButton } from './form-fields';
 
 interface Props {
   onBack: () => void;
+  onForgotPassword: () => void;
 }
 
-export function LoginForm({ onBack }: Props) {
+export function LoginForm({ onBack, onForgotPassword }: Props) {
   const { t } = useI18n();
   const login = useSession((state) => state.login);
   const schema = z.object({
@@ -56,6 +57,14 @@ export function LoginForm({ onBack }: Props) {
         registration={register('password')}
         error={errors.password}
       />
+      <button
+        type="button"
+        onClick={onForgotPassword}
+        disabled={isSubmitting}
+        className="-mt-2 self-end text-sm font-medium text-emerald-700 hover:text-emerald-800 hover:underline disabled:opacity-60 dark:text-emerald-400 dark:hover:text-emerald-300"
+      >
+        {t('account.forgotPassword')}
+      </button>
       {errors.root && (
         <p role="alert" className="text-sm text-red-600 dark:text-red-400">
           {errors.root.message}

@@ -299,6 +299,13 @@ export const handlers = [
       { status: 201 },
     );
   }),
+  http.post(`${baseUrl}/api/v1/auth/password-reset/request`, async ({ request }) => {
+    const body = (await request.json()) as { email?: string };
+    if (!body.email?.includes('@')) {
+      return HttpResponse.json({ error_description: 'Invalid email' }, { status: 422 });
+    }
+    return HttpResponse.json({ ok: true, reset_token: null });
+  }),
   http.get(`${baseUrl}/api/v1/auth/me`, ({ request }) =>
     isAuthorized(request)
       ? HttpResponse.json(mockAuthUser)
