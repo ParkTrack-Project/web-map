@@ -9,17 +9,23 @@
 import * as Popover from '@radix-ui/react-popover';
 import { Clock, History, TrendingUp } from 'lucide-react';
 import { useTimeMode } from '@/features/select-time-mode';
-import { formatTimeLabelRu } from '@/shared/lib/i18n';
+import { formatTimeLabel, useI18n } from '@/shared/lib/i18n';
 import { TimeSelectorContent } from './TimeSelectorContent';
 
 export function TimeSelectorPopover() {
+  const { t, language } = useI18n();
   const { mode } = useTimeMode();
   const Icon = mode.kind === 'past' ? History : mode.kind === 'future' ? TrendingUp : Clock;
   // Quick task 260426-hhb: short-form display (без «История на »/«Прогноз на »
   // prefix-text) — consistency с TimeSelectorChip mobile.
-  const fullLabel = formatTimeLabelRu(mode);
+  const fullLabel = formatTimeLabel(mode, language);
   const display =
-    mode.kind === 'now' ? 'Сейчас' : fullLabel.replace(/^(История на |Прогноз на )/, '');
+    mode.kind === 'now'
+      ? t('time.now')
+      : fullLabel.replace(
+          language === 'ru' ? /^(История на |Прогноз на )/ : /^(History at |Forecast for )/,
+          '',
+        );
   const isActive = mode.kind !== 'now';
 
   return (
@@ -27,7 +33,7 @@ export function TimeSelectorPopover() {
       <Popover.Trigger asChild>
         <button
           type="button"
-          aria-label={`Время: ${display}`}
+          aria-label={t('time.aria', { label: display })}
           className={
             'hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium shadow-sm ring-1 transition-colors active:scale-[0.98] lg:inline-flex ' +
             (isActive

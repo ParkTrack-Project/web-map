@@ -11,16 +11,14 @@ export function EmptyResultsState({
   onResetFilters,
   onCloseResults,
 }: EmptyResultsStateProps) {
+  const { t } = useI18n();
   return (
     <div
       role="status"
       data-testid="empty-results-state"
       className="flex flex-col gap-3 p-5 text-sm"
     >
-      <p className="text-zinc-700">
-        Подходящих парковок не найдено в радиусе. Попробуйте сбросить фильтры или расширить область
-        поиска.
-      </p>
+      <p className="text-zinc-700">{t('results.empty')}</p>
       <div className="flex flex-col gap-2">
         {activeFiltersCount > 0 && (
           <button
@@ -28,7 +26,7 @@ export function EmptyResultsState({
             onClick={onResetFilters}
             className="rounded-md border border-emerald-600 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
           >
-            Сбросить фильтры
+            {t('results.resetFilters')}
           </button>
         )}
         <button
@@ -36,9 +34,10 @@ export function EmptyResultsState({
           onClick={onCloseResults}
           className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
         >
-          Закрыть результаты
+          {t('results.close')}
         </button>
       </div>
     </div>
   );
 }
+import { useI18n } from '@/shared/lib/i18n';

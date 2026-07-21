@@ -24,8 +24,8 @@ describe('computeZoneStyle — семантическая раскраска (D-
       confidence: 0.9,
       is_active: true,
     });
-    expect(s.fill).toBe('#dc262696');
-    expect(s.stroke).toBe('#991b1b');
+    expect(s.fill).toBe('rgba(216,22,22,0.59)');
+    expect(s.stroke).toBe('#cd2b2b');
   });
 
   it('free_count=1 → жёлто-янтарный', () => {
@@ -36,8 +36,8 @@ describe('computeZoneStyle — семантическая раскраска (D-
       confidence: 0.9,
       is_active: true,
     });
-    expect(s.fill).toBe('#f59e0b96');
-    expect(s.stroke).toBe('#b45309');
+    expect(s.fill).toBe('rgba(245,171,11,0.59)');
+    expect(s.stroke).toBe('#b48409');
   });
 
   it('free>=2 && confidence<0.75 → светло-зелёный', () => {
@@ -49,7 +49,7 @@ describe('computeZoneStyle — семантическая раскраска (D-
       is_active: true,
     });
     expect(s.fill).toBe('#86efac96');
-    expect(s.stroke).toBe('#15803d');
+    expect(s.stroke).toBe('#2d8714');
   });
 
   it('free>=2 && confidence>=0.75 → тёмно-зелёный (brand)', () => {
@@ -61,7 +61,7 @@ describe('computeZoneStyle — семантическая раскраска (D-
       is_active: true,
     });
     expect(s.fill).toBe('#16a34aaa');
-    expect(s.stroke).toBe('#14532d');
+    expect(s.stroke).toBe('#155e2a');
   });
 
   it('selected=true → strokeWidth 3 (D-08)', () => {

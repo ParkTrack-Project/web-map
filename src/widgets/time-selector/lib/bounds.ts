@@ -8,8 +8,6 @@
 // Quick task 260426-hhb note: kind теперь derived caller'ом через
 // `at < now ? 'past' : 'future'` — сами bound-helpers сигнатуру не меняют,
 // продолжают принимать explicit kind для clarity.
-import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
 import { MAX_PAST_DAYS, MAX_FUTURE_HOURS } from '@/shared/config';
 
 export function isWithinBounds(
@@ -36,11 +34,28 @@ export function clampToBounds(
   return Math.max(now, Math.min(hi, at));
 }
 
-export function formatBoundMessage(kind: 'past' | 'future', now: number = Date.now()): string {
+export function formatBoundMessage(
+  kind: 'past' | 'future',
+  now: number = Date.now(),
+  language: 'ru' | 'en' = 'ru',
+): string {
+  const locale = language === 'ru' ? 'ru-RU' : 'en-US';
+  const formatBound = (date: Date) =>
+    new Intl.DateTimeFormat(locale, {
+      timeZone: 'Europe/Moscow',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
   if (kind === 'past') {
     const lo = new Date(now - MAX_PAST_DAYS * 86_400_000);
-    return `История доступна только с ${format(lo, 'd MMM HH:mm', { locale: ru })}`;
+    return language === 'ru'
+      ? `История доступна только с ${formatBound(lo)}`
+      : `History is only available from ${formatBound(lo)}`;
   }
   const hi = new Date(now + MAX_FUTURE_HOURS * 3_600_000);
-  return `Прогноз доступен только до ${format(hi, 'd MMM HH:mm', { locale: ru })}`;
+  return language === 'ru'
+    ? `Прогноз доступен только до ${formatBound(hi)}`
+    : `Forecast is only available until ${formatBound(hi)}`;
 }

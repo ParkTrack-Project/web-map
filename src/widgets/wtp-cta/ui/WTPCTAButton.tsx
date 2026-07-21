@@ -15,6 +15,7 @@ import { useGeolocationRequest, useFromCoords } from '@/features/request-geoloca
 import { useDestination } from '@/features/address-search';
 import { PreFlightDialog } from './PreFlightDialog';
 import { useWtpPrompt } from '../model/useWtpPrompt';
+import { useI18n } from '@/shared/lib/i18n';
 
 async function isGeolocationAlreadyGranted(): Promise<boolean> {
   if (typeof navigator === 'undefined' || !('permissions' in navigator)) return false;
@@ -28,6 +29,7 @@ async function isGeolocationAlreadyGranted(): Promise<boolean> {
 }
 
 export function WTPCTAButton() {
+  const { t } = useI18n();
   // Quick-fix 2026-05-16: open вынесен в общий стор — SearchBar открывает это
   // же окно после выбора адреса.
   const open = useWtpPrompt((s) => s.open);
@@ -61,13 +63,13 @@ export function WTPCTAButton() {
     <>
       <button
         type="button"
-        aria-label="Припарковаться"
+        aria-label={t('wtp.action')}
         onClick={handleClick}
         style={{ zIndex: Z_INDEX.wtpCtaDesktop }}
         className="hidden items-center gap-2 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:bg-emerald-700 active:scale-[0.98] lg:inline-flex"
       >
         <Locate size={16} aria-hidden />
-        Припарковаться
+        {t('wtp.action')}
       </button>
       <PreFlightDialog open={open} onOpenChange={setOpen} onAllow={requestGeolocation} />
     </>

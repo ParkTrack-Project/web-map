@@ -67,5 +67,8 @@ export function useRoutingSearchBody(): RoutingSearchBody | null {
   const { filters } = useFilters();
   const { mode } = useTimeMode();
 
-  return useMemo(() => buildRoutingBody({ from, dest, filters, mode }), [from, dest, filters, mode]);
+  return useMemo(
+    () => buildRoutingBody({ from, dest, filters, mode }),
+    [from, dest, filters, mode],
+  );
 }

@@ -24,8 +24,10 @@ import { useWtpPrompt } from '@/widgets/wtp-cta';
 import { MapRefContext } from '@/widgets/map-canvas';
 import type { SuggestResult } from '@/shared/lib/yandex';
 import { SuggestionsList } from './SuggestionsList';
+import { useI18n } from '@/shared/lib/i18n';
 
 export function DesktopSearchBar() {
+  const { t } = useI18n();
   const { text, setText, results, isFetching, error } = useAddressSuggest();
   const { setDestination } = useDestination();
   const { closeCard } = useSelectedZone();
@@ -71,8 +73,8 @@ export function DesktopSearchBar() {
             ref={inputRef}
             type="search"
             role="searchbox"
-            aria-label="Где искать парковку?"
-            placeholder="Где искать парковку?"
+            aria-label={t('search.placeholder')}
+            placeholder={t('search.placeholder')}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onFocus={() => setOpen(true)}
@@ -82,7 +84,7 @@ export function DesktopSearchBar() {
           {text && (
             <button
               type="button"
-              aria-label="Очистить поиск"
+              aria-label={t('search.clear')}
               onClick={() => {
                 setText('');
                 inputRef.current?.focus();
@@ -111,7 +113,7 @@ export function DesktopSearchBar() {
       >
         {isFetching && (
           <div role="status" className="px-3 py-2 text-xs text-zinc-500">
-            Загрузка…
+            {t('common.loading')}
           </div>
         )}
         <SuggestionsList results={results} onSelect={onSelectSuggestion} error={error} />

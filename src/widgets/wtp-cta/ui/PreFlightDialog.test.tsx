@@ -20,9 +20,7 @@ function wrap(children: ReactNode) {
 
 describe('PreFlightDialog (WTP-03 / D-10)', () => {
   it('содержит EXACT explainer текст', () => {
-    render(
-      wrap(<PreFlightDialog open={true} onOpenChange={() => {}} onAllow={() => {}} />),
-    );
+    render(wrap(<PreFlightDialog open={true} onOpenChange={() => {}} onAllow={() => {}} />));
     expect(
       screen.getByText(
         'Для поиска ближайших парковок нужен доступ к вашей геолокации. Координаты используются только для запроса к серверу и не сохраняются.',
@@ -31,9 +29,7 @@ describe('PreFlightDialog (WTP-03 / D-10)', () => {
   });
 
   it('единственная кнопка — «Разрешить геолокацию»', () => {
-    render(
-      wrap(<PreFlightDialog open={true} onOpenChange={() => {}} onAllow={() => {}} />),
-    );
+    render(wrap(<PreFlightDialog open={true} onOpenChange={() => {}} onAllow={() => {}} />));
     expect(screen.getByRole('button', { name: 'Разрешить геолокацию' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Указать вручную' })).toBeNull();
   });

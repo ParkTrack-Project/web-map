@@ -21,10 +21,7 @@ describe('formatTimeLabelRu (TIME-03, I-7: Intl + Europe/Moscow)', () => {
   });
 
   it('opts.full=true → полный месяц + МСК-суффикс', () => {
-    const out = formatTimeLabelRu(
-      { kind: 'past', at: '2026-04-12T09:00:00.000Z' },
-      { full: true },
-    );
+    const out = formatTimeLabelRu({ kind: 'past', at: '2026-04-12T09:00:00.000Z' }, { full: true });
     expect(out).toContain('апреля');
     expect(out).toContain('МСК');
     // I-7: фиксированный UTC instant → assertion не зависит от runner TZ.

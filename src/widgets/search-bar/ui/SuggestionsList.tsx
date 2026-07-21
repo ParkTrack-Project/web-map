@@ -3,6 +3,7 @@
 // Empty/error — D-06 / SEARCH-05 текст.
 import type { ReactNode } from 'react';
 import type { SuggestResult } from '@/shared/lib/yandex';
+import { useI18n } from '@/shared/lib/i18n';
 
 interface SuggestionsListProps {
   results: SuggestResult[];
@@ -30,22 +31,27 @@ function HighlightedTitle({ title }: { title: SuggestResult['title'] }) {
 }
 
 export function SuggestionsList({ results, onSelect, error }: SuggestionsListProps) {
+  const { t } = useI18n();
   if (error) {
     return (
       <div role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-        Яндекс Search недоступен, попробуйте позже
+        {t('search.unavailable')}
       </div>
     );
   }
   if (results.length === 0) {
     return (
       <div role="status" className="px-3 py-2 text-sm text-zinc-500">
-        Начните вводить адрес
+        {t('search.startTyping')}
       </div>
     );
   }
   return (
-    <ul role="listbox" aria-label="Подсказки адресов" className="max-h-[400px] overflow-y-auto">
+    <ul
+      role="listbox"
+      aria-label={t('search.suggestions')}
+      className="max-h-[400px] overflow-y-auto"
+    >
       {results.map((sug, idx) => (
         <li
           key={sug.uri ?? idx}

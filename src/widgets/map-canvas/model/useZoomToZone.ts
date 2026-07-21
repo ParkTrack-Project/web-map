@@ -34,10 +34,7 @@ export function useZoomToZone() {
   zonesRef.current = data;
 
   return useCallback(
-    (
-      geometry: ZoneGeometry | null | undefined,
-      opts?: { max?: boolean; zoneId?: number },
-    ) => {
+    (geometry: ZoneGeometry | null | undefined, opts?: { max?: boolean; zoneId?: number }) => {
       const map = mapRef?.current;
       // Карта ещё не смонтирована или геометрия пустая — тихо пропускаем.
       if (!map || !geometry?.coordinates?.[0]?.length) return;

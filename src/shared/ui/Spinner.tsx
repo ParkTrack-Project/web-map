@@ -1,4 +1,4 @@
-export function Spinner({ label = 'Загрузка…' }: { label?: string }) {
+export function Spinner({ label }: { label: string }) {
   return (
     <div role="status" aria-live="polite" className="flex items-center justify-center p-4">
       <div

@@ -10,8 +10,10 @@ import { zoneCentroid } from '@/shared/lib/geo';
 import { MapRefContext } from '@/widgets/map-canvas';
 import { Z_INDEX } from '@/shared/config';
 import { useRouteId } from '../model/useRouteId';
+import { useI18n } from '@/shared/lib/i18n';
 
 export function FitToRouteButton() {
+  const { t } = useI18n();
   const { routeId } = useRouteId();
   const { data: route } = useRouteByIdQuery(routeId);
   const mapRef = useContext(MapRefContext);
@@ -37,7 +39,7 @@ export function FitToRouteButton() {
     <button
       type="button"
       onClick={handleFit}
-      aria-label="Показать весь маршрут"
+      aria-label={t('route.fit')}
       style={{ zIndex: Z_INDEX.fitToRouteButton }}
       className="absolute right-4 bottom-20 flex h-11 w-11 items-center justify-center rounded-full bg-white text-zinc-700 shadow-md hover:bg-zinc-50"
       data-testid="fit-to-route-button"

@@ -27,8 +27,10 @@ import { useVisualViewportHeight } from '@/shared/lib/dom';
 import { MapRefContext } from '@/widgets/map-canvas';
 import { useRouteId } from '@/widgets/route-preview-summary';
 import { ZoneCardContent } from './ZoneCard';
+import { useI18n } from '@/shared/lib/i18n';
 
 export function MobileZoneCard() {
+  const { t } = useI18n();
   // Phase 5 D-03: keyboard-aware sizing — ZoneCardContent сам по себе input'ов
   // не имеет, но карточка может остаться открытой пока user typing в SearchBar
   // overlay (z=55 поверх). visualViewport-aware max-height гарантирует, что
@@ -126,19 +128,19 @@ export function MobileZoneCard() {
           // экстремальные случаи (длинные адреса) до safe-area viewport.
           style={{ maxHeight: 'calc(var(--keyboard-aware-height, 100dvh) - 80px)' }}
         >
-          <Drawer.Title className="sr-only">Карточка парковки</Drawer.Title>
+          <Drawer.Title className="sr-only">{t('zone.card')}</Drawer.Title>
           <div className="mx-auto my-2 h-1.5 w-12 shrink-0 rounded-full bg-zinc-300" aria-hidden />
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[15px]">
             {renderInactive ? (
               <div role="status" data-testid="mobile-zone-card-inactive" className="p-4">
-                <p className="text-sm text-zinc-700">Зона неактивна в этот период</p>
+                <p className="text-sm text-zinc-700">{t('zone.inactive')}</p>
                 {mode.kind !== 'now' && (
                   <button
                     type="button"
                     onClick={setNow}
                     className="mt-3 inline-flex items-center justify-center rounded-md border border-emerald-600 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
                   >
-                    Вернуться к Сейчас
+                    {t('time.returnNow')}
                   </button>
                 )}
               </div>

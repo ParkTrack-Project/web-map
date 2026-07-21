@@ -1,18 +1,10 @@
 import { useMemo } from 'react';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { useTimeMode } from '@/features/select-time-mode';
-import type { ZoneMapItem } from '@/entities/zone';
+import { TimeModeUnavailableError, type ZoneMapItem } from '@/entities/zone';
+import { useI18n } from '@/shared/lib/i18n';
 
 const MAX_TIME_DRIFT_MS = 30 * 60 * 1000;
-
-const MSK_FORMATTER = new Intl.DateTimeFormat('ru-RU', {
-  timeZone: 'Europe/Moscow',
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-});
 
 type TemporalModeKind = 'past' | 'future';
 
@@ -26,10 +18,7 @@ function parseTimeMs(value: unknown): number | null {
   return Number.isFinite(ms) ? ms : null;
 }
 
-function getDisplayedAtMs(
-  zone: ZoneWithTemporalFields,
-  modeKind: TemporalModeKind,
-): number | null {
+function getDisplayedAtMs(zone: ZoneWithTemporalFields, modeKind: TemporalModeKind): number | null {
   if (modeKind === 'future') {
     // Для прогноза displayed_at / predicted_for / forecasted_at —
     // это время, НА КОТОРОЕ построен прогноз.
@@ -79,29 +68,26 @@ function findNearestDisplayedTimeMs(
   return nearestTimeMs;
 }
 
-function formatMskTime(timeMs: number): string {
-  return MSK_FORMATTER.format(new Date(timeMs));
-}
-
-function formatTimeDiff(diffMs: number): string {
+function formatTimeDiff(diffMs: number, language: 'ru' | 'en'): string {
   const totalMinutes = Math.round(Math.abs(diffMs) / 60_000);
 
   if (totalMinutes < 60) {
-    return `${totalMinutes} мин`;
+    return `${totalMinutes} ${language === 'ru' ? 'мин' : 'min'}`;
   }
 
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
 
   if (minutes === 0) {
-    return `${hours} ч`;
+    return `${hours} ${language === 'ru' ? 'ч' : 'h'}`;
   }
 
-  return `${hours} ч ${minutes} мин`;
+  return `${hours} ${language === 'ru' ? 'ч' : 'h'} ${minutes} ${language === 'ru' ? 'мин' : 'min'}`;
 }
 
 export function ZoneStateOverlay() {
-  const { data, isPending, isFetching } = useFilteredZones();
+  const { t, language } = useI18n();
+  const { data, error, isError, isPending, isFetching, refetch } = useFilteredZones();
   const { mode, setMode } = useTimeMode();
 
   const timeDrift = useMemo(() => {
@@ -112,11 +98,7 @@ export function ZoneStateOverlay() {
 
     if (selectedTimeMs === null) return null;
 
-    const nearestDisplayedTimeMs = findNearestDisplayedTimeMs(
-      data,
-      selectedTimeMs,
-      mode.kind,
-    );
+    const nearestDisplayedTimeMs = findNearestDisplayedTimeMs(data, selectedTimeMs, mode.kind);
 
     if (nearestDisplayedTimeMs === null) return null;
 
@@ -137,6 +119,42 @@ export function ZoneStateOverlay() {
   // Во время refetch не показываем промежуточные старые плашки.
   if (isFetching) return null;
 
+  const isTemporalMode = mode.kind !== 'now';
+
+  if (isError) {
+    const message =
+      error instanceof TimeModeUnavailableError && language === 'ru'
+        ? error.message
+        : error instanceof TimeModeUnavailableError
+          ? t('map.forecastUnavailable')
+          : t('map.loadFailed');
+
+    return (
+      <StateMessage
+        message={message}
+        retry={() => void refetch()}
+        {...(isTemporalMode
+          ? {
+              returnNow: () => {
+                void setMode({ kind: 'now' });
+              },
+            }
+          : {})}
+      />
+    );
+  }
+
+  if (isTemporalMode && data?.length === 0) {
+    return (
+      <StateMessage
+        message={mode.kind === 'past' ? t('map.noHistoricalData') : t('map.forecastUnavailable')}
+        returnNow={() => {
+          void setMode({ kind: 'now' });
+        }}
+      />
+    );
+  }
+
   // Больше не показываем:
   // - «не те фильтры»;
   // - «данных нет»;
@@ -147,27 +165,35 @@ export function ZoneStateOverlay() {
   // реально отображаемых данных больше чем на 30 минут.
   if (!timeDrift || mode.kind === 'now') return null;
 
-  const selectedLabel = formatMskTime(timeDrift.selectedTimeMs);
-  const nearestLabel = formatMskTime(timeDrift.nearestDisplayedTimeMs);
-  const diffLabel = formatTimeDiff(timeDrift.diffMs);
+  const locale = language === 'ru' ? 'ru-RU' : 'en-US';
+  const selectedLabel = new Intl.DateTimeFormat(locale, {
+    timeZone: 'Europe/Moscow',
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(new Date(timeDrift.selectedTimeMs));
+  const nearestLabel = new Intl.DateTimeFormat(locale, {
+    timeZone: 'Europe/Moscow',
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(new Date(timeDrift.nearestDisplayedTimeMs));
+  const diffLabel = formatTimeDiff(timeDrift.diffMs, language);
 
   return (
     <div
       role="status"
-      className="pointer-events-none absolute inset-0 z-40 grid place-items-center bg-white/70 backdrop-blur-[2px]"
+      className="pointer-events-none absolute inset-0 z-40 grid place-items-center bg-white/70 backdrop-blur-[2px] dark:bg-zinc-950/70"
     >
-      <div className="pointer-events-auto max-w-sm rounded-xl bg-white p-4 text-center shadow-xl">
-        <p className="text-sm font-semibold text-zinc-900">
-          Для выбранного времени нет точных данных
+      <div className="pointer-events-auto max-w-sm rounded-xl bg-white p-4 text-center shadow-xl dark:bg-zinc-900">
+        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+          {t('map.timeDriftTitle')}
         </p>
 
-        <p className="mt-1 text-xs text-zinc-600">
-          Вы выбрали {selectedLabel} МСК, а ближайшие доступные данные есть на{' '}
-          {nearestLabel} МСК.
+        <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-300">
+          {t('map.timeDriftDescription', { selected: selectedLabel, nearest: nearestLabel })}
         </p>
 
-        <p className="mt-1 text-xs text-zinc-500">
-          Разница составляет {diffLabel}.
+        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+          {t('map.timeDriftDifference', { difference: diffLabel })}
         </p>
 
         <button
@@ -180,8 +206,49 @@ export function ZoneStateOverlay() {
           }}
           className="mt-3 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-emerald-700"
         >
-          Выбрать ближайшее доступное время
+          {t('map.timeDriftAction')}
         </button>
+      </div>
+    </div>
+  );
+}
+
+function StateMessage({
+  message,
+  retry,
+  returnNow,
+}: {
+  message: string;
+  retry?: () => void;
+  returnNow?: () => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <div className="pointer-events-none absolute inset-0 z-40 grid place-items-center bg-white/70 p-4 backdrop-blur-[2px] dark:bg-zinc-950/70">
+      <div className="pointer-events-auto max-w-sm rounded-xl bg-white p-4 text-center shadow-xl dark:bg-zinc-900">
+        <p role="alert" className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+          {message}
+        </p>
+        <div className="mt-3 flex flex-wrap justify-center gap-2">
+          {retry && (
+            <button
+              type="button"
+              onClick={retry}
+              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium dark:border-zinc-700"
+            >
+              {t('common.retry')}
+            </button>
+          )}
+          {returnNow && (
+            <button
+              type="button"
+              onClick={returnNow}
+              className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+            >
+              {t('time.returnNow')}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

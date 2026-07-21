@@ -14,11 +14,12 @@ import { useRouteByIdQuery } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { useFromCoords } from '@/features/request-geolocation';
 import { isValidCoords } from '@/shared/lib/deeplink';
-import { formatDurationFromSeconds } from '@/shared/lib/i18n';
+import { formatDurationFromSeconds, useI18n } from '@/shared/lib/i18n';
 import { DesktopDeeplinkPopover, MobileDeeplinkSheet } from '@/widgets/deeplink-menu';
 import { useRouteId } from '../model/useRouteId';
 
 export function RouteSummaryCard() {
+  const { t, language } = useI18n();
   const { routeId, clearRouteId } = useRouteId();
   const { data: route, isPending, isError } = useRouteByIdQuery(routeId);
   const { from } = useFromCoords();
@@ -38,28 +39,28 @@ export function RouteSummaryCard() {
 
   const arrivalLabel = useMemo(() => {
     if (!route?.arrival_time) return null;
-    return new Intl.DateTimeFormat('ru-RU', {
+    return new Intl.DateTimeFormat(language === 'ru' ? 'ru-RU' : 'en-US', {
       hour: '2-digit',
       minute: '2-digit',
       timeZone: 'Europe/Moscow',
     }).format(new Date(route.arrival_time));
-  }, [route?.arrival_time]);
+  }, [language, route?.arrival_time]);
 
   if (!routeId || isPending || isError || !route) return null;
 
-  const etaLabel = formatDurationFromSeconds(route.eta_seconds);
+  const etaLabel = formatDurationFromSeconds(route.eta_seconds, language);
   const distance = route.selected_candidate.distance_from_origin_meters;
   // > 1 км → километры с одним знаком после запятой (2600 м → 2,6 км),
   // иначе — метры.
   const distanceLabel =
     distance >= 1000
-      ? new Intl.NumberFormat('ru-RU', {
+      ? new Intl.NumberFormat(language === 'ru' ? 'ru-RU' : 'en-US', {
           style: 'unit',
           unit: 'kilometer',
           unitDisplay: 'short',
           maximumFractionDigits: 1,
         }).format(distance / 1000)
-      : new Intl.NumberFormat('ru-RU', {
+      : new Intl.NumberFormat(language === 'ru' ? 'ru-RU' : 'en-US', {
           style: 'unit',
           unit: 'meter',
           unitDisplay: 'short',
@@ -72,7 +73,7 @@ export function RouteSummaryCard() {
       className="flex flex-col gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm"
     >
       <p className="text-xs font-semibold tracking-wide text-emerald-800 uppercase">
-        Маршрут построен
+        {t('route.built')}
       </p>
       <div className="flex items-center gap-3 text-zinc-800">
         <span className="inline-flex items-center gap-1">
@@ -82,7 +83,9 @@ export function RouteSummaryCard() {
           <Ruler size={14} aria-hidden /> {distanceLabel}
         </span>
       </div>
-      {arrivalLabel && <p className="text-xs text-zinc-600">Прибытие в {arrivalLabel} МСК</p>}
+      {arrivalLabel && (
+        <p className="text-xs text-zinc-600">{t('route.arrival', { time: arrivalLabel })}</p>
+      )}
       <div className="hidden lg:block">
         <DesktopDeeplinkPopover from={from} to={zoneCenterLatLon} coordsValid={coordsValid} />
       </div>

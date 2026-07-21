@@ -7,16 +7,10 @@ import { useFiltersHydration, useFilters } from '@/features/filter-zones';
 import { ALL_LOCATION_TYPES, type LocationType } from '@/entities/filters';
 import { FilterChip } from './FilterChip';
 import { FilterPopoverChip } from './FilterPopoverChip';
-
-const LOC_LABEL: Record<LocationType, string> = {
-  street: 'Улица',
-  yard: 'Двор',
-  open_lot: 'Площадка',
-  underground: 'Подземная',
-  multilevel: 'Многоуровн.',
-};
+import { useI18n, type MessageKey } from '@/shared/lib/i18n';
 
 export function FiltersToolbar() {
+  const { t } = useI18n();
   useFiltersHydration();
   const f = useFilters();
 
@@ -31,22 +25,22 @@ export function FiltersToolbar() {
     <div
       className="flex items-center gap-2 overflow-x-auto bg-white/95 px-4 py-2 shadow-sm backdrop-blur"
       role="toolbar"
-      aria-label="Фильтры парковок"
+      aria-label={t('filters.title')}
     >
       {/* FILTER-01: chip-toggle */}
       <FilterChip
         pressed={f.filters.hideNoFree}
         onToggle={() => f.setHideNoFree(!f.filters.hideNoFree)}
       >
-        Только свободные
+        {t('filters.onlyFree')}
       </FilterChip>
       <FilterPopoverChip
-        label={`Свободных ≥ ${f.filters.minFreeCount}`}
+        label={t('filters.minFree', { count: f.filters.minFreeCount })}
         active={f.filters.minFreeCount > 0}
-        ariaLabel="Минимальное число свободных мест"
+        ariaLabel={t('filters.minFreeAria')}
       >
         <label className="flex flex-col gap-2 text-sm">
-          <span>Минимальное число свободных мест: {f.filters.minFreeCount}</span>
+          <span>{t('filters.minFree', { count: f.filters.minFreeCount })}</span>
           <input
             type="number"
             min={0}
@@ -56,7 +50,7 @@ export function FiltersToolbar() {
               const n = Number(e.target.value);
               f.setMinFreeCount(Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0);
             }}
-            aria-label="Минимальное число свободных мест"
+            aria-label={t('filters.minFreeAria')}
             className="w-32 rounded-md border border-zinc-200 px-2 py-1"
           />
         </label>
@@ -64,12 +58,12 @@ export function FiltersToolbar() {
 
       {/* FILTER-02: chip + popover-slider (D-09) */}
       <FilterPopoverChip
-        label={`Уверенность ≥ ${Math.round(f.filters.minConf * 100)}%`}
+        label={t('filters.confidence', { percent: Math.round(f.filters.minConf * 100) })}
         active={f.filters.minConf > 0}
-        ariaLabel="Минимальная уверенность данных"
+        ariaLabel={t('filters.confidenceAria')}
       >
         <label className="flex flex-col gap-2 text-sm">
-          <span>Минимальная уверенность: {Math.round(f.filters.minConf * 100)}%</span>
+          <span>{t('filters.confidence', { percent: Math.round(f.filters.minConf * 100) })}</span>
           <input
             type="range"
             min={0}
@@ -77,7 +71,7 @@ export function FiltersToolbar() {
             step={0.05}
             value={f.filters.minConf}
             onChange={(e) => f.setMinConf(Number(e.target.value))}
-            aria-label="Минимальная уверенность данных"
+            aria-label={t('filters.confidenceAria')}
             className="h-2 w-48"
           />
         </label>
@@ -87,12 +81,13 @@ export function FiltersToolbar() {
       <FilterPopoverChip
         label={`Цена ≤ ${f.filters.maxPay === null ? '∞' : `${f.filters.maxPay} ₽`}`}
         active={f.filters.maxPay !== null}
-        ariaLabel="Максимальная цена в час"
+        ariaLabel={t('filters.priceAria')}
       >
         <label className="flex flex-col gap-2 text-sm">
           <span>
-            Максимальная цена:{' '}
-            {f.filters.maxPay === null ? 'без ограничения' : `${f.filters.maxPay} ₽/час`}
+            {t('filters.price', {
+              price: f.filters.maxPay === null ? t('filters.unlimited') : `${f.filters.maxPay} ₽`,
+            })}
           </span>
           <input
             type="range"
@@ -104,7 +99,7 @@ export function FiltersToolbar() {
               const v = Number(e.target.value);
               f.setMaxPay(v >= 500 ? null : v);
             }}
-            aria-label="Максимальная цена в час"
+            aria-label={t('filters.priceAria')}
             className="h-2 w-48"
           />
         </label>
@@ -115,39 +110,39 @@ export function FiltersToolbar() {
         pressed={f.filters.hidePrivate}
         onToggle={() => f.setHidePrivate(!f.filters.hidePrivate)}
       >
-        Без частных
+        {t('filters.hidePrivate')}
       </FilterChip>
       <FilterChip
         pressed={f.filters.hideAccessible}
         onToggle={() => f.setHideAccessible(!f.filters.hideAccessible)}
       >
-        Без для инвалидов
+        {t('filters.hideAccessible')}
       </FilterChip>
 
       {/* FILTER-06: chip + popover-checkboxes (D-09) */}
       <FilterPopoverChip
         label={
-          f.filters.locationType.length === 0 ? 'Тип: все' : `Тип: ${f.filters.locationType.length}`
+          f.filters.locationType.length === 0
+            ? t('filters.typeAll')
+            : t('filters.typeCount', { count: f.filters.locationType.length })
         }
         active={f.filters.locationType.length > 0}
-        ariaLabel="Тип расположения парковки"
+        ariaLabel={t('filters.locationType')}
       >
         <fieldset className="flex flex-col gap-2 text-sm">
-          <legend className="font-semibold">Тип расположения</legend>
-          {ALL_LOCATION_TYPES.map((t) => (
-            <label key={t} className="flex items-center gap-2">
+          <legend className="font-semibold">{t('filters.locationType')}</legend>
+          {ALL_LOCATION_TYPES.map((locationType) => (
+            <label key={locationType} className="flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={f.filters.locationType.includes(t)}
-                onChange={() => toggleLoc(t)}
+                checked={f.filters.locationType.includes(locationType)}
+                onChange={() => toggleLoc(locationType)}
                 className="h-4 w-4"
               />
-              {LOC_LABEL[t]}
+              {t(`location.${locationType}` as MessageKey)}
             </label>
           ))}
-          <p className="pt-2 text-xs text-zinc-500">
-            Если ничего не выбрано — показываются все типы
-          </p>
+          <p className="pt-2 text-xs text-zinc-500">{t('filters.allTypesHint')}</p>
         </fieldset>
       </FilterPopoverChip>
 
@@ -156,12 +151,12 @@ export function FiltersToolbar() {
         pressed={f.filters.hideInactive}
         onToggle={() => f.setHideInactive(!f.filters.hideInactive)}
       >
-        Скрыть неактивные
+        {t('filters.hideInactive')}
       </FilterChip>
 
       {/* FILTER-09: badge-count активных */}
       <span className="ml-auto text-sm text-zinc-600">
-        {f.activeCount > 0 ? `Активно: ${f.activeCount}` : 'Без фильтров'}
+        {f.activeCount > 0 ? t('filters.active', { count: f.activeCount }) : t('filters.none')}
       </span>
       {f.activeCount > 0 && (
         <button
@@ -169,7 +164,7 @@ export function FiltersToolbar() {
           onClick={f.resetAll}
           className="ml-2 rounded-md bg-zinc-200 px-3 py-1 text-sm hover:bg-zinc-300"
         >
-          Сбросить
+          {t('filters.reset')}
         </button>
       )}
     </div>

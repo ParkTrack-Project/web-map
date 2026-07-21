@@ -28,6 +28,7 @@ import { WTPCTAButton } from '@/widgets/wtp-cta';
 import { DesktopResultsPanel } from '@/widgets/results-panel';
 // Phase 4 Plan 04 / ROUTE-04: FitToRouteButton — bottom-right map area, gates сам себя по ?route.
 import { FitToRouteButton } from '@/widgets/route-preview-summary';
+import { AccountMenu } from '@/widgets/account-menu';
 
 const MapCanvas = lazy(() =>
   import('@/widgets/map-canvas/ui/MapCanvas').then((m) => ({ default: m.MapCanvas })),
@@ -40,34 +41,35 @@ export function DesktopLayout() {
 
   return (
     <MapRefContext.Provider value={mapRef}>
-    <div className="hidden h-dvh w-screen flex-col lg:flex">
-      <div className="relative flex-1 overflow-hidden">
-        <MapErrorBoundary>
-          <Suspense fallback={<MapSkeleton />}>
-            <MapCanvas mapRef={mapRef} />
-          </Suspense>
-        </MapErrorBoundary>
-        {/* Phase 4 / CO-01: единый flex-row для TimeSelector + WTP + Search + Filters.
+      <div className="hidden h-dvh w-screen flex-col lg:flex">
+        <div className="relative flex-1 overflow-hidden">
+          <MapErrorBoundary>
+            <Suspense fallback={<MapSkeleton />}>
+              <MapCanvas mapRef={mapRef} />
+            </Suspense>
+          </MapErrorBoundary>
+          {/* Phase 4 / CO-01: единый flex-row для TimeSelector + WTP + Search + Filters.
             Flex gap разводит элементы по фактической ширине (нет наезда).
             DesktopFiltersPopover заменил горизонтальный FiltersToolbar — освобождает
             ~50px vertical space карты, единый pattern с mobile FiltersFAB. */}
-        <div className="absolute top-4 left-4 z-30 flex items-start gap-2">
-          <TimeSelectorPopover />
-          <WTPCTAButton />
-          <DesktopSearchBar />
-          <DesktopFiltersPopover />
+          <div className="absolute top-4 left-4 z-30 flex items-start gap-2">
+            <TimeSelectorPopover />
+            <WTPCTAButton />
+            <DesktopSearchBar />
+            <DesktopFiltersPopover />
+          </div>
+          {/* Phase 4 / CO-03: DestPromptBanner — ниже flex-row */}
+          <div className="absolute top-16 left-4 z-30 max-w-[480px]">
+            <DestPromptBanner />
+          </div>
+          {/* Phase 4 Plan 03: ResultsPanel — z-20 overlay LEFT side; ZoneCard z-30 RIGHT side. */}
+          <DesktopResultsPanel />
+          <ZoneCard />
+          {/* Phase 4 Plan 04: FitToRouteButton сам gates рендер по ?route */}
+          <FitToRouteButton />
+          <AccountMenu placement="desktop" />
         </div>
-        {/* Phase 4 / CO-03: DestPromptBanner — ниже flex-row */}
-        <div className="absolute top-16 left-4 z-30 max-w-[480px]">
-          <DestPromptBanner />
-        </div>
-        {/* Phase 4 Plan 03: ResultsPanel — z-20 overlay LEFT side; ZoneCard z-30 RIGHT side. */}
-        <DesktopResultsPanel />
-        <ZoneCard />
-        {/* Phase 4 Plan 04: FitToRouteButton сам gates рендер по ?route */}
-        <FitToRouteButton />
       </div>
-    </div>
     </MapRefContext.Provider>
   );
 }

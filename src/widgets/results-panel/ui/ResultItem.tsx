@@ -5,7 +5,7 @@ import { Star, MapPin, Target } from 'lucide-react';
 import type { RouteCandidate } from '@/entities/zone';
 import { useSelectedZone } from '@/features/select-zone';
 import { useZoomToZone } from '@/widgets/map-canvas';
-import { pluralizeRu, formatDurationFromSeconds } from '@/shared/lib/i18n';
+import { formatDurationFromSeconds, useI18n } from '@/shared/lib/i18n';
 
 interface ResultItemProps {
   candidate: RouteCandidate;
@@ -13,6 +13,7 @@ interface ResultItemProps {
 }
 
 export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
+  const { t, language } = useI18n();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
   const zoomToZone = useZoomToZone();
   const isSelected = selectedZoneId === c.zone_id;
@@ -20,19 +21,20 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
   // 2026-05-26: единый форматтер длительности — «4 мин», «1 ч 30 мин»,
   // «2 д 18 ч». Раньше всегда печаталось в минутах → дальние маршруты
   // показывали «4000 мин» вместо «2 д 18 ч».
-  const durationLabel = formatDurationFromSeconds(c.duration_from_origin_seconds);
-  const freePlural = pluralizeRu(c.predicted_free_count ?? 0, {
-    one: 'свободное место',
-    few: 'свободных места',
-    many: 'свободных мест',
-  });
+  const durationLabel = formatDurationFromSeconds(c.duration_from_origin_seconds, language);
   const arrivalLabel = c.predicted_for_arrival
-    ? new Intl.DateTimeFormat('ru-RU', {
+    ? new Intl.DateTimeFormat(language === 'ru' ? 'ru-RU' : 'en-US', {
         hour: '2-digit',
         minute: '2-digit',
         timeZone: 'Europe/Moscow',
       }).format(new Date(c.predicted_for_arrival))
     : null;
+  const predictedCount = c.predicted_free_count ?? 0;
+  const predictedCategory = new Intl.PluralRules('ru').select(predictedCount);
+  const forecastCount =
+    language === 'ru'
+      ? `${predictedCount} ${predictedCategory === 'one' ? 'свободное место' : predictedCategory === 'few' ? 'свободных места' : 'свободных мест'}`
+      : `${predictedCount} ${predictedCount === 1 ? 'available space' : 'available spaces'}`;
 
   const handleClick = () => {
     onClick?.(c);
@@ -57,41 +59,44 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
     >
       {isBest && (
         <span className="inline-flex w-fit items-center gap-1 rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-medium text-white">
-          <Star size={12} aria-hidden /> Лучший вариант
+          <Star size={12} aria-hidden /> {t('results.best')}
         </span>
       )}
       <div className="font-medium">
-        Зона #{c.zone_id}
+        {t('results.zone', { id: c.zone_id })}
         <span className="ml-2 text-zinc-500">•</span>
         <span className="ml-2">
-          Свободно: {c.current_free_count}/{c.capacity}
+          {t('results.free', { free: c.current_free_count, capacity: c.capacity })}
         </span>
         <span className="ml-2 text-zinc-500">•</span>
         <span className="ml-2">
           {c.pay === 0 ? (
-            <span className="font-semibold text-emerald-700">Бесплатно</span>
+            <span className="font-semibold text-emerald-700">{t('results.freePrice')}</span>
           ) : (
-            <>{c.pay} ₽/час</>
+            <>{t('results.hourPrice', { price: c.pay })}</>
           )}
         </span>
       </div>
       {c.predicted_free_count !== null && arrivalLabel && (
         <div className="text-xs text-zinc-600">
-          Прогноз: {c.predicted_free_count} {freePlural} к {arrivalLabel}
+          {t('results.forecast', {
+            count: forecastCount,
+            time: arrivalLabel,
+          })}
         </div>
       )}
       <div className="flex items-center gap-1 text-xs text-zinc-600">
         <MapPin size={12} aria-hidden />
-        {c.distance_from_origin_meters} м ({durationLabel} на машине)
+        {t('results.driving', { distance: c.distance_from_origin_meters, duration: durationLabel })}
       </div>
       {c.distance_to_destination_meters !== null && (
         <div className="flex items-center gap-1 text-xs text-zinc-600">
           <Target size={12} aria-hidden />
-          {c.distance_to_destination_meters} м до точки назначения
+          {t('results.toDestination', { distance: c.distance_to_destination_meters })}
         </div>
       )}
       <div className="text-xs text-zinc-500">
-        Уверенность: {Math.round(c.current_confidence * 100)}%
+        {t('results.confidence', { percent: Math.round(c.current_confidence * 100) })}
       </div>
     </button>
   );

@@ -13,8 +13,10 @@ import { MapRefContext } from '@/widgets/map-canvas';
 import { useVisualViewportHeight } from '@/shared/lib/dom';
 import type { SuggestResult } from '@/shared/lib/yandex';
 import { SuggestionsList } from './SuggestionsList';
+import { useI18n } from '@/shared/lib/i18n';
 
 export function MobileSearchBar() {
+  const { t } = useI18n();
   // Phase 5 D-03 (RESP-05): главный driver — search input открывает on-screen
   // keyboard, suggestions list ниже него должен помещаться в visible-viewport.
   // Side-effect устанавливает --keyboard-aware-height на :root; suggestions
@@ -47,8 +49,8 @@ export function MobileSearchBar() {
           ref={inputRef}
           type="search"
           role="searchbox"
-          aria-label="Где искать парковку?"
-          placeholder="Где искать парковку?"
+          aria-label={t('search.placeholder')}
+          placeholder={t('search.placeholder')}
           inputMode="search"
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -71,7 +73,7 @@ export function MobileSearchBar() {
         <button
           type="button"
           onClick={() => setOverlayOpen(false)}
-          aria-label="Закрыть поиск"
+          aria-label={t('search.close')}
           className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-zinc-100"
         >
           <ArrowLeft size={20} aria-hidden />
@@ -80,8 +82,8 @@ export function MobileSearchBar() {
           <Search size={14} aria-hidden className="absolute left-3 text-zinc-400" />
           <input
             type="search"
-            aria-label="Где искать парковку?"
-            placeholder="Где искать парковку?"
+            aria-label={t('search.placeholder')}
+            placeholder={t('search.placeholder')}
             inputMode="search"
             autoFocus
             value={text}
@@ -93,7 +95,7 @@ export function MobileSearchBar() {
             <button
               type="button"
               onClick={() => setText('')}
-              aria-label="Очистить поиск"
+              aria-label={t('search.clear')}
               className="absolute right-2 flex h-9 w-9 items-center justify-center rounded-full hover:bg-zinc-100"
             >
               <X size={14} aria-hidden />
@@ -104,7 +106,7 @@ export function MobileSearchBar() {
       <div className="flex-1 overflow-y-auto">
         {isFetching && (
           <div role="status" className="px-4 py-3 text-sm text-zinc-500">
-            Загрузка…
+            {t('common.loading')}
           </div>
         )}
         <SuggestionsList results={results} onSelect={onSelect} error={error} />

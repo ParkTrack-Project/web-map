@@ -13,7 +13,7 @@ import { Locate, ListChecks } from 'lucide-react';
 import { useFromCoords, useGeolocationRequest } from '@/features/request-geolocation';
 import { useFilteredCandidates } from '@/features/filter-zones';
 import { useIsMobile } from '@/shared/lib/responsive';
-import { pluralizeRu } from '@/shared/lib/i18n';
+import { useI18n } from '@/shared/lib/i18n';
 import { PreFlightDrawer } from '@/widgets/wtp-cta';
 import { useRoutingResults } from '../model/useRoutingResults';
 
@@ -35,6 +35,7 @@ async function isGeolocationAlreadyGranted(): Promise<boolean> {
 }
 
 export function MobileResultsButton({ hidden, onOpenSheet }: MobileResultsButtonProps) {
+  const { t, formatCount } = useI18n();
   const { from, setFromCoords } = useFromCoords();
   const { data, isFetching } = useRoutingResults();
   const filtered = useFilteredCandidates(data?.candidates);
@@ -67,15 +68,14 @@ export function MobileResultsButton({ hidden, onOpenSheet }: MobileResultsButton
   let label: string;
   let Icon: typeof Locate | typeof ListChecks;
   if (!from) {
-    label = state.status === 'requesting' ? 'Определяем местоположение…' : 'Найти парковки рядом';
+    label = state.status === 'requesting' ? t('results.locating') : t('results.findNearby');
     Icon = Locate;
   } else if (isFetching && !data) {
-    label = 'Поиск парковок…';
+    label = t('results.loading');
     Icon = ListChecks;
   } else {
     const count = filtered.length;
-    const noun = pluralizeRu(count, { one: 'парковка', few: 'парковки', many: 'парковок' });
-    label = `${count} ${noun} рядом`;
+    label = t('results.nearbyCount', { count: formatCount('parking', count) });
     Icon = ListChecks;
   }
 

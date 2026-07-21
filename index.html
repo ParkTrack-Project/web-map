@@ -1,12 +1,51 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/parktrack-icon.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ParkTrack — Карта свободных парковок</title>
     <meta name="description" content="ParkTrack — карта свободных парковок с прогнозом занятости" />
-    <script src="https://api-maps.yandex.ru/v3/?apikey=%VITE_YMAP_KEY%&lang=ru_RU&csp=202512"></script>
+    <script>
+      (() => {
+        let preferences = {};
+        try {
+          preferences = JSON.parse(localStorage.getItem('parktrack:preferences:v1') || '{}');
+        } catch {}
+        const language =
+          preferences.language === 'en' || preferences.language === 'ru'
+            ? preferences.language
+            : navigator.language.toLowerCase().startsWith('en')
+              ? 'en'
+              : 'ru';
+        const theme =
+          preferences.theme === 'dark' || preferences.theme === 'light'
+            ? preferences.theme
+            : matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light';
+        document.documentElement.lang = language;
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        document.documentElement.style.colorScheme = theme;
+        document.title =
+          language === 'en'
+            ? 'ParkTrack — Available parking map'
+            : 'ParkTrack — Карта свободных парковок';
+        const description = document.querySelector('meta[name="description"]');
+        if (description)
+          description.content =
+            language === 'en'
+              ? 'ParkTrack — available parking map with occupancy forecasts'
+              : 'ParkTrack — карта свободных парковок с прогнозом занятости';
+        const locale = language === 'en' ? 'en_US' : 'ru_RU';
+        document.write(
+          '<script src="https://api-maps.yandex.ru/v3/?apikey=%VITE_YMAP_KEY%&lang=' +
+            locale +
+            '&csp=202512"><\\/script>',
+        );
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

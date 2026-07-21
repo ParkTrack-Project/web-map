@@ -55,12 +55,7 @@ describe('minZoomToDecluster', () => {
       MERGE_PX,
       1,
     );
-    const far = minZoomToDecluster(
-      target,
-      [mk(1, 30.3, 59.95), mk(2, 30.32, 59.95)],
-      MERGE_PX,
-      1,
-    );
+    const far = minZoomToDecluster(target, [mk(1, 30.3, 59.95), mk(2, 30.32, 59.95)], MERGE_PX, 1);
     expect(near).not.toBeNull();
     expect(far).not.toBeNull();
     expect(near!).toBeGreaterThan(far!);

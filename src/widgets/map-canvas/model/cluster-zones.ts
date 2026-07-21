@@ -45,8 +45,7 @@ function projectWorldPx(lon: number, lat: number, zoom: number): [number, number
   const scale = 256 * 2 ** zoom;
   const x = ((lon + 180) / 360) * scale;
   const sinLat = Math.sin((lat * Math.PI) / 180);
-  const y =
-    (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * scale;
+  const y = (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * scale;
   return [x, y];
 }
 
@@ -115,9 +114,7 @@ function splitByCap(idx: number[], pts: Pt[], cap: number): number[][] {
     if (p.py > maxY) maxY = p.py;
   }
   const byX = maxX - minX >= maxY - minY;
-  const sorted = [...idx].sort((a, b) =>
-    byX ? pts[a]!.px - pts[b]!.px : pts[a]!.py - pts[b]!.py,
-  );
+  const sorted = [...idx].sort((a, b) => (byX ? pts[a]!.px - pts[b]!.px : pts[a]!.py - pts[b]!.py));
   const mid = Math.floor(sorted.length / 2);
   return [
     ...splitByCap(sorted.slice(0, mid), pts, cap),

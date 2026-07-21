@@ -9,20 +9,37 @@ import type { PropsWithChildren } from 'react';
 import { QueryProvider } from './QueryProvider';
 import { OfflineBanner } from './OfflineBanner';
 import { RootErrorBoundary } from '@/app/errors';
+import { PreferencesProvider, usePreferences } from '@/features/preferences';
+import { I18nProvider } from '@/shared/lib/i18n';
+import { SessionProvider } from '@/entities/session';
+
+function AppToaster() {
+  const theme = usePreferences((state) => state.theme);
+  return (
+    <Toaster
+      position="bottom-right"
+      richColors
+      closeButton
+      theme={theme}
+      toastOptions={{ style: { zIndex: 100 } }}
+    />
+  );
+}
 
 export function AppProviders({ children }: PropsWithChildren) {
   return (
     <RootErrorBoundary>
       <NuqsAdapter>
         <QueryProvider>
-          <Toaster
-            position="bottom-right"
-            richColors
-            closeButton
-            toastOptions={{ style: { zIndex: 100 } }}
-          />
-          <OfflineBanner />
-          {children}
+          <PreferencesProvider>
+            <I18nProvider>
+              <SessionProvider>
+                <AppToaster />
+                <OfflineBanner />
+                {children}
+              </SessionProvider>
+            </I18nProvider>
+          </PreferencesProvider>
         </QueryProvider>
       </NuqsAdapter>
     </RootErrorBoundary>

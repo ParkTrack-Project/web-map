@@ -54,7 +54,7 @@ export function bboxFromCenterZoom(
   const latRad = (lat * Math.PI) / 180;
   const cosLat = Math.max(Math.cos(latRad), 1e-6);
   const res = (EARTH_M_PER_PX_Z0 * cosLat) / 2 ** zoom; // м/px
-  const dLat = ((res * heightPx) / 2 / M_PER_DEG_LAT);
+  const dLat = (res * heightPx) / 2 / M_PER_DEG_LAT;
   const dLon = (res * widthPx) / 2 / (M_PER_DEG_LAT * cosLat);
   return [lon - dLon, lat - dLat, lon + dLon, lat + dLat];
 }

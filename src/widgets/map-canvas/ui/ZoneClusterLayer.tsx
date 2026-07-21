@@ -12,6 +12,7 @@ import { MAP_MAX_ZOOM } from '@/shared/config';
 import { useZoneClusters } from '../model/useZoneClusters';
 import { clusterBubbleSizePx } from '../model/cluster-zones';
 import { nextClusterExpansionZoom } from '../model/cluster-expansion';
+import { useI18n } from '@/shared/lib/i18n';
 
 interface Props {
   zoom: number;
@@ -48,6 +49,7 @@ function clusterColor(freeSum: number): string {
 }
 
 export function ZoneClusterLayer({ zoom }: Props) {
+  const { t } = useI18n();
   const { clusters } = useZoneClusters(zoom);
   const { data: zones = [] } = useFilteredZones();
   const ctx = useContext(MapRefContext);
@@ -100,8 +102,8 @@ export function ZoneClusterLayer({ zoom }: Props) {
               <button
                 type="button"
                 data-testid="zone-cluster"
-                aria-label={`${cl.zoneCount} парковок, свободно ${cl.freeSum}. Приблизить`}
-                title={`${cl.zoneCount} парковок · свободно ${cl.freeSum}`}
+                aria-label={t('map.clusterLabel', { count: cl.zoneCount, free: cl.freeSum })}
+                title={t('map.clusterTitle', { count: cl.zoneCount, free: cl.freeSum })}
                 onClick={() => drillIn(cl.center, cl.zoneIds)}
                 className="absolute flex cursor-pointer items-center justify-center rounded-full font-semibold text-white shadow-md ring-2 ring-white/70"
                 style={{

@@ -99,9 +99,7 @@ test.describe('Real API smoke (D-16)', () => {
 
   test('POST /routing/new → route object with selected_candidate', async ({ request }) => {
     // Need a real zone_id for selected_zone_id — fetch first.
-    const zones = await (
-      await request.get(`${API_BASE}/zones?bbox=${BBOX_SPB}&view=map`)
-    ).json();
+    const zones = await (await request.get(`${API_BASE}/zones?bbox=${BBOX_SPB}&view=map`)).json();
     const items = Array.isArray(zones) ? zones : zones.items;
     if (!items?.length) {
       test.skip(true, 'no zones in test bbox — skipping POST /routing/new probe');

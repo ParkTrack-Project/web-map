@@ -9,6 +9,7 @@
 // 44x44 tap target на dismiss-кнопке (Plan 05-01 RESP-06 / WCAG 2.5.5).
 import { clsx } from 'clsx';
 import type { ReactNode } from 'react';
+import { useI18n } from '@/shared/lib/i18n';
 
 export interface BannerProps {
   variant?: 'error' | 'warning' | 'info' | 'success';
@@ -25,6 +26,7 @@ const VARIANT_CLASSES: Record<NonNullable<BannerProps['variant']>, string> = {
 };
 
 export function Banner({ variant = 'info', children, onDismiss, className }: BannerProps) {
+  const { t } = useI18n();
   return (
     <div
       role="status"
@@ -40,7 +42,7 @@ export function Banner({ variant = 'info', children, onDismiss, className }: Ban
           type="button"
           onClick={onDismiss}
           className="-m-2 min-h-11 min-w-11 p-2 leading-none text-current opacity-60 hover:opacity-100"
-          aria-label="Закрыть"
+          aria-label={t('common.close')}
         >
           ×
         </button>

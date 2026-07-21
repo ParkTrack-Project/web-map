@@ -54,7 +54,7 @@ export default defineConfig([
             'Phase 5 D-07: use `h-dvh` (Tailwind 4 native 100dvh) instead of `h-screen` — fixes mobile keyboard collision.',
         },
         {
-          selector: "Literal[value=/100vh/]",
+          selector: 'Literal[value=/100vh/]',
           message:
             'Phase 5 D-07: use `100dvh` instead of `100vh` — fixes mobile keyboard collision.',
         },

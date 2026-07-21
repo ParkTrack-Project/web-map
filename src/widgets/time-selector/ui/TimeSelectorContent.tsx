@@ -18,24 +18,27 @@ import type { ChangeEvent } from 'react';
 import { X, CalendarClock } from 'lucide-react';
 import { useTimeMode } from '@/features/select-time-mode';
 import { MAX_PAST_DAYS, MAX_FUTURE_HOURS, MIN_RESOLUTION_MINUTES } from '@/shared/config';
-import { inputValueToUtcIso, utcIsoToInputValue } from '@/shared/lib/i18n';
+import { inputValueToUtcIso, utcIsoToInputValue, useI18n } from '@/shared/lib/i18n';
 import { deriveMode } from '@/shared/lib/url';
 import { PRESETS, applyPreset, type Preset } from '../lib/presets';
 
 export function TimeSelectorContent() {
+  const { t, language } = useI18n();
   const { mode, setMode, setNow } = useTimeMode();
   // Active preset label — для визуальной подсветки выбранной chip-кнопки.
   // Сбрасывается при ручном вводе времени или Reset (значит preset больше
   // не отражает текущий mode.at).
   const [activePresetLabel, setActivePresetLabel] = useState<string | null>(null);
+  const [outOfRangeMessage, setOutOfRangeMessage] = useState<string | null>(null);
 
   const isModeChosen = mode.kind !== 'now';
 
   const onPreset = (preset: Preset) => {
-    const r = applyPreset(preset);
+    const r = applyPreset(preset, Date.now(), language);
     const next = deriveMode(r.at);
     setMode(next);
     setActivePresetLabel(preset.label);
+    setOutOfRangeMessage(r.outOfRangeMsg);
   };
 
   const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -43,6 +46,7 @@ export function TimeSelectorContent() {
     if (!local) {
       setNow();
       setActivePresetLabel(null);
+      setOutOfRangeMessage(null);
       return;
     }
     try {
@@ -50,13 +54,16 @@ export function TimeSelectorContent() {
       const next = deriveMode(iso);
       setMode(next);
       setActivePresetLabel(null);
+      setOutOfRangeMessage(null);
     } catch {
       setActivePresetLabel(null);
+      setOutOfRangeMessage(null);
     }
   };
 
   const onReset = () => {
     setActivePresetLabel(null);
+    setOutOfRangeMessage(null);
     setNow();
   };
 
@@ -76,33 +83,33 @@ export function TimeSelectorContent() {
 
   const inputValue = isModeChosen && 'at' in mode ? utcIsoToInputValue(mode.at) : defaultNowValue;
   const pastPresets = PRESETS.filter((preset) =>
-  preset.type === 'static' ? preset.deltaMs < 0 : preset.dayOffset < 0,
-);
-
-const futurePresets = PRESETS.filter((preset) =>
-  preset.type === 'static' ? preset.deltaMs > 0 : preset.dayOffset > 0,
-);
-
-const renderPresetButton = (preset: Preset) => {
-  const isActivePreset = activePresetLabel === preset.label;
-
-  return (
-    <button
-      key={preset.label}
-      type="button"
-      onClick={() => onPreset(preset)}
-      aria-pressed={isActivePreset}
-      className={
-        'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ' +
-        (isActivePreset
-          ? 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-1 ring-emerald-500/40'
-          : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900')
-      }
-    >
-      {preset.label}
-    </button>
+    preset.type === 'static' ? preset.deltaMs < 0 : preset.dayOffset < 0,
   );
-};
+
+  const futurePresets = PRESETS.filter((preset) =>
+    preset.type === 'static' ? preset.deltaMs > 0 : preset.dayOffset > 0,
+  );
+
+  const renderPresetButton = (preset: Preset) => {
+    const isActivePreset = activePresetLabel === preset.label;
+
+    return (
+      <button
+        key={preset.label}
+        type="button"
+        onClick={() => onPreset(preset)}
+        aria-pressed={isActivePreset}
+        className={
+          'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ' +
+          (isActivePreset
+            ? 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-1 ring-emerald-500/40'
+            : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900')
+        }
+      >
+        {language === 'ru' ? preset.label : (preset.labelEn ?? preset.label)}
+      </button>
+    );
+  };
 
   return (
     <div className="flex flex-col gap-3 p-4" data-testid="time-selector-content">
@@ -120,37 +127,51 @@ const renderPresetButton = (preset: Preset) => {
           max={inputMax}
           step={MIN_RESOLUTION_MINUTES * 60}
           onChange={onInputChange}
-          aria-label="Выберите точное время"
+          aria-label={t('time.chooseExact')}
           className="w-full rounded-lg border border-zinc-200 bg-white py-2 pr-3 pl-9 text-[13px] font-medium text-zinc-800 shadow-xs transition-colors focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 focus:outline-none"
         />
       </div>
 
       {/* Preset chips — всегда видим объединённый список (5 past + 5 future) */}
       {/* Preset chips — прошлое и будущее отдельно */}
-      <div aria-label="Быстрый выбор времени" className="flex flex-col gap-2">
-        <div className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">Прошлое</div>
-        <div role="group" aria-label="Прошлое" className="flex flex-wrap gap-1.5">
+      <div role="group" aria-label={t('time.quick')} className="flex flex-col gap-2">
+        <div className="text-[11px] font-medium tracking-wide text-zinc-400 uppercase">
+          {t('time.past')}
+        </div>
+        <div role="group" aria-label={t('time.past')} className="flex flex-wrap gap-1.5">
           {pastPresets.map(renderPresetButton)}
         </div>
 
-        <div className="h-px w-full bg-zinc-200" aria-hidden="true"/>
+        <div className="h-px w-full bg-zinc-200" aria-hidden="true" />
 
-        <div className="text-[11px] font-medium uppercase tracking-wide text-zinc-400">Будущее</div>
-        <div role="group" aria-label="Будущее" className="flex flex-wrap gap-1.5">
+        <div className="text-[11px] font-medium tracking-wide text-zinc-400 uppercase">
+          {t('time.future')}
+        </div>
+        <div role="group" aria-label={t('time.future')} className="flex flex-wrap gap-1.5">
           {futurePresets.map(renderPresetButton)}
         </div>
       </div>
 
+      {outOfRangeMessage && (
+        <p
+          role="status"
+          data-testid="out-of-range-msg"
+          className="text-xs text-amber-700 dark:text-amber-300"
+        >
+          {outOfRangeMessage}
+        </p>
+      )}
+
       {/* Reset «Сейчас» CTA — только когда mode != now */}
       {isModeChosen && (
-          <button
+        <button
           type="button"
           onClick={onReset}
-          aria-label="Вернуться к Сейчас"
+          aria-label={t('time.returnNow')}
           className="inline-flex items-center justify-center gap-1.5 self-start rounded-md bg-emerald-600 px-2 py-1 text-xs font-medium text-white transition-colors hover:bg-emerald-700"
         >
           <X size={12} aria-hidden />
-          Вернуться к Сейчас
+          {t('time.returnNow')}
         </button>
       )}
     </div>

@@ -34,18 +34,11 @@ import { useDestination } from '@/features/address-search';
 import { useFilters } from '@/features/filter-zones';
 import { useRouteId, RouteSummaryCard } from '@/widgets/route-preview-summary';
 import { useZoomToZone } from '@/widgets/map-canvas';
-import { pluralizeRu, formatRelativeRu } from '@/shared/lib/i18n';
+import { formatRelative, useI18n, type MessageKey } from '@/shared/lib/i18n';
 import { Spinner } from '@/shared/ui';
 
-const LOCATION_TYPE_RU: Record<string, string> = {
-  street: 'Уличная',
-  yard: 'Дворовая',
-  open_lot: 'Открытая площадка',
-  underground: 'Подземная',
-  multilevel: 'Многоуровневая',
-};
-
 export function ZoneCard() {
+  const { t } = useI18n();
   const { selectedZoneId, closeCard } = useSelectedZone();
   // D-28: при закрытии карточки — atomic clear ?route + ?sel.
   const { clearRouteId } = useRouteId();
@@ -58,7 +51,7 @@ export function ZoneCard() {
   return (
     <aside
       className="absolute top-0 right-0 z-30 hidden h-full w-[400px] overflow-y-auto bg-white shadow-2xl lg:block"
-      aria-label="Карточка парковки"
+      aria-label={t('zone.card')}
     >
       {/* D-08a: key={selectedZoneId} — React reconciliation вместо unmount/remount
           при быстром перетыке зон (race-guard). */}
@@ -73,6 +66,7 @@ interface ContentProps {
 }
 
 export function ZoneCardContent({ zoneId, onClose }: ContentProps) {
+  const { t } = useI18n();
   // Plan 05 / TIME-07: mode инжектится в useZoneByIdQuery → atomic card refetch.
   const { mode, setNow } = useTimeMode();
   const { data, isPending, isError, refetch } = useZoneByIdQuery(zoneId, mode);
@@ -89,23 +83,23 @@ export function ZoneCardContent({ zoneId, onClose }: ContentProps) {
       }}
     >
       <header className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Парковка #{zoneId}</h2>
+        <h2 className="text-lg font-semibold">{t('zone.title', { id: zoneId })}</h2>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Закрыть карточку"
+          aria-label={t('zone.close')}
           className="rounded p-1 hover:bg-zinc-100"
         >
           <X size={20} aria-hidden />
         </button>
       </header>
 
-      {isPending && <Spinner label="Загрузка карточки…" />}
+      {isPending && <Spinner label={t('zone.loading')} />}
       {isError && (
         <div role="alert" className="rounded bg-red-50 p-3 text-sm text-red-700">
-          Не удалось загрузить карточку парковки.{' '}
+          {t('zone.error')}{' '}
           <button onClick={() => refetch()} className="underline">
-            Повторить
+            {t('common.retry')}
           </button>
         </div>
       )}
@@ -118,14 +112,14 @@ export function ZoneCardContent({ zoneId, onClose }: ContentProps) {
           data-testid="zone-card-inactive"
           className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm"
         >
-          <p className="text-sm text-zinc-700">Зона неактивна в этот период</p>
+          <p className="text-sm text-zinc-700">{t('zone.inactive')}</p>
           {mode.kind !== 'now' && (
             <button
               type="button"
               onClick={setNow}
               className="mt-3 inline-flex items-center justify-center rounded-md border border-emerald-600 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
             >
-              Вернуться к Сейчас
+              {t('time.returnNow')}
             </button>
           )}
         </div>
@@ -135,79 +129,82 @@ export function ZoneCardContent({ zoneId, onClose }: ContentProps) {
   );
 }
 
-function ZoneCardBody({ zone, mode }: { zone: Zone; mode: ReturnType<typeof useTimeMode>['mode'] }) {
-  // CARD-06: русская плюрализация мест.
-  const placeWord = pluralizeRu(zone.free_count, {
-    one: 'место',
-    few: 'места',
-    many: 'мест',
-  });
+function ZoneCardBody({
+  zone,
+  mode,
+}: {
+  zone: Zone;
+  mode: ReturnType<typeof useTimeMode>['mode'];
+}) {
+  const { t, language, formatCount } = useI18n();
 
   // 2026-05-30: тип локации может прийти пустым/неизвестным — тогда НЕ рисуем
   // бейдж вовсе (иначе пустой серый прямоугольник рядом с типом зоны).
-  const locationLabel = LOCATION_TYPE_RU[zone.location_type] ?? zone.location_type;
+  const locationLabel = zone.location_type ? t(`location.${zone.location_type}` as MessageKey) : '';
 
   const forecastCreatedAt =
-  (zone as unknown as { forecast_created_at?: string | null }).forecast_created_at ??
-  zone.occupancy_updated_at;
+    (zone as unknown as { forecast_created_at?: string | null }).forecast_created_at ??
+    zone.occupancy_updated_at;
 
-const displayedAt =
-  (zone as unknown as { displayed_at?: string | null }).displayed_at ??
-  (zone as unknown as { predicted_for?: string | null }).predicted_for ??
-  (zone as unknown as { forecasted_at?: string | null }).forecasted_at ??
-  (zone as unknown as { forecast_at?: string | null }).forecast_at;
+  const displayedAt =
+    (zone as unknown as { displayed_at?: string | null }).displayed_at ??
+    (zone as unknown as { predicted_for?: string | null }).predicted_for ??
+    (zone as unknown as { forecasted_at?: string | null }).forecasted_at ??
+    (zone as unknown as { forecast_at?: string | null }).forecast_at;
 
-const updatedRu = formatRelativeRu(zone.occupancy_updated_at);
-const forecastCreatedRu = formatRelativeRu(forecastCreatedAt);
+  const updatedRu = formatRelative(zone.occupancy_updated_at, language);
+  const forecastCreatedRu = formatRelative(forecastCreatedAt, language);
 
-const formatDateTime = (iso?: string | null) => {
-  if (!iso) return 'неизвестно';
+  const formatDateTime = (iso?: string | null) => {
+    if (!iso) return t('zone.unknown');
 
-  const date = new Date(iso);
+    const date = new Date(iso);
 
-  if (Number.isNaN(date.getTime())) return 'неизвестно';
+    if (Number.isNaN(date.getTime())) return t('zone.unknown');
 
-  return new Intl.DateTimeFormat('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
-};
+    return new Intl.DateTimeFormat(language === 'ru' ? 'ru-RU' : 'en-US', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  };
 
-const confidencePercent = Math.round(
-  Math.max(0, Math.min(1, zone.confidence)) * 100,
-);
+  const confidencePercent = Math.round(Math.max(0, Math.min(1, zone.confidence)) * 100);
 
   return (
     <>
       <div className="text-3xl font-bold">
-        {zone.free_count} {placeWord}
-        <span className="ml-2 text-base font-normal text-zinc-500">из {zone.capacity}</span>
+        {formatCount('space', zone.free_count)}
+        <span className="ml-2 text-base font-normal text-zinc-500">
+          {t('zone.ofCapacity', { capacity: zone.capacity })}
+        </span>
       </div>
 
       <div className="text-sm text-zinc-600">
-        Уверенность данных: {confidencePercent}%
+        {t('zone.dataConfidence', { percent: confidencePercent })}
         {mode.kind === 'future' ? (
-          <span className="ml-2 text-zinc-500">прогноз создан {forecastCreatedRu}</span>
+          <span className="ml-2 text-zinc-500">
+            {t('zone.forecastCreated', { time: forecastCreatedRu })}
+          </span>
         ) : (
-          <span className="ml-2 text-zinc-500">обновлено {updatedRu}</span>
+          <span className="ml-2 text-zinc-500">{t('zone.updated', { time: updatedRu })}</span>
         )}
       </div>
 
       {mode.kind === 'future' && (
         <div className="text-sm font-medium text-emerald-700">
-          Отображается прогноз на {formatDateTime(displayedAt)}
+          {t('zone.displayedForecast', { time: formatDateTime(displayedAt) })}
         </div>
       )}
 
       {/* CARD-04: цена или «Бесплатно» */}
       <div className="text-base">
         {zone.pay === 0 ? (
-          <span className="font-semibold text-emerald-700">Бесплатно</span>
+          <span className="font-semibold text-emerald-700">{t('results.freePrice')}</span>
         ) : (
-          <span>{zone.pay} ₽/час</span>
+          <span>{t('results.hourPrice', { price: zone.pay })}</span>
         )}
       </div>
 
@@ -219,21 +216,19 @@ const confidencePercent = Math.round(
           ) : (
             <Car size={14} aria-hidden />
           )}
-          {zone.zone_type === 'parallel' ? 'Параллельная' : 'Стандартная'}
+          {zone.zone_type === 'parallel' ? t('zone.parallel') : t('zone.standard')}
         </li>
         {locationLabel && (
-          <li className="flex items-center gap-1 rounded bg-zinc-100 px-2 py-1">
-            {locationLabel}
-          </li>
+          <li className="flex items-center gap-1 rounded bg-zinc-100 px-2 py-1">{locationLabel}</li>
         )}
         {zone.is_private && (
           <li className="flex items-center gap-1 rounded bg-amber-100 px-2 py-1 text-amber-900">
-            <Lock size={14} aria-hidden /> Частная
+            <Lock size={14} aria-hidden /> {t('zone.private')}
           </li>
         )}
         {zone.is_accessible && (
           <li className="flex items-center gap-1 rounded bg-blue-100 px-2 py-1 text-blue-900">
-            <Accessibility size={14} aria-hidden /> Для инвалидов
+            <Accessibility size={14} aria-hidden /> {t('zone.accessible')}
           </li>
         )}
       </ul>
@@ -256,6 +251,7 @@ const confidencePercent = Math.round(
  * После success: routeId set → render RouteSummaryCard (с deeplink в навигатор).
  */
 function BuildRouteSection({ zoneId }: { zoneId: number }) {
+  const { t } = useI18n();
   const { from, setFromCoords } = useFromCoords();
   const { dest } = useDestination();
   const { filters } = useFilters();
@@ -296,7 +292,7 @@ function BuildRouteSection({ zoneId }: { zoneId: number }) {
     }
     const body = buildRoutingBody({ from: origin, dest, filters, mode });
     if (!body) {
-      setErrorMsg('Не удалось построить маршрут');
+      setErrorMsg(t('zone.routeFailed'));
       return;
     }
     // Fix 2026-05-17: пользователь ЯВНО выбрал эту парковку — не режем её
@@ -310,7 +306,7 @@ function BuildRouteSection({ zoneId }: { zoneId: number }) {
       const route = await createRoute.mutateAsync({ body: routeBody });
       setRouteId(route.route_id);
     } catch (e) {
-      setErrorMsg('Не удалось построить маршрут');
+      setErrorMsg(t('zone.routeFailed'));
       console.warn('[zone-card] route create failed', e);
     }
   };
@@ -328,14 +324,14 @@ function BuildRouteSection({ zoneId }: { zoneId: number }) {
         className="mt-2 inline-flex items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 py-2 font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
         data-testid="build-route-button"
       >
-        {busy ? <Spinner /> : <Navigation size={16} aria-hidden />}
-        {geo.state.status === 'requesting' ? 'Определяем геолокацию…' : 'Построить маршрут'}
+        {busy ? <Spinner label={t('common.loading')} /> : <Navigation size={16} aria-hidden />}
+        {geo.state.status === 'requesting' ? t('zone.locating') : t('zone.buildRoute')}
       </button>
       {shownError && (
         <p role="alert" className="text-sm text-red-700">
           {shownError}{' '}
           <button onClick={handleBuildRoute} className="underline">
-            Повторить
+            {t('common.retry')}
           </button>
         </p>
       )}

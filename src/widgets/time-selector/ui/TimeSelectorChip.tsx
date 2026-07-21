@@ -11,17 +11,24 @@
 // visual hint для quick state recognition.
 import { Clock, History, TrendingUp } from 'lucide-react';
 import { useTimeMode } from '@/features/select-time-mode';
-import { formatTimeLabelRu } from '@/shared/lib/i18n';
+import { formatTimeLabel, useI18n } from '@/shared/lib/i18n';
 
 interface Props {
   onClick: () => void;
 }
 
 export function TimeSelectorChip({ onClick }: Props) {
+  const { t, language } = useI18n();
   const { mode } = useTimeMode();
-  const label = formatTimeLabelRu(mode);
-  const display = mode.kind === 'now' ? 'Сейчас' : label.replace(/^(История на |Прогноз на )/, '');
-  const ariaLabel = mode.kind === 'now' ? 'Время: Сейчас' : `Время: ${label}`;
+  const label = formatTimeLabel(mode, language);
+  const display =
+    mode.kind === 'now'
+      ? t('time.now')
+      : label.replace(
+          language === 'ru' ? /^(История на |Прогноз на )/ : /^(History at |Forecast for )/,
+          '',
+        );
+  const ariaLabel = t('time.aria', { label });
 
   const Icon = mode.kind === 'past' ? History : mode.kind === 'future' ? TrendingUp : Clock;
   const isActive = mode.kind !== 'now';
@@ -32,7 +39,7 @@ export function TimeSelectorChip({ onClick }: Props) {
       onClick={onClick}
       aria-label={ariaLabel}
       className={
-        'absolute top-16 right-4 z-30 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium shadow-md ring-1 backdrop-blur-md transition-all active:scale-95 lg:hidden ' +
+        'absolute top-[calc(env(safe-area-inset-top)+7.5rem)] right-2 z-30 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium shadow-md ring-1 backdrop-blur-md transition-all active:scale-95 lg:hidden ' +
         (isActive
           ? 'bg-emerald-50/95 text-emerald-800 ring-emerald-200'
           : 'bg-white/95 text-zinc-700 ring-zinc-200/70')

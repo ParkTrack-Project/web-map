@@ -30,11 +30,11 @@ describe('useRoutingSearchBody (D-14 / D-15)', () => {
     expect(result.current?.destination).toEqual({ latitude: 59.95598, longitude: 30.30943 });
     expect(result.current?.max_distance_to_destination_meters).toBe(500);
   });
-  it('limit=20 + provider=yandex hardcoded (D-14)', () => {
+  it('limit=20 + provider=geoapify hardcoded (D-14)', () => {
     const { result } = renderHook(() => useRoutingSearchBody(), {
       wrapper: wrap('?from=59.93863,30.31413'),
     });
     expect(result.current?.limit).toBe(20);
-    expect(result.current?.provider).toBe('yandex');
+    expect(result.current?.provider).toBe('geoapify');
   });
 });

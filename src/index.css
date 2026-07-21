@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* A11Y-04 / D-18: глобальный focus-ring для всех :focus-visible элементов.
    Никакого outline:none без замены — все интерактивные кастомные компоненты
@@ -31,7 +32,62 @@
 
 :root {
   --bottom-sheet-offset: 20px;
-  }
+}
+
+html,
+body,
+#root {
+  background: #fafafa;
+  color: #18181b;
+}
+
+html[data-theme='dark'],
+html[data-theme='dark'] body,
+html[data-theme='dark'] #root {
+  background: #09090b;
+  color: #fafafa;
+}
+
+/* Existing widgets use the shared zinc/emerald utility palette. These token-level
+   overrides make their current states theme-aware without duplicating layouts. */
+html[data-theme='dark'] [class~='bg-white'],
+html[data-theme='dark'] [class*='bg-white/'] {
+  background-color: rgb(24 24 27 / 0.96) !important;
+}
+
+html[data-theme='dark'] [class~='bg-zinc-50'],
+html[data-theme='dark'] [class~='bg-neutral-50'],
+html[data-theme='dark'] [class~='bg-neutral-200'] {
+  background-color: #27272a !important;
+}
+
+html[data-theme='dark'] [class~='bg-zinc-100'],
+html[data-theme='dark'] [class~='bg-zinc-200'] {
+  background-color: #3f3f46 !important;
+}
+
+html[data-theme='dark'] [class~='text-zinc-900'],
+html[data-theme='dark'] [class~='text-zinc-800'],
+html[data-theme='dark'] [class~='text-zinc-700'],
+html[data-theme='dark'] [class~='text-neutral-600'] {
+  color: #f4f4f5 !important;
+}
+
+html[data-theme='dark'] [class~='text-zinc-600'],
+html[data-theme='dark'] [class~='text-zinc-500'],
+html[data-theme='dark'] [class~='text-zinc-400'] {
+  color: #d4d4d8 !important;
+}
+
+html[data-theme='dark'] [class*='border-zinc-'],
+html[data-theme='dark'] [class*='border-neutral-'] {
+  border-color: #52525b !important;
+}
+
+html[data-theme='dark'] [class~='bg-emerald-50'],
+html[data-theme='dark'] [class*='bg-emerald-50/'] {
+  background-color: rgb(6 78 59 / 0.65) !important;
+}
 
 .map-controls-shifted-container [class*='ymaps3-controls'] {
   bottom: var(--bottom-sheet-offset, 20px) !important;
@@ -50,7 +106,10 @@
   display: none;
 }
 
-.ymaps3--button, .ymaps3--control-button, .ymaps3--control, .ymaps3--control__background {
+.ymaps3--button,
+.ymaps3--control-button,
+.ymaps3--control,
+.ymaps3--control__background {
   border-radius: 12px !important;
 }
 

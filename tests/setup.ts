@@ -2,6 +2,7 @@
 import '@testing-library/jest-dom/vitest';
 import { beforeAll, afterEach, afterAll, vi } from 'vitest';
 import { server } from '@/mocks/node';
+import { usePreferences } from '@/features/preferences';
 
 // Mock ymaps3 module so RTL tests рендерящие MapCanvas не падают (Pitfall #19).
 // Plan 03 создаст реальный @/shared/lib/ymaps — этот мок будет работать как drop-in
@@ -11,6 +12,8 @@ vi.mock('@/shared/lib/ymaps', () => ({
   YMapDefaultSchemeLayer: () => null,
   YMapDefaultFeaturesLayer: () => null,
   YMapFeature: () => null,
+  YMapFeatureDataSource: () => null,
+  YMapLayer: () => null,
   YMapListener: () => null,
   YMapMarker: () => null,
   YMapControls: ({ children }: { children?: React.ReactNode }) => children,
@@ -25,5 +28,9 @@ vi.mock('@/shared/lib/ymaps', () => ({
 }));
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers();
+  localStorage.removeItem('parktrack:preferences:v1');
+  usePreferences.setState({ theme: 'light', language: 'ru' });
+});
 afterAll(() => server.close());
