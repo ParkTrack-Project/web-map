@@ -1,7 +1,7 @@
 // THE single load-bearing module touching window.ymaps3 (Anti-Pattern #5: больше нигде в src/
 // нельзя ссылаться на window.ymaps3 — всё через этот barrel).
 //
-// FOUND-03: Yandex Maps API v3 загружается как runtime-only через CDN-script в index.html.
+// FOUND-03: Yandex Maps API v3 загружается как runtime-only через CDN-script здесь.
 // Внешние пакеты UI-контролов НЕ импортируем обычным Vite import(...).
 // Их нужно грузить через ymaps3.import(...), предварительно зарегистрировав CDN-loader.
 //
@@ -55,16 +55,38 @@ function runtimeMessage(ru: string, en: string): string {
 
 const ymapsWindow = globalThis as Ymaps3Window;
 
-if (ymapsWindow.__parktrackYmapsReady) {
-  await withTimeout(
-    ymapsWindow.__parktrackYmapsReady,
-    15_000,
-    runtimeMessage(
-      'Яндекс Карты слишком долго загружаются. Проверьте сеть или VPN.',
-      'Yandex Maps is taking too long to load. Check your network or VPN.',
-    ),
-  );
+function loadYmaps(): Promise<void> {
+  if (ymapsWindow.ymaps3) return Promise.resolve();
+  if (ymapsWindow.__parktrackYmapsReady) return ymapsWindow.__parktrackYmapsReady;
+
+  const locale = document.documentElement.lang === 'en' ? 'en_US' : 'ru_RU';
+  const params = new URLSearchParams({
+    apikey: import.meta.env.VITE_YMAP_KEY,
+    lang: locale,
+    csp: '202512',
+  });
+  const ready = new Promise<void>((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `https://api-maps.yandex.ru/v3/?${params.toString()}`;
+    script.dataset.parktrackYmaps = locale;
+    script.addEventListener('load', () => resolve(), { once: true });
+    script.addEventListener('error', () => reject(new Error('Yandex Maps script failed to load')), {
+      once: true,
+    });
+    document.head.append(script);
+  });
+  ymapsWindow.__parktrackYmapsReady = ready;
+  return ready;
 }
+
+await withTimeout(
+  loadYmaps(),
+  15_000,
+  runtimeMessage(
+    'Яндекс Карты слишком долго загружаются. Проверьте сеть или VPN.',
+    'Yandex Maps is taking too long to load. Check your network or VPN.',
+  ),
+);
 
 const ymaps3Global = ymapsWindow.ymaps3;
 
