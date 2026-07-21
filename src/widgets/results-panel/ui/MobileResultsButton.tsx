@@ -9,7 +9,7 @@
 //
 // Permissions API: skip pre-flight если permission='granted' (как WTPCTAButton).
 import { useCallback, useState } from 'react';
-import { CircleParking, ListChecks } from 'lucide-react';
+import { CarFront, ListChecks } from 'lucide-react';
 import {
   useFromCoords,
   useGeolocationRequest,
@@ -71,10 +71,10 @@ export function MobileResultsButton({ hidden, onOpenSheet }: MobileResultsButton
 
   // Determine label + icon by state
   let label: string;
-  let Icon: typeof CircleParking | typeof ListChecks;
+  let Icon: typeof CarFront | typeof ListChecks;
   if (!from) {
     label = state.status === 'requesting' ? t('results.locating') : t('results.findNearby');
-    Icon = CircleParking;
+    Icon = CarFront;
   } else if (isFetching && !data) {
     label = t('results.loading');
     Icon = ListChecks;
