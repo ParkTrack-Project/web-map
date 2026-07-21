@@ -79,7 +79,7 @@ export function MobileSearchBar() {
           type="button"
           onClick={() => setOverlayOpen(false)}
           aria-label={t('search.close')}
-          className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-zinc-100"
+          className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
         >
           <ArrowLeft size={20} aria-hidden />
         </button>
@@ -101,7 +101,7 @@ export function MobileSearchBar() {
               type="button"
               onClick={() => setText('')}
               aria-label={t('search.clear')}
-              className="absolute right-2 flex h-9 w-9 items-center justify-center rounded-full hover:bg-zinc-100"
+              className="absolute right-2 flex h-9 w-9 items-center justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
             >
               <X size={14} aria-hidden />
             </button>

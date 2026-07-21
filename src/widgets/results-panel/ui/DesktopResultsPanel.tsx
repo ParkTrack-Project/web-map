@@ -65,7 +65,7 @@ function DesktopResultsPanelInner() {
           type="button"
           onClick={handleCloseResults}
           aria-label={t('results.close')}
-          className="rounded p-1 hover:bg-zinc-100"
+          className="rounded p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800"
         >
           <X size={18} aria-hidden />
         </button>

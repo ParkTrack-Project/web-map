@@ -73,7 +73,9 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
         <span className="ml-2 text-zinc-500">•</span>
         <span className="ml-2">
           {c.pay === 0 ? (
-            <span className="font-semibold text-emerald-700">{t('results.freePrice')}</span>
+            <span className="font-semibold text-emerald-700 dark:text-emerald-300">
+              {t('results.freePrice')}
+            </span>
           ) : (
             <>{t('results.hourPrice', { price: c.pay })}</>
           )}

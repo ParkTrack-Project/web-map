@@ -85,7 +85,7 @@ export function DesktopSearchBar() {
                 setText('');
                 inputRef.current?.focus();
               }}
-              className="absolute right-2 rounded-full p-1 hover:bg-zinc-100"
+              className="absolute right-2 rounded-full p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800"
             >
               <X size={14} aria-hidden />
             </button>

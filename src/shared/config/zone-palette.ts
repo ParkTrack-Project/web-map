@@ -29,12 +29,12 @@ export const zonePalette: ZonePalette = {
 };
 
 export const darkZonePalette: ZonePalette = {
-  inactive: { fill: '#f4f4f5e6', stroke: '#d4d4d8' },
-  full: { fill: 'rgba(254,202,202,0.94)', stroke: '#fb7185' },
-  one: { fill: 'rgba(254,240,138,0.94)', stroke: '#facc15' },
-  freeLow: { fill: '#dcfce7f0', stroke: '#86efac' },
-  freeHigh: { fill: '#bbf7d0f2', stroke: '#4ade80' },
-  selected: { stroke: '#f0fdf4', glow: '#bbf7d0b3' },
+  inactive: { fill: '#e4e4e7d9', stroke: '#d4d4d8' },
+  full: { fill: 'rgba(255,82,82,0.9)', stroke: '#ff5252' },
+  one: { fill: 'rgba(255,193,7,0.92)', stroke: '#ffc107' },
+  freeLow: { fill: 'rgba(74,222,128,0.88)', stroke: '#4ade80' },
+  freeHigh: { fill: 'rgba(0,230,118,0.92)', stroke: '#00e676' },
+  selected: { stroke: '#b9f6ca', glow: '#00e67699' },
 };
 
 export function getZonePalette(theme: 'light' | 'dark') {

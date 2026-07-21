@@ -94,7 +94,7 @@ describe('computeZoneStyle — семантическая раскраска (D-
       theme: 'dark',
     });
     expect(dark.fill).not.toBe(light.fill);
-    expect(dark.fill).toBe('#bbf7d0f2');
+    expect(dark.fill).toBe('rgba(0,230,118,0.92)');
   });
 
   it('memoization: тот же reference для одинаковых ключей', () => {

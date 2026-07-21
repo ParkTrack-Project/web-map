@@ -88,7 +88,7 @@ export function ZoneCardContent({ zoneId, onClose }: ContentProps) {
           type="button"
           onClick={onClose}
           aria-label={t('zone.close')}
-          className="rounded p-1 hover:bg-zinc-100"
+          className="rounded p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800"
         >
           <X size={20} aria-hidden />
         </button>
@@ -202,7 +202,9 @@ function ZoneCardBody({
       {/* CARD-04: цена или «Бесплатно» */}
       <div className="text-base">
         {zone.pay === 0 ? (
-          <span className="font-semibold text-emerald-700">{t('results.freePrice')}</span>
+          <span className="font-semibold text-emerald-700 dark:text-emerald-300">
+            {t('results.freePrice')}
+          </span>
         ) : (
           <span>{t('results.hourPrice', { price: zone.pay })}</span>
         )}

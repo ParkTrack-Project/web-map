@@ -105,7 +105,7 @@ export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResul
               type="button"
               onClick={handleCloseAndClear}
               aria-label={t('results.close')}
-              className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-zinc-100"
+              className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
             >
               <X size={18} aria-hidden />
             </button>
