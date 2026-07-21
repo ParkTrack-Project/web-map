@@ -1,6 +1,5 @@
 // TIME-03 mobile / D-02 / D-04 / I-1:
-// Mobile chip-кнопка ПОД FiltersFAB. FiltersFAB сидит в top-4 right-4 z-30;
-// мы — top-16 right-4 z-30 (вертикальный стек справа).
+// Mobile chip-кнопка под поиском в левом верхнем углу карты.
 //
 // Glass-style chip с lucide иконкой — современнее + читаемее на любом фоне карты.
 //
@@ -39,7 +38,7 @@ export function TimeSelectorChip({ onClick }: Props) {
       onClick={onClick}
       aria-label={ariaLabel}
       className={
-        'absolute top-[calc(env(safe-area-inset-top)+7.5rem)] right-2 z-30 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium shadow-md ring-1 backdrop-blur-md transition-all active:scale-95 lg:hidden ' +
+        'absolute top-[calc(env(safe-area-inset-top)+4rem)] left-2 z-30 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium shadow-md ring-1 backdrop-blur-md transition-all active:scale-95 lg:hidden ' +
         (isActive
           ? 'bg-emerald-50/95 text-emerald-800 ring-emerald-200'
           : 'bg-white/95 text-zinc-700 ring-zinc-200/70')

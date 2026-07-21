@@ -12,7 +12,7 @@
 // Phase 4 Plan 02 / D-05 + D-09 + CO-04:
 // - MobileSearchBar (top-2 left-2 right-20) — top-bar input
 // - DestPromptBanner — рендерится в top-bar когда ?dest && !?from (CO-03)
-// - MobileResultsButton — unified entry-point chip (bottom-center): «Найти парковки рядом» →
+// - MobileResultsButton — unified entry-point chip (bottom-center): «Припарковаться» →
 //   запрос геолокации → «N парковок рядом» → tap открывает sheet. Заменил отдельный WTPMobileFAB
 //   круглый FAB на компактный pill chip — single CTA для всего mobile-сценария.
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
@@ -75,7 +75,7 @@ export function MobileLayout() {
               <MapCanvas mapRef={mapRef} />
             </Suspense>
           </MapErrorBoundary>
-          {/* I-1: FiltersFAB top-4 right-4 z-30; TimeSelectorChip top-16 right-4 z-30 — стек ПОД FAB */}
+          {/* Filters справа под аккаунтом; время слева под строкой поиска. */}
           <FiltersFAB onClick={() => setFiltersOpen(true)} />
           <TimeSelectorChip onClick={() => setTimeSheetOpen(true)} />
           {/* Phase 4: top-bar SearchBar (left side, FABs справа не пересекаются — right-20) */}
@@ -85,7 +85,7 @@ export function MobileLayout() {
           <div className="absolute top-14 right-14 left-2 z-30">
             <DestPromptBanner />
           </div>
-          {/* Unified mobile entry-point: bottom-center chip «Найти парковки рядом» / «N парковок рядом».
+          {/* Unified mobile entry-point: bottom-center chip «Припарковаться» / «N парковок рядом».
             Сам ведёт WTP flow (permissions check + pre-flight Drawer). При sheet open — скрывается. */}
           <MobileResultsButton
             hidden={resultsSheetOpen}

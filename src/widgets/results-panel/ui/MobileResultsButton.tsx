@@ -1,6 +1,6 @@
 // Mobile: unified entry-point chip — заменяет WTPMobileFAB+отдельный «Показать»-button.
 // Три состояния:
-// - idle (нет ?from): «Найти парковки рядом» (иконка Locate) — click → запрос геолокации
+// - idle (нет ?from): «Припарковаться» (parking icon) — click → запрос геолокации
 //   (instant если permission granted, pre-flight Drawer иначе).
 // - loading (есть ?from + isFetching): «Поиск парковок…»
 // - ready (есть ?from + data): «N парковок рядом» (иконка ListChecks) — click → открывает sheet.
@@ -9,7 +9,7 @@
 //
 // Permissions API: skip pre-flight если permission='granted' (как WTPCTAButton).
 import { useCallback, useState } from 'react';
-import { Locate, ListChecks } from 'lucide-react';
+import { CircleParking, ListChecks } from 'lucide-react';
 import {
   useFromCoords,
   useGeolocationRequest,
@@ -71,10 +71,10 @@ export function MobileResultsButton({ hidden, onOpenSheet }: MobileResultsButton
 
   // Determine label + icon by state
   let label: string;
-  let Icon: typeof Locate | typeof ListChecks;
+  let Icon: typeof CircleParking | typeof ListChecks;
   if (!from) {
     label = state.status === 'requesting' ? t('results.locating') : t('results.findNearby');
-    Icon = Locate;
+    Icon = CircleParking;
   } else if (isFetching && !data) {
     label = t('results.loading');
     Icon = ListChecks;

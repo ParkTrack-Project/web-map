@@ -53,9 +53,11 @@ export function DesktopLayout() {
             DesktopFiltersPopover заменил горизонтальный FiltersToolbar — освобождает
             ~50px vertical space карты, единый pattern с mobile FiltersFAB. */}
           <div className="absolute top-4 left-4 z-30 flex items-start gap-2">
-            <TimeSelectorPopover />
+            <div className="flex flex-col items-start gap-2">
+              <DesktopSearchBar />
+              <TimeSelectorPopover />
+            </div>
             <WTPCTAButton />
-            <DesktopSearchBar />
             <DesktopFiltersPopover />
           </div>
           {/* Phase 4 / CO-03: DestPromptBanner — ниже flex-row */}
