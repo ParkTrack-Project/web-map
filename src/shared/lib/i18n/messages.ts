@@ -306,7 +306,7 @@ export const messages = {
       'No suitable parking was found within the radius. Try resetting filters or expanding the search area.',
     'results.resetFilters': 'Reset filters',
     'results.list': 'Parking search results',
-    'results.findNearby': 'Park',
+    'results.findNearby': 'Parking nearby',
     'results.locating': 'Finding your location…',
     'results.nearbyCount': '{count} nearby',
     'results.best': 'Best option',
