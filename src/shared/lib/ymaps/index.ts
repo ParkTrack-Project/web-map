@@ -22,6 +22,11 @@ type Ymaps3Runtime = object & {
   import: Ymaps3ImportFn;
 };
 
+type Ymaps3Window = typeof globalThis & {
+  ymaps3?: Ymaps3Runtime;
+  __parktrackYmapsReady?: Promise<void>;
+};
+
 type ReactifiedComponents = Record<string, React.ComponentType<Record<string, unknown>>>;
 
 type ReactifyApi = {
@@ -48,7 +53,20 @@ function runtimeMessage(ru: string, en: string): string {
   return typeof document !== 'undefined' && document.documentElement.lang === 'en' ? en : ru;
 }
 
-const ymaps3Global = (globalThis as unknown as { ymaps3?: Ymaps3Runtime }).ymaps3;
+const ymapsWindow = globalThis as Ymaps3Window;
+
+if (ymapsWindow.__parktrackYmapsReady) {
+  await withTimeout(
+    ymapsWindow.__parktrackYmapsReady,
+    15_000,
+    runtimeMessage(
+      'Яндекс Карты слишком долго загружаются. Проверьте сеть или VPN.',
+      'Yandex Maps is taking too long to load. Check your network or VPN.',
+    ),
+  );
+}
+
+const ymaps3Global = ymapsWindow.ymaps3;
 
 if (!ymaps3Global) {
   throw new Error(

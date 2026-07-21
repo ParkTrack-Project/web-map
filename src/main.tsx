@@ -19,7 +19,7 @@ async function enableMocking() {
   });
 }
 
-enableMocking().then(() => {
+function renderApp() {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <BrowserRouter>
@@ -32,4 +32,10 @@ enableMocking().then(() => {
       </BrowserRouter>
     </StrictMode>,
   );
-});
+}
+
+void enableMocking()
+  .catch((error: unknown) => {
+    console.error('[bootstrap] Mock Service Worker failed to start:', error);
+  })
+  .finally(renderApp);
