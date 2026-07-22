@@ -25,9 +25,14 @@ import { MobileZoneCard } from '@/widgets/zone-card';
 import { useSelectedZone } from '@/features/select-zone';
 import { TimeSelectorChip, MobileTimeSelectorSheet } from '@/widgets/time-selector';
 import { MobileSearchBar, DestPromptBanner } from '@/widgets/search-bar';
-// Phase 4 Plan 03: MobileResultsSheet — vaul Drawer single-snap [0.92], mutually exclusive с MobileZoneCard.
-// MobileResultsButton — unified chip (Найти/Поиск/N парковок), open sheet only by explicit click.
-import { MobileResultsSheet, MobileResultsButton } from '@/widgets/results-panel';
+// MobileResultsSheet opens in the compact map-preview position and remains
+// mutually exclusive with MobileZoneCard.
+import {
+  MobileResultsSheet,
+  MobileResultsButton,
+  MobileResultsViewportSync,
+  RESULTS_SNAP_LOW,
+} from '@/widgets/results-panel';
 // Phase 4 Plan 04 / ROUTE-04: FitToRouteButton — bottom-right map area, gates сам себя по ?route.
 import { FitToRouteButton } from '@/widgets/route-preview-summary';
 import { AccountMenu } from '@/widgets/account-menu';
@@ -42,10 +47,12 @@ export function MobileLayout() {
   const [timeSheetOpen, setTimeSheetOpen] = useState(false);
   // ResultsSheet открывается по готовности нового поиска или через results chip.
   const [resultsSheetOpen, setResultsSheetOpen] = useState(false);
-  const [resultsSnapPoint, setResultsSnapPoint] = useState<number | string | null>(0.92);
+  const [resultsSnapPoint, setResultsSnapPoint] = useState<number | string | null>(
+    RESULTS_SNAP_LOW,
+  );
   const { selectedZoneId } = useSelectedZone();
   const openResults = useCallback(() => {
-    setResultsSnapPoint(0.92);
+    setResultsSnapPoint(RESULTS_SNAP_LOW);
     setResultsSheetOpen(true);
   }, []);
   // Полноэкранные панели требуют большого отступа, а карточка парковки имеет
@@ -105,6 +112,10 @@ export function MobileLayout() {
         />
         {/* Plan 02 mobile vaul + CARD-07 pan */}
         <MobileZoneCard onBackToResults={openResults} />
+        <MobileResultsViewportSync
+          open={resultsSheetOpen && selectedZoneId === null}
+          snapPoint={resultsSnapPoint}
+        />
       </div>
     </MapRefContext.Provider>
   );

@@ -123,7 +123,12 @@ function RoutePreviewLayerInner() {
     const map = mapRef.current;
     try {
       const isMobile = window.matchMedia('(max-width: 1023px)').matches;
-      map.setMargin(routeViewportMargin(isMobile));
+      const mobilePanelHeight = isMobile
+        ? document
+            .querySelector<HTMLElement>('[data-testid="mobile-zone-card"]')
+            ?.getBoundingClientRect().height
+        : undefined;
+      map.setMargin(routeViewportMargin(isMobile, mobilePanelHeight));
       fitMapToCoordinates(map, routeCoordinates);
       lastFittedRouteId.current = routeId;
     } catch (error) {

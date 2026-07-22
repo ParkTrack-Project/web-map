@@ -76,11 +76,11 @@ export function ZoneCardContent({ zoneId, onClose, navigation = 'close' }: Conte
   return (
     <div
       className="flex flex-col gap-4 p-5"
-      // 2026-05-30: клик по карточке парковки → максимальный зум на неё. Клики по
+      // Повторный клик мягко центрирует парковку без прыжка на максимальный zoom. Клики по
       // кнопкам/ссылкам внутри (Закрыть, Построить маршрут, Повторить) не трогаем.
       onClick={(e) => {
         if ((e.target as HTMLElement).closest('button, a')) return;
-        if (data?.geometry) zoomToZone(data.geometry, { max: true });
+        if (data?.geometry) zoomToZone(data.geometry);
       }}
     >
       <header className="flex items-center gap-2">

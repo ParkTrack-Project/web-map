@@ -47,6 +47,9 @@ export function fitMapToCoordinates(
 }
 
 /** Map margins keep the fitted route clear of the open result/card panels. */
-export function routeViewportMargin(isMobile: boolean): [number, number, number, number] {
-  return isMobile ? [72, 24, 380, 24] : [80, 420, 80, 420];
+export function routeViewportMargin(
+  isMobile: boolean,
+  mobilePanelHeight = 356,
+): [number, number, number, number] {
+  return isMobile ? [72, 24, Math.ceil(mobilePanelHeight) + 24, 24] : [80, 420, 80, 420];
 }

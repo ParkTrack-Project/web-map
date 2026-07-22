@@ -109,6 +109,7 @@ export function MobileZoneCard({ onBackToResults }: MobileZoneCardProps) {
       <Drawer.Portal>
         <Drawer.Content
           ref={contentRef}
+          data-testid="mobile-zone-card"
           className="surface-opaque fixed inset-x-0 bottom-0 z-50 mx-auto flex flex-col rounded-t-2xl bg-white outline-none lg:hidden dark:bg-zinc-900"
           aria-describedby={undefined}
           // Phase 5 hot-fix: drawer auto-fit to content height (без snapPoints).

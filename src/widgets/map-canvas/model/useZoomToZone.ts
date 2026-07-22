@@ -34,7 +34,7 @@ export function useZoomToZone() {
   zonesRef.current = data;
 
   return useCallback(
-    (geometry: ZoneGeometry | null | undefined, opts?: { max?: boolean; zoneId?: number }) => {
+    (geometry: ZoneGeometry | null | undefined, opts?: { zoneId?: number }) => {
       const map = mapRef?.current;
       // Карта ещё не смонтирована или геометрия пустая — тихо пропускаем.
       if (!map || !geometry?.coordinates?.[0]?.length) return;
@@ -52,20 +52,20 @@ export function useZoomToZone() {
       // своим полигоном+бейджем, а не прячется под кружком. + шаг квантования
       // зума: запас на округление clusterZoom (см. MapCanvas) и на строгое
       // неравенство слияния (dist == mergePx ещё сливает). Только при выборе
-      // конкретной зоны (есть zoneId) и не в режиме opts.max (там и так максимум).
+      // конкретной зоны (есть zoneId).
       let declusterZoom = 0;
       const zones = zonesRef.current;
-      if (!opts?.max && opts?.zoneId != null && zones) {
+      if (opts?.zoneId != null && zones) {
         const req = minZoomToDecluster(center, zones, CLUSTER_MERGE_PX, opts.zoneId);
         if (req != null) declusterZoom = req + CLUSTER_ZOOM_STEP;
       }
 
-      // opts.max → приближаем на МАКСИМУМ карты (клик по карточке парковки).
-      // Иначе — «внутрь» до наибольшего из: порога SELECTED_ZONE_ZOOM, текущего
+      // Приближаем «внутрь» до наибольшего из: порога SELECTED_ZONE_ZOOM, текущего
       // зума (без отдаления) и зума разъединения. Клампим по пределу карты.
-      const targetZoom = opts?.max
-        ? maxZoom
-        : Math.min(maxZoom, Math.max(SELECTED_ZONE_ZOOM, currentZoom, declusterZoom));
+      const targetZoom = Math.min(
+        maxZoom,
+        Math.max(SELECTED_ZONE_ZOOM, currentZoom, declusterZoom),
+      );
 
       try {
         map.setLocation({

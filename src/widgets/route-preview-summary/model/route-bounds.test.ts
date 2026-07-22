@@ -43,6 +43,7 @@ describe('route bounds', () => {
 
   it('reserves panel space when fitting the route', () => {
     expect(routeViewportMargin(true)).toEqual([72, 24, 380, 24]);
+    expect(routeViewportMargin(true, 447.2)).toEqual([72, 24, 472, 24]);
     expect(routeViewportMargin(false)).toEqual([80, 420, 80, 420]);
   });
 

@@ -2,12 +2,12 @@
 // Mobile vaul Drawer mutually exclusive with MobileZoneCard.
 // Open condition (CO-03 / W-1): ?from set (origin обязателен; ?dest без ?from → prompt в SearchBar).
 //
-// Два snap-положения: 0.92 для списка и 0.32 для просмотра результатов на
+// Два snap-положения: 0.92 для списка и 0.38 для просмотра результатов на
 // интерактивной карте. Нижнее положение не закрывает поиск и не очищает URL.
 //
 // Mutual-exclusion с MobileZoneCard реализуется через `open` precondition
 // (`open = !!from && selectedZoneId === null`), а НЕ через snap-cooperation:
-// - ?from появляется → MobileResultsSheet open=true, snap=0.92
+// - поиск завершается → MobileResultsSheet open=true, compact snap
 // - User clicks item → setSelectedZone → selectedZoneId !== null → open=false (close)
 // - MobileZoneCard mounts (Phase 2 single-snap логика)
 // - User закрывает ZoneCard → selectedZoneId=null → MobileResultsSheet вновь open=true

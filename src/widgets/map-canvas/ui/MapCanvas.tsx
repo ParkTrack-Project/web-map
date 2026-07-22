@@ -47,6 +47,7 @@ import { ZoneClusterLayer } from './ZoneClusterLayer';
 import { ZoneStateOverlay } from './ZoneStateOverlay';
 import { RoutePreviewLayer } from './RoutePreviewLayer';
 import { DestinationMarkerLayer } from './DestinationMarkerLayer';
+import { MapGestureLayer } from './MapGestureLayer';
 import { ModeTransitionOverlay } from '@/widgets/mode-transition-overlay';
 import { usePreferences } from '@/features/preferences';
 
@@ -241,6 +242,7 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
             2026-05-30: полигон-слои (ZoneLayer/ParallelZoneLayer) больше НЕ
             фильтруются по кластерам — парковки видны всегда, кружок ложится
             поверх схлопнутой группы. */}
+        <MapGestureLayer />
         <ZoneLayer />
         <ParallelZoneLayer />
         <ZoneBadgesLayer zoom={clusterZoom} />
