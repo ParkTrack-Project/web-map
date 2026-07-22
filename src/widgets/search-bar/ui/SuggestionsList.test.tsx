@@ -35,6 +35,34 @@ describe('SuggestionsList (D-06)', () => {
     fireEvent.click(screen.getByText('Кронверкский пр., 49'));
     expect(onSelect).toHaveBeenCalledWith(fakeResults[0]);
   });
+  it('selects the exact item when two suggestions have the same title and uri', () => {
+    const onSelect = vi.fn();
+    const sameNameResults: SuggestResult[] = [
+      {
+        title: { text: 'Авито' },
+        subtitle: { text: 'Лесная улица, 22, Петрозаводск' },
+        uri: 'Авито',
+        coords: [61.8, 34.3],
+      },
+      {
+        title: { text: 'Авито' },
+        subtitle: { text: 'Невский проспект, 1, Санкт-Петербург' },
+        uri: 'Авито',
+        coords: [59.9, 30.3],
+      },
+    ];
+    render(<SuggestionsList results={sameNameResults} onSelect={onSelect} />);
+
+    fireEvent.click(screen.getByText('Невский проспект, 1, Санкт-Петербург'));
+    expect(onSelect).toHaveBeenCalledWith(sameNameResults[1]);
+  });
+  it('uses readable hover and focus colors in the dark theme', () => {
+    render(<SuggestionsList results={fakeResults} onSelect={() => {}} />);
+    expect(screen.getAllByRole('option')[0]).toHaveClass(
+      'dark:hover:bg-zinc-800',
+      'dark:focus:bg-zinc-800',
+    );
+  });
   it('shows empty state когда results=[] и нет error', () => {
     render(<SuggestionsList results={[]} onSelect={() => {}} />);
     expect(screen.getByText(/Начните вводить адрес/i)).toBeInTheDocument();

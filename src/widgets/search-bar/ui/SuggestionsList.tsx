@@ -54,7 +54,7 @@ export function SuggestionsList({ results, onSelect, error }: SuggestionsListPro
     >
       {results.map((sug, idx) => (
         <li
-          key={sug.uri ?? idx}
+          key={`${sug.uri ?? sug.title.text}|${sug.subtitle?.text ?? ''}|${sug.coords?.join(',') ?? ''}|${idx}`}
           role="option"
           aria-selected={false}
           tabIndex={0}
@@ -62,7 +62,7 @@ export function SuggestionsList({ results, onSelect, error }: SuggestionsListPro
           onKeyDown={(e) => {
             if (e.key === 'Enter') onSelect(sug);
           }}
-          className="cursor-pointer truncate px-3 py-2 text-sm hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none"
+          className="cursor-pointer truncate px-3 py-2 text-sm hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none dark:text-zinc-100 dark:hover:bg-zinc-800 dark:focus:bg-zinc-800"
         >
           <div className="truncate font-medium">
             <HighlightedTitle title={sug.title} />

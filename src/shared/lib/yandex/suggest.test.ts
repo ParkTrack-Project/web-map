@@ -36,7 +36,7 @@ describe('suggestAddresses (Quick-fix п.4 — ymaps3.search JS-API)', () => {
       {
         title: { text: 'Кронверкский пр.' },
         subtitle: { text: 'Санкт-Петербург' },
-        uri: 'Кронверкский пр.',
+        uri: 'Кронверкский пр.|Санкт-Петербург|59.95598|30.30943',
         coords: [59.95598, 30.30943],
       },
     ]);
