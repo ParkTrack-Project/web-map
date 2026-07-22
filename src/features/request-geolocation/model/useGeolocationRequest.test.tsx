@@ -73,7 +73,7 @@ describe('useGeolocationRequest (D-11..D-13 / WTP-02 / Pitfall 4)', () => {
     expect(result.current.state.status).toBe('timeout');
   });
 
-  it('POSITION_UNAVAILABLE uses the supplied viewport fallback', async () => {
+  it('POSITION_UNAVAILABLE never substitutes the map viewport for the user position', async () => {
     getCurrentPositionMock.mockImplementationOnce(
       (_: PositionCallback, onError: PositionErrorCallback) =>
         onError({
@@ -87,10 +87,10 @@ describe('useGeolocationRequest (D-11..D-13 / WTP-02 / Pitfall 4)', () => {
     const { result } = renderHook(() => useGeolocationRequest());
     let coords: [number, number] | null = null;
     await act(async () => {
-      coords = await result.current.request([60, 31]);
+      coords = await result.current.request();
     });
-    expect(coords).toEqual([60, 31]);
-    expect(result.current.state).toMatchObject({ status: 'success', position: [60, 31] });
+    expect(coords).toBeNull();
+    expect(result.current.state).toMatchObject({ status: 'unavailable', position: null });
   });
 
   it('passes options { enableHighAccuracy:false, timeout:10000, maximumAge:30000 }', async () => {

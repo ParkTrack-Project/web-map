@@ -45,7 +45,7 @@ export function DesktopSearchBar() {
     const coords = sug.coords; // [lat, lon]
     // 1. setDestination — URL ?dest (→ розовый маркер адреса на карте)
     setDestination(coords);
-    const addressOrigin = originForAddressSelection(from, coords);
+    const addressOrigin = originForAddressSelection(from);
     if (addressOrigin) setFromCoords(addressOrigin);
     // 2. center map (lon-lat order для Yandex setLocation)
     mapRef?.current?.setLocation({ center: [coords[1], coords[0]], zoom: 16, duration: 300 });

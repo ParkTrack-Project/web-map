@@ -11,11 +11,7 @@
 import { useCallback } from 'react';
 import { Z_INDEX } from '@/shared/config';
 import { ClassicCarIcon } from '@/shared/ui';
-import {
-  useGeolocationRequest,
-  useFromCoords,
-  useViewportSearchOrigin,
-} from '@/features/request-geolocation';
+import { useGeolocationRequest, useFromCoords } from '@/features/request-geolocation';
 import { useDestination } from '@/features/address-search';
 import { PreFlightDialog } from './PreFlightDialog';
 import { useWtpPrompt } from '../model/useWtpPrompt';
@@ -39,14 +35,13 @@ export function WTPCTAButton() {
   const open = useWtpPrompt((s) => s.open);
   const setOpen = useWtpPrompt((s) => s.setOpen);
   const { request } = useGeolocationRequest();
-  const viewportOrigin = useViewportSearchOrigin();
   const { setFromCoords } = useFromCoords();
   const { clearDestination } = useDestination();
 
   const requestGeolocation = useCallback(async () => {
-    const coords = await request(viewportOrigin);
+    const coords = await request();
     if (coords) setFromCoords(coords);
-  }, [request, setFromCoords, viewportOrigin]);
+  }, [request, setFromCoords]);
 
   const handleClick = useCallback(async () => {
     // «Припарковаться» = искать парковки рядом с МОИМ местоположением. Если был

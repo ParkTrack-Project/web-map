@@ -36,7 +36,7 @@ export function MobileSearchBar() {
     if (!sug.coords) return;
     const coords = sug.coords;
     setDestination(coords);
-    const addressOrigin = originForAddressSelection(from, coords);
+    const addressOrigin = originForAddressSelection(from);
     if (addressOrigin) setFromCoords(addressOrigin);
     mapRef?.current?.setLocation({ center: [coords[1], coords[0]], zoom: 16, duration: 300 });
     closeCard();

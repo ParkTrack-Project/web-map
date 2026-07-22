@@ -10,11 +10,7 @@
 // Permissions API: skip pre-flight если permission='granted' (как WTPCTAButton).
 import { useCallback, useState } from 'react';
 import { ListChecks } from 'lucide-react';
-import {
-  useFromCoords,
-  useGeolocationRequest,
-  useViewportSearchOrigin,
-} from '@/features/request-geolocation';
+import { useFromCoords, useGeolocationRequest } from '@/features/request-geolocation';
 import { useFilteredCandidates } from '@/features/filter-zones';
 import { useIsMobile } from '@/shared/lib/responsive';
 import { useI18n } from '@/shared/lib/i18n';
@@ -46,13 +42,12 @@ export function MobileResultsButton({ hidden, onOpenSheet }: MobileResultsButton
   const filtered = useFilteredCandidates(data?.candidates);
   const isMobile = useIsMobile();
   const { request, state } = useGeolocationRequest();
-  const viewportOrigin = useViewportSearchOrigin();
   const [preFlightOpen, setPreFlightOpen] = useState(false);
 
   const requestGeolocation = useCallback(async () => {
-    const coords = await request(viewportOrigin);
+    const coords = await request();
     if (coords) setFromCoords(coords);
-  }, [request, setFromCoords, viewportOrigin]);
+  }, [request, setFromCoords]);
 
   const handleClick = useCallback(async () => {
     if (from) {
