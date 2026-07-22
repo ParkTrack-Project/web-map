@@ -14,6 +14,7 @@ import { ClassicCarIcon } from '@/shared/ui';
 import { useGeolocationRequest, useFromCoords } from '@/features/request-geolocation';
 import { useDestination } from '@/features/address-search';
 import { PreFlightDialog } from './PreFlightDialog';
+import { GeolocationDeniedBanner } from './GeolocationDeniedBanner';
 import { useWtpPrompt } from '../model/useWtpPrompt';
 import { useI18n } from '@/shared/lib/i18n';
 
@@ -34,7 +35,7 @@ export function WTPCTAButton() {
   // же окно после выбора адреса.
   const open = useWtpPrompt((s) => s.open);
   const setOpen = useWtpPrompt((s) => s.setOpen);
-  const { request } = useGeolocationRequest();
+  const { request, state } = useGeolocationRequest();
   const { setFromCoords } = useFromCoords();
   const { clearDestination } = useDestination();
 
@@ -61,16 +62,19 @@ export function WTPCTAButton() {
 
   return (
     <>
-      <button
-        type="button"
-        aria-label={t('wtp.action')}
-        onClick={handleClick}
-        style={{ zIndex: Z_INDEX.wtpCtaDesktop }}
-        className="hidden items-center gap-2 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:bg-emerald-700 active:scale-[0.98] lg:inline-flex"
-      >
-        <ClassicCarIcon size={18} aria-hidden />
-        {t('wtp.action')}
-      </button>
+      <div className="relative hidden lg:block" style={{ zIndex: Z_INDEX.wtpCtaDesktop }}>
+        <button
+          type="button"
+          aria-label={t('wtp.action')}
+          onClick={handleClick}
+          disabled={state.status === 'requesting'}
+          className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:bg-emerald-700 active:scale-[0.98] disabled:cursor-wait disabled:opacity-80"
+        >
+          <ClassicCarIcon size={18} aria-hidden />
+          {state.status === 'requesting' ? t('results.locating') : t('wtp.action')}
+        </button>
+        <GeolocationDeniedBanner state={state} className="absolute top-12 left-0 w-80" />
+      </div>
       <PreFlightDialog open={open} onOpenChange={setOpen} onAllow={requestGeolocation} />
     </>
   );

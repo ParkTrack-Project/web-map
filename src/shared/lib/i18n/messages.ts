@@ -165,6 +165,7 @@ export const messages = {
     'wtp.allow': 'Разрешить геолокацию',
     'wtp.unavailable': 'Geolocation API недоступен в этом браузере',
     'wtp.failed': 'Не удалось определить местоположение',
+    'wtp.retrying': 'Местоположение пока недоступно. Повторяем запрос…',
     'wtp.denied':
       'Геолокация запрещена. Введите адрес стартовой точки или включите геолокацию в настройках браузера',
     'wtp.timeout': 'Не удалось определить местоположение (timeout)',
@@ -352,6 +353,7 @@ export const messages = {
     'wtp.allow': 'Allow location access',
     'wtp.unavailable': 'The Geolocation API is unavailable in this browser',
     'wtp.failed': 'Could not determine your location',
+    'wtp.retrying': 'Location is temporarily unavailable. Retrying…',
     'wtp.denied':
       'Location access is blocked. Enter a starting address or enable location access in browser settings',
     'wtp.timeout': 'Could not determine your location (timeout)',

@@ -108,6 +108,43 @@ describe('useGeolocationRequest (D-11..D-13 / WTP-02 / Pitfall 4)', () => {
     });
   });
 
+  it('keeps watching after repeated locationUnknown until CoreLocation recovers', async () => {
+    vi.useFakeTimers();
+    const unavailable = {
+      code: 2,
+      PERMISSION_DENIED: 1,
+      POSITION_UNAVAILABLE: 2,
+      TIMEOUT: 3,
+      message: 'CoreLocation location unknown',
+    } as GeolocationPositionError;
+    const clearWatch = vi.fn();
+    const watchPosition = vi.fn((onSuccess: PositionCallback, onError: PositionErrorCallback) => {
+      onError(unavailable);
+      onSuccess({ coords: { latitude: 59.94, longitude: 30.32 } } as GeolocationPosition);
+      return 7;
+    });
+    getCurrentPositionMock.mockImplementation(
+      (_: PositionCallback, onError: PositionErrorCallback) => onError(unavailable),
+    );
+    Object.defineProperty(globalThis.navigator, 'geolocation', {
+      value: { getCurrentPosition: getCurrentPositionMock, watchPosition, clearWatch },
+      configurable: true,
+      writable: true,
+    });
+
+    const { result } = renderHook(() => useGeolocationRequest());
+    let coords: [number, number] | null = null;
+    await act(async () => {
+      const request = result.current.request();
+      await vi.advanceTimersByTimeAsync(400);
+      coords = await request;
+    });
+
+    expect(coords).toEqual([59.94, 30.32]);
+    expect(watchPosition).toHaveBeenCalledTimes(1);
+    expect(clearWatch).toHaveBeenCalledWith(7);
+  });
+
   it('never substitutes the map viewport when both position attempts fail', async () => {
     vi.useFakeTimers();
     const unavailable = {

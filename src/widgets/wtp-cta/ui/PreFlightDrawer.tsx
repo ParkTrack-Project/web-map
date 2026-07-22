@@ -18,8 +18,9 @@ interface PreFlightDrawerProps {
 export function PreFlightDrawer({ open, onOpenChange, onAllow }: PreFlightDrawerProps) {
   const { t } = useI18n();
   const handleAllow = async () => {
-    await onAllow();
+    const request = onAllow();
     onOpenChange(false);
+    await request;
   };
 
   return (

@@ -39,6 +39,41 @@ function waitBeforeRetry() {
   return new Promise<void>((resolve) => window.setTimeout(resolve, RETRY_DELAY_MS));
 }
 
+function watchForPosition(geolocation: Geolocation, fallbackError: GeolocationPositionError) {
+  if (typeof geolocation.watchPosition !== 'function') {
+    return Promise.reject(fallbackError);
+  }
+
+  return new Promise<GeolocationPosition>((resolve, reject) => {
+    let watchId: number | null = null;
+    let settled = false;
+    const finish = (callback: () => void) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeoutId);
+      if (watchId !== null) geolocation.clearWatch(watchId);
+      callback();
+    };
+    const timeoutId = window.setTimeout(
+      () => finish(() => reject(fallbackError)),
+      GEOLOCATION_TIMEOUT_MS,
+    );
+
+    watchId = geolocation.watchPosition(
+      (position) => finish(() => resolve(position)),
+      (error) => {
+        // CoreLocation может несколько раз вернуть locationUnknown, прежде чем
+        // получит координаты. Watch оставляем активным до успеха или timeout.
+        if (error.code === error.POSITION_UNAVAILABLE) return;
+        finish(() => reject(error));
+      },
+      RETRY_OPTIONS,
+    );
+
+    if (settled && watchId !== null) geolocation.clearWatch(watchId);
+  });
+}
+
 export function useGeolocationRequest() {
   const { t } = useI18n();
   const [state, setState] = useState<GeolocationRequestState>(INITIAL);
@@ -62,8 +97,17 @@ export function useGeolocationRequest() {
       } catch (error) {
         const geolocationError = error as GeolocationPositionError;
         if (geolocationError.code !== geolocationError.POSITION_UNAVAILABLE) throw error;
+        setState({ status: 'requesting', position: null, error: t('wtp.retrying') });
         await waitBeforeRetry();
-        position = await getPosition(navigator.geolocation, RETRY_OPTIONS);
+        try {
+          position = await getPosition(navigator.geolocation, RETRY_OPTIONS);
+        } catch (retryError) {
+          const retryGeolocationError = retryError as GeolocationPositionError;
+          if (retryGeolocationError.code !== retryGeolocationError.POSITION_UNAVAILABLE) {
+            throw retryError;
+          }
+          position = await watchForPosition(navigator.geolocation, retryGeolocationError);
+        }
       }
 
       const coords: [number, number] = [position.coords.latitude, position.coords.longitude];
