@@ -24,7 +24,7 @@ function normalizeUser(raw: RawUser): SessionUser {
 }
 
 export async function loginRequest(body: { login: string; password: string }) {
-  const { data } = await apiClient.post<AuthResponse>('/api/v1/auth/login', body);
+  const { data } = await apiClient.post<AuthResponse>('/auth/login', body);
   return { accessToken: data.access_token, user: normalizeUser(data.user) };
 }
 
@@ -33,26 +33,26 @@ export async function registerRequest(body: {
   password: string;
   full_name?: string;
 }) {
-  const { data } = await apiClient.post<AuthResponse>('/api/v1/auth/register', body);
+  const { data } = await apiClient.post<AuthResponse>('/auth/register', body);
   return { accessToken: data.access_token, user: normalizeUser(data.user) };
 }
 
 export async function requestPasswordResetRequest(email: string): Promise<void> {
-  await apiClient.post('/api/v1/auth/password-reset/request', { email });
+  await apiClient.post('/auth/password-reset/request', { email });
 }
 
 export async function currentUserRequest(): Promise<SessionUser> {
-  const { data } = await apiClient.get<RawUser | { user: RawUser }>('/api/v1/auth/me');
+  const { data } = await apiClient.get<RawUser | { user: RawUser }>('/auth/me');
   return normalizeUser('user' in data ? data.user : data);
 }
 
 export async function updateUserRequest(full_name: string): Promise<SessionUser> {
-  const { data } = await apiClient.put<RawUser | { user: RawUser }>('/api/v1/users/me', {
+  const { data } = await apiClient.put<RawUser | { user: RawUser }>('/users/me', {
     full_name,
   });
   return normalizeUser('user' in data ? data.user : data);
 }
 
 export async function logoutRequest(): Promise<void> {
-  await apiClient.post('/api/v1/auth/logout');
+  await apiClient.post('/auth/logout');
 }
