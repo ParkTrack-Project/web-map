@@ -19,12 +19,12 @@ import * as Popover from '@radix-ui/react-popover';
 import { Search, X } from 'lucide-react';
 import { useAddressSuggest, useDestination } from '@/features/address-search';
 import { useSelectedZone } from '@/features/select-zone';
-import { useFromCoords } from '@/features/request-geolocation';
+import { useFromCoords, useGeolocationRequest } from '@/features/request-geolocation';
 import { MapRefContext } from '@/widgets/map-canvas';
+import { GeolocationDeniedBanner } from '@/widgets/wtp-cta';
 import type { SuggestResult } from '@/shared/lib/yandex';
 import { SuggestionsList } from './SuggestionsList';
 import { useI18n } from '@/shared/lib/i18n';
-import { originForAddressSelection } from '../model/search-origin';
 
 export function DesktopSearchBar() {
   const { t } = useI18n();
@@ -32,6 +32,7 @@ export function DesktopSearchBar() {
   const { setDestination } = useDestination();
   const { closeCard } = useSelectedZone();
   const { from, setFromCoords } = useFromCoords();
+  const geolocation = useGeolocationRequest();
   const mapRef = useContext(MapRefContext);
   const inputRef = useRef<HTMLInputElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
@@ -45,8 +46,14 @@ export function DesktopSearchBar() {
     const coords = sug.coords; // [lat, lon]
     // 1. setDestination — URL ?dest (→ розовый маркер адреса на карте)
     setDestination(coords);
-    const addressOrigin = originForAddressSelection(from);
-    if (addressOrigin) setFromCoords(addressOrigin);
+    // Поиск парковок всегда строится от пользователя. Если origin ещё не
+    // известен, выбор адреса сам запрашивает геолокацию и запускает запрос
+    // сразу после получения координат.
+    if (!from) {
+      void geolocation.request().then((position) => {
+        if (position) setFromCoords(position);
+      });
+    }
     // 2. center map (lon-lat order для Yandex setLocation)
     mapRef?.current?.setLocation({ center: [coords[1], coords[0]], zoom: 16, duration: 300 });
     // 3. close zone-card
@@ -90,6 +97,10 @@ export function DesktopSearchBar() {
               <X size={14} aria-hidden />
             </button>
           )}
+          <GeolocationDeniedBanner
+            state={geolocation.state}
+            className="absolute top-11 left-0 w-full"
+          />
         </div>
       </Popover.Anchor>
       <Popover.Content
