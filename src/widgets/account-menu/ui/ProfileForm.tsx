@@ -26,7 +26,7 @@ export function ProfileForm({ onBack }: Props) {
     setError,
   } = useForm<{ fullName: string }>({
     resolver: zodResolver(schema),
-    defaultValues: { fullName: user.full_name ?? '' },
+    defaultValues: { fullName: (user ? user.full_name : '') ?? '' },
   });
 
   const submit = handleSubmit(async ({ fullName }) => {
@@ -48,7 +48,7 @@ export function ProfileForm({ onBack }: Props) {
         registration={register('fullName')}
         error={errors.fullName}
       />
-      <FormField label={t('account.email')} type="email" value={user.email} readOnly />
+      <FormField label={t('account.email')} type="email" value={user ? user.email : ''} readOnly />
       {errors.root && (
         <p role="alert" className="text-sm text-red-600 dark:text-red-400">
           {errors.root.message}
