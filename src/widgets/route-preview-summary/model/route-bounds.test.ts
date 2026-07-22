@@ -1,7 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { YMap } from '@yandex/ymaps3-types';
 import type { Route } from '@/entities/zone';
-import { fitMapToRoute, routeBounds, routeViewportMargin } from './route-bounds';
+import {
+  coordinateBounds,
+  fitMapToCoordinates,
+  fitMapToRoute,
+  routeBounds,
+  routeViewportMargin,
+} from './route-bounds';
 
 const route = {
   origin: { latitude: 59.95, longitude: 30.1 },
@@ -38,5 +44,24 @@ describe('route bounds', () => {
   it('reserves panel space when fitting the route', () => {
     expect(routeViewportMargin(true)).toEqual([72, 24, 380, 24]);
     expect(routeViewportMargin(false)).toEqual([80, 420, 80, 420]);
+  });
+
+  it('fits every bend of a real route geometry', () => {
+    const coordinates: [number, number][] = [
+      [30.2, 59.9],
+      [30.8, 60.4],
+      [30.5, 60.1],
+    ];
+    expect(coordinateBounds(coordinates)).toEqual([
+      [30.2, 59.9],
+      [30.8, 60.4],
+    ]);
+
+    const setLocation = vi.fn();
+    fitMapToCoordinates({ setLocation } as unknown as YMap, coordinates);
+    expect(setLocation).toHaveBeenCalledWith({
+      bounds: coordinateBounds(coordinates),
+      duration: 400,
+    });
   });
 });

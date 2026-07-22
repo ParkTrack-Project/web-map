@@ -179,6 +179,37 @@ export interface GeoSearchHit {
   coords: [number, number];
 }
 
+type Ymaps3RouteResponse = {
+  toRoute(): { geometry?: { coordinates?: [number, number][] } };
+};
+
+type Ymaps3WithRoute = {
+  route(options: {
+    points: [number, number][];
+    type: 'driving';
+    bounds: boolean;
+  }): Promise<Ymaps3RouteResponse[]>;
+};
+
+/** Returns the road-following driving geometry provided by Yandex Maps. */
+export async function buildDrivingRoute(points: [number, number][]): Promise<[number, number][]> {
+  const api = ymaps3Global as unknown as Ymaps3WithRoute;
+  const responses = await api.route({ points, type: 'driving', bounds: true });
+  const coordinates = responses[0]?.toRoute().geometry?.coordinates;
+
+  if (
+    !coordinates ||
+    coordinates.length < 2 ||
+    coordinates.some(
+      ([longitude, latitude]) => !Number.isFinite(longitude) || !Number.isFinite(latitude),
+    )
+  ) {
+    throw new Error('Yandex Maps returned no driving route geometry');
+  }
+
+  return coordinates;
+}
+
 type Ymaps3SearchFeature = {
   geometry?: { coordinates?: [number, number] }; // [lon, lat]
   properties?: { name?: string; description?: string };

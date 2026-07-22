@@ -37,7 +37,7 @@ export function MobileDeeplinkSheet({ from, to, coordsValid }: Props) {
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
           <Drawer.Content
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto rounded-t-2xl bg-white p-4 outline-none lg:hidden"
+            className="surface-opaque fixed inset-x-0 bottom-0 z-50 mx-auto rounded-t-2xl bg-white p-4 text-zinc-900 outline-none lg:hidden dark:bg-zinc-900 dark:text-zinc-100"
             aria-describedby={undefined}
             data-testid="mobile-deeplink-sheet"
           >
@@ -57,21 +57,21 @@ export function MobileDeeplinkSheet({ from, to, coordsValid }: Props) {
               <button
                 type="button"
                 onClick={handleAndClose(() => launchYandexMapsWeb(from, to))}
-                className="min-h-[44px] rounded-md border border-zinc-300 px-4 text-sm font-medium hover:bg-zinc-50"
+                className="min-h-[44px] rounded-md border border-zinc-300 px-4 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
               >
                 {t('route.yandexMaps')}
               </button>
               <button
                 type="button"
                 onClick={handleAndClose(() => launchGoogleMaps(from, to))}
-                className="min-h-[44px] rounded-md border border-zinc-300 px-4 text-sm font-medium hover:bg-zinc-50"
+                className="min-h-[44px] rounded-md border border-zinc-300 px-4 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
               >
                 Google Maps
               </button>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="min-h-[44px] rounded-md text-sm font-medium text-zinc-500 hover:bg-zinc-50"
+                className="min-h-[44px] rounded-md text-sm font-medium text-zinc-500 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
               >
                 {t('common.cancel')}
               </button>
