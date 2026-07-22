@@ -56,7 +56,7 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
       data-testid={`result-item-${c.zone_id}`}
       onClick={handleClick}
       className={
-        'flex w-full flex-col gap-1 rounded-md border-2 px-3 py-2 text-left text-sm hover:bg-emerald-50 ' +
+        'flex w-full flex-col gap-1 rounded-md border-2 px-3 py-2 text-left text-sm transition-colors hover:bg-emerald-50 dark:text-zinc-100 dark:hover:bg-zinc-800 ' +
         (isSelected
           ? 'surface-selected border-emerald-500 bg-emerald-50'
           : 'surface-opaque border-zinc-100 bg-white dark:bg-zinc-900')

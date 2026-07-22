@@ -83,6 +83,10 @@ describe('ResultItem (RANK-04 / D-20)', () => {
     expect(screen.getByText(/850 м/)).toBeInTheDocument();
     expect(screen.getByText(/4 мин/)).toBeInTheDocument(); // 240 sec / 60 = 4 min
   });
+  it('uses a readable dark hover background', () => {
+    render(wrap(<ResultItem candidate={c} onClick={() => {}} />));
+    expect(screen.getByTestId('result-item-42')).toHaveClass('dark:hover:bg-zinc-800');
+  });
 
   // 2026-05-26: длинные маршруты конвертируем в часы/дни вместо «4000 мин».
   it('конвертирует длинную поездку: 4000 мин (≈240000с) → «2 д 18 ч»', () => {
