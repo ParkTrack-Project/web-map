@@ -22,6 +22,7 @@ export const MAP_Z = {
   zoneParallel: 1901, // parallel-полосы LineString (feature-слой)
   zoneBadges: 2000, // free_count pill-маркеры одиночных зон (слой ptk-badges)
   cluster: 2100, // кружки групп (слой ptk-clusters) — поверх парковки Яндекса
+  routeLine: 2150, // линия построенного маршрута между origin и парковкой
   routeStart: 2200, // точка начала маршрута (слой ptk-route-start)
   routeEnd: 2300, // точка конца / парковка назначения (слой ptk-route-end) — верх
 } as const;

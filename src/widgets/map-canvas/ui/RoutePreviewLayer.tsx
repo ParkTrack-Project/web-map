@@ -1,7 +1,8 @@
 // Phase 4 / ROUTE-03 / D-29:
-import { memo, type ComponentType, type ReactNode } from 'react';
+import { memo, useContext, useEffect, useRef, type ComponentType, type ReactNode } from 'react';
 import { Locate, Target } from 'lucide-react';
 import {
+  YMapFeature as YMapFeatureRaw,
   YMapMarker as YMapMarkerRaw,
   YMapFeatureDataSource as YMapFeatureDataSourceRaw,
   YMapLayer as YMapLayerRaw,
@@ -9,7 +10,20 @@ import {
 import { useRouteByIdQuery } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { MAP_Z } from '@/shared/config';
-import { useRouteId, useRouteSelSync } from '@/widgets/route-preview-summary';
+import {
+  fitMapToRoute,
+  routeViewportMargin,
+  useRouteId,
+  useRouteSelSync,
+} from '@/widgets/route-preview-summary';
+import { MapRefContext } from '../model/map-ref-context';
+
+type YMapFeatureProps = {
+  id: string;
+  geometry: { type: 'LineString'; coordinates: [number, number][] };
+  style: { stroke: Array<{ color: string; width: number }> };
+  source: string;
+};
 
 type YMapMarkerProps = {
   coordinates: [number, number];
@@ -29,6 +43,7 @@ type YMapLayerProps = {
 };
 
 const YMapMarker = YMapMarkerRaw as unknown as ComponentType<YMapMarkerProps>;
+const YMapFeature = YMapFeatureRaw as unknown as ComponentType<YMapFeatureProps>;
 
 const YMapFeatureDataSource =
   YMapFeatureDataSourceRaw as unknown as ComponentType<YMapFeatureDataSourceProps>;
@@ -38,8 +53,27 @@ const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 function RoutePreviewLayerInner() {
   const { routeId } = useRouteId();
   const { data: route } = useRouteByIdQuery(routeId);
+  const mapRef = useContext(MapRefContext);
+  const lastFittedRouteId = useRef<number | null>(null);
 
   useRouteSelSync();
+
+  useEffect(() => {
+    if (!routeId || !route || !mapRef?.current || lastFittedRouteId.current === routeId) return;
+    const map = mapRef.current;
+    try {
+      const isMobile = window.matchMedia('(max-width: 1023px)').matches;
+      map.setMargin(routeViewportMargin(isMobile));
+      fitMapToRoute(map, route);
+      lastFittedRouteId.current = routeId;
+    } catch (error) {
+      console.warn('[route-preview] automatic fit failed', error);
+    }
+
+    return () => {
+      map.setMargin([0, 0, 0, 0]);
+    };
+  }, [mapRef, route, routeId]);
 
   if (!routeId || !route) return null;
 
@@ -65,8 +99,17 @@ function RoutePreviewLayerInner() {
           слое) их перекрывали бы и парковка Яндекса, и кружки групп. */}
       <YMapFeatureDataSource id="ptk-route-start" />
       <YMapLayer source="ptk-route-start" type="markers" zIndex={MAP_Z.routeStart} />
+      <YMapFeatureDataSource id="ptk-route-line" />
+      <YMapLayer source="ptk-route-line" type="features" zIndex={MAP_Z.routeLine} />
       <YMapFeatureDataSource id="ptk-route-end" />
       <YMapLayer source="ptk-route-end" type="markers" zIndex={MAP_Z.routeEnd} />
+
+      <YMapFeature
+        id={`route-line-${routeId}`}
+        source="ptk-route-line"
+        geometry={{ type: 'LineString', coordinates: [originLngLat, zoneCenter] }}
+        style={{ stroke: [{ color: '#16a34a', width: 5 }] }}
+      />
 
       {/* Старт (точка пользователя). */}
       <YMapMarker source="ptk-route-start" coordinates={originLngLat} zIndex={MAP_Z.routeStart}>

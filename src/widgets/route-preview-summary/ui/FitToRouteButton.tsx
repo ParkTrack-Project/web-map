@@ -6,11 +6,11 @@
 import { useContext } from 'react';
 import { Maximize2 } from 'lucide-react';
 import { useRouteByIdQuery } from '@/entities/zone';
-import { zoneCentroid } from '@/shared/lib/geo';
 import { MapRefContext } from '@/widgets/map-canvas';
 import { Z_INDEX } from '@/shared/config';
 import { useRouteId } from '../model/useRouteId';
 import { useI18n } from '@/shared/lib/i18n';
+import { fitMapToRoute } from '../model/route-bounds';
 
 export function FitToRouteButton() {
   const { t } = useI18n();
@@ -22,14 +22,8 @@ export function FitToRouteButton() {
 
   const handleFit = () => {
     if (!mapRef?.current) return;
-    // W-4 fix: minimal-shape принимается напрямую.
-    const [lonZ, latZ] = zoneCentroid(route.selected_candidate.geometry);
-    const lonO = route.origin.longitude;
-    const latO = route.origin.latitude;
-    const sw: [number, number] = [Math.min(lonO, lonZ), Math.min(latO, latZ)];
-    const ne: [number, number] = [Math.max(lonO, lonZ), Math.max(latO, latZ)];
     try {
-      mapRef.current.setLocation({ bounds: [sw, ne], duration: 400 });
+      fitMapToRoute(mapRef.current, route);
     } catch (e) {
       console.warn('[fit-to-route] setLocation failed', e);
     }
