@@ -15,6 +15,7 @@ describe('useGeolocationRequest (D-11..D-13 / WTP-02 / Pitfall 4)', () => {
     getCurrentPositionMock.mockReset();
   });
   afterEach(() => {
+    vi.useRealTimers();
     Reflect.deleteProperty(globalThis.navigator, 'geolocation');
   });
 
@@ -73,9 +74,10 @@ describe('useGeolocationRequest (D-11..D-13 / WTP-02 / Pitfall 4)', () => {
     expect(result.current.state.status).toBe('timeout');
   });
 
-  it('POSITION_UNAVAILABLE never substitutes the map viewport for the user position', async () => {
-    getCurrentPositionMock.mockImplementationOnce(
-      (_: PositionCallback, onError: PositionErrorCallback) =>
+  it('retries transient CoreLocation POSITION_UNAVAILABLE with high accuracy', async () => {
+    vi.useFakeTimers();
+    getCurrentPositionMock
+      .mockImplementationOnce((_: PositionCallback, onError: PositionErrorCallback) =>
         onError({
           code: 2,
           PERMISSION_DENIED: 1,
@@ -83,14 +85,53 @@ describe('useGeolocationRequest (D-11..D-13 / WTP-02 / Pitfall 4)', () => {
           TIMEOUT: 3,
           message: 'CoreLocation location unknown',
         } as GeolocationPositionError),
-    );
+      )
+      .mockImplementationOnce((onSuccess: PositionCallback) =>
+        onSuccess({ coords: { latitude: 59.95, longitude: 30.31 } } as GeolocationPosition),
+      );
+
     const { result } = renderHook(() => useGeolocationRequest());
     let coords: [number, number] | null = null;
     await act(async () => {
-      coords = await result.current.request();
+      const request = result.current.request();
+      await vi.advanceTimersByTimeAsync(400);
+      coords = await request;
     });
+
+    expect(coords).toEqual([59.95, 30.31]);
+    expect(result.current.state).toMatchObject({ status: 'success', position: [59.95, 30.31] });
+    expect(getCurrentPositionMock).toHaveBeenCalledTimes(2);
+    expect(getCurrentPositionMock.mock.calls[1]![2]).toEqual({
+      enableHighAccuracy: true,
+      timeout: 10_000,
+      maximumAge: 0,
+    });
+  });
+
+  it('never substitutes the map viewport when both position attempts fail', async () => {
+    vi.useFakeTimers();
+    const unavailable = {
+      code: 2,
+      PERMISSION_DENIED: 1,
+      POSITION_UNAVAILABLE: 2,
+      TIMEOUT: 3,
+      message: 'CoreLocation location unknown',
+    } as GeolocationPositionError;
+    getCurrentPositionMock.mockImplementation(
+      (_: PositionCallback, onError: PositionErrorCallback) => onError(unavailable),
+    );
+
+    const { result } = renderHook(() => useGeolocationRequest());
+    let coords: [number, number] | null = null;
+    await act(async () => {
+      const request = result.current.request();
+      await vi.advanceTimersByTimeAsync(400);
+      coords = await request;
+    });
+
     expect(coords).toBeNull();
     expect(result.current.state).toMatchObject({ status: 'unavailable', position: null });
+    expect(getCurrentPositionMock).toHaveBeenCalledTimes(2);
   });
 
   it('passes options { enableHighAccuracy:false, timeout:10000, maximumAge:30000 }', async () => {
