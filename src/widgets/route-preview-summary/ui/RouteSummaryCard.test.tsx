@@ -108,4 +108,13 @@ describe('RouteSummaryCard (D-31 / ROUTE-05)', () => {
     render(wrap(<RouteSummaryCard />));
     expect(screen.getAllByText(/В путь/).length).toBeGreaterThan(0);
   });
+
+  it('uses readable dark-theme colors without a light border', () => {
+    render(wrap(<RouteSummaryCard />));
+    expect(screen.getByTestId('route-summary-card')).toHaveClass(
+      'dark:border-transparent',
+      'dark:!bg-emerald-950',
+    );
+    expect(screen.getByText(/Маршрут построен/)).toHaveClass('dark:text-emerald-300');
+  });
 });

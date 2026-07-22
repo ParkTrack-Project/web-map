@@ -16,7 +16,8 @@ interface Props {
 export function MobileDeeplinkSheet({ from, to, coordsValid }: Props) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
-  const { launchYandexNavigator, launchYandexMapsWeb, launchGoogleMaps } = useNavigatorLauncher();
+  const { yandexNavigatorAvailable, launchYandexNavigator, launchYandexMapsWeb, launchGoogleMaps } =
+    useNavigatorLauncher();
   const handleAndClose = (fn: () => void) => () => {
     fn();
     setOpen(false);
@@ -46,16 +47,19 @@ export function MobileDeeplinkSheet({ from, to, coordsValid }: Props) {
             </Drawer.Title>
             <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-zinc-300" aria-hidden />
             <div className="flex flex-col gap-2">
+              {yandexNavigatorAvailable && (
+                <button
+                  type="button"
+                  autoFocus
+                  onClick={handleAndClose(() => launchYandexNavigator(from, to))}
+                  className="flex min-h-[44px] items-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
+                >
+                  <Navigation size={14} aria-hidden /> {t('route.yandexNavigator')}
+                </button>
+              )}
               <button
                 type="button"
-                autoFocus
-                onClick={handleAndClose(() => launchYandexNavigator(from, to))}
-                className="flex min-h-[44px] items-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
-              >
-                <Navigation size={14} aria-hidden /> {t('route.yandexNavigator')}
-              </button>
-              <button
-                type="button"
+                autoFocus={!yandexNavigatorAvailable}
                 onClick={handleAndClose(() => launchYandexMapsWeb(from, to))}
                 className="min-h-[44px] rounded-md border border-zinc-300 px-4 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
               >

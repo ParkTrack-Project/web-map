@@ -659,4 +659,28 @@ export const handlers = [
     }
     return HttpResponse.json(route);
   }),
+
+  // Road geometry provider used by RoutePreviewLayer. The middle point makes
+  // the mock visibly road-like instead of regressing to a straight segment.
+  http.get(`${env.VITE_ROUTING_GEOMETRY_BASE_URL}/route/v1/driving/:coordinates`, ({ params }) => {
+    const points = String(params.coordinates)
+      .split(';')
+      .map((point) => point.split(',').map(Number) as [number, number]);
+    const [start, end] = points;
+    if (
+      !start ||
+      !end ||
+      points.some(([lon, lat]) => !Number.isFinite(lon) || !Number.isFinite(lat))
+    ) {
+      return HttpResponse.json({ code: 'InvalidQuery', routes: [] }, { status: 400 });
+    }
+    const middle: [number, number] = [
+      (start[0] + end[0]) / 2 + 0.001,
+      (start[1] + end[1]) / 2 + 0.001,
+    ];
+    return HttpResponse.json({
+      code: 'Ok',
+      routes: [{ geometry: { type: 'LineString', coordinates: [start, middle, end] } }],
+    });
+  }),
 ];

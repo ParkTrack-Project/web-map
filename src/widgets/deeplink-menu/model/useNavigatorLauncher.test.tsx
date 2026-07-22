@@ -15,16 +15,29 @@ describe('useNavigatorLauncher (ROUTE-07 / D-33)', () => {
       configurable: true,
     });
     openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    Object.defineProperty(globalThis, '__parktrackProtocolHandlers', {
+      value: ['yandexnavi'],
+      configurable: true,
+    });
   });
   afterEach(() => {
     vi.useRealTimers();
     openSpy.mockRestore();
+    Reflect.deleteProperty(globalThis, '__parktrackProtocolHandlers');
   });
 
   it('valid coords → navigates to yandexnavi://', () => {
     const { result } = renderHook(() => useNavigatorLauncher());
     result.current.launchYandexNavigator([59.93, 30.31], [59.95, 30.3]);
     expect(window.location.href).toMatch(/^yandexnavi:\/\/build_route_on_map/);
+  });
+
+  it('does not launch an unconfirmed native protocol handler', () => {
+    Reflect.deleteProperty(globalThis, '__parktrackProtocolHandlers');
+    const { result } = renderHook(() => useNavigatorLauncher());
+    expect(result.current.yandexNavigatorAvailable).toBe(false);
+    expect(result.current.launchYandexNavigator([59.93, 30.31], [59.95, 30.3])).toBe(false);
+    expect(window.location.href).toBe('');
   });
 
   it('invalid coords → no navigation', () => {

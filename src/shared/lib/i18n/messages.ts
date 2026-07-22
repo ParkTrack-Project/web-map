@@ -113,6 +113,8 @@ export const messages = {
     'results.byAddress': 'Парковки у адреса',
     'results.total': 'Всего вариантов: {count}',
     'results.close': 'Закрыть результаты',
+    'results.collapse': 'Свернуть результаты и показать карту',
+    'results.expand': 'Развернуть результаты',
     'results.loading': 'Поиск парковок…',
     'results.error': 'Не удалось загрузить результаты.',
     'results.empty':
@@ -139,6 +141,7 @@ export const messages = {
     'route.built': 'Маршрут построен',
     'route.arrival': 'Прибытие в {time} МСК',
     'route.geometryError': 'Не удалось построить маршрут по дорогам',
+    'route.dataAttribution': 'Данные маршрута © участники OpenStreetMap',
     'time.now': 'Сейчас',
     'time.title': 'Время',
     'time.chooseExact': 'Выберите точное время',
@@ -302,6 +305,8 @@ export const messages = {
     'results.byAddress': 'Parking near the address',
     'results.total': 'Total options: {count}',
     'results.close': 'Close results',
+    'results.collapse': 'Collapse results and show the map',
+    'results.expand': 'Expand results',
     'results.loading': 'Searching for parking…',
     'results.error': 'Could not load results.',
     'results.empty':
@@ -328,6 +333,7 @@ export const messages = {
     'route.built': 'Route ready',
     'route.arrival': 'Arrival at {time} MSK',
     'route.geometryError': 'Could not build a route along roads',
+    'route.dataAttribution': 'Route data © OpenStreetMap contributors',
     'time.now': 'Now',
     'time.title': 'Time',
     'time.chooseExact': 'Choose an exact time',

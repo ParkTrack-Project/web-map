@@ -12,12 +12,12 @@ import {
 import { Locate, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import {
-  buildDrivingRoute,
   YMapFeature as YMapFeatureRaw,
   YMapMarker as YMapMarkerRaw,
   YMapFeatureDataSource as YMapFeatureDataSourceRaw,
   YMapLayer as YMapLayerRaw,
 } from '@/shared/lib/ymaps';
+import { buildDrivingRoute } from '@/shared/lib/routing';
 import { useRouteByIdQuery } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { MAP_Z } from '@/shared/config';
@@ -90,9 +90,10 @@ function RoutePreviewLayerInner() {
     }
 
     let cancelled = false;
+    const controller = new AbortController();
     setRouteCoordinates([]);
     clearRouteGeometry();
-    void buildDrivingRoute(endpoints)
+    void buildDrivingRoute(endpoints, { signal: controller.signal })
       .then((coordinates) => {
         if (cancelled) return;
         setRouteCoordinates(coordinates);
@@ -106,6 +107,7 @@ function RoutePreviewLayerInner() {
 
     return () => {
       cancelled = true;
+      controller.abort();
       clearRouteGeometry(routeId);
     };
   }, [clearRouteGeometry, endpoints, routeId, setRouteGeometry, t]);

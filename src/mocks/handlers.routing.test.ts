@@ -137,3 +137,16 @@ describe('MSW GET /routing/<id> (D-39)', () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe('MSW route geometry', () => {
+  it('returns a non-straight GeoJSON route', async () => {
+    const res = await fetch(
+      `${env.VITE_ROUTING_GEOMETRY_BASE_URL}/route/v1/driving/30.31,59.93;30.32,59.94?overview=full&geometries=geojson`,
+    );
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.code).toBe('Ok');
+    expect(data.routes[0].geometry).toMatchObject({ type: 'LineString' });
+    expect(data.routes[0].geometry.coordinates).toHaveLength(3);
+  });
+});

@@ -27,4 +27,9 @@ describe('EnvSchema (tests/unit/env.spec.ts)', () => {
     const r = EnvSchema.parse({ VITE_YMAP_KEY: 'k' });
     expect(r.VITE_API_MODE).toBe('mock');
   });
+
+  it('defaults the route geometry endpoint', () => {
+    const r = EnvSchema.parse({ VITE_YMAP_KEY: 'k' });
+    expect(r.VITE_ROUTING_GEOMETRY_BASE_URL).toBe('https://router.project-osrm.org');
+  });
 });

@@ -15,7 +15,8 @@ interface Props {
 
 export function DesktopDeeplinkPopover({ from, to, coordsValid }: Props) {
   const { t } = useI18n();
-  const { launchYandexNavigator, launchYandexMapsWeb, launchGoogleMaps } = useNavigatorLauncher();
+  const { yandexNavigatorAvailable, launchYandexNavigator, launchYandexMapsWeb, launchGoogleMaps } =
+    useNavigatorLauncher();
 
   return (
     <Popover.Root>
@@ -37,16 +38,19 @@ export function DesktopDeeplinkPopover({ from, to, coordsValid }: Props) {
           className="surface-opaque w-[260px] rounded-xl border border-zinc-200 bg-white p-2 text-zinc-900 shadow-lg outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
           data-testid="desktop-deeplink-popover"
         >
+          {yandexNavigatorAvailable && (
+            <button
+              type="button"
+              autoFocus
+              onClick={() => launchYandexNavigator(from, to)}
+              className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-emerald-50 dark:hover:bg-zinc-800"
+            >
+              <Navigation size={14} aria-hidden /> {t('route.yandexNavigator')}
+            </button>
+          )}
           <button
             type="button"
-            autoFocus
-            onClick={() => launchYandexNavigator(from, to)}
-            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-emerald-50 dark:hover:bg-zinc-800"
-          >
-            <Navigation size={14} aria-hidden /> {t('route.yandexNavigator')}
-          </button>
-          <button
-            type="button"
+            autoFocus={!yandexNavigatorAvailable}
             onClick={() => launchYandexMapsWeb(from, to)}
             className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium hover:bg-emerald-50 dark:hover:bg-zinc-800"
           >
