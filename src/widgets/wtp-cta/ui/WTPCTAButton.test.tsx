@@ -59,4 +59,29 @@ describe('WTPCTAButton (WTP-01 / WTP-02 enforcement)', () => {
       await screen.findByText(/Для поиска ближайших парковок нужен доступ/),
     ).toBeInTheDocument();
   });
+
+  it('shows an inline error when geolocation fails', async () => {
+    vi.mocked(navigator.permissions.query).mockResolvedValue({
+      state: 'granted',
+    } as PermissionStatus);
+    Object.defineProperty(globalThis.navigator, 'geolocation', {
+      value: {
+        getCurrentPosition: (_: PositionCallback, onError: PositionErrorCallback) =>
+          onError({
+            code: 1,
+            PERMISSION_DENIED: 1,
+            POSITION_UNAVAILABLE: 2,
+            TIMEOUT: 3,
+            message: 'denied',
+          } as GeolocationPositionError),
+      },
+      configurable: true,
+      writable: true,
+    });
+    render(wrap(<WTPCTAButton />));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Припарковаться' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Геолокация запрещена');
+  });
 });

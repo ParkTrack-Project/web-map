@@ -70,12 +70,12 @@ export function RouteSummaryCard() {
   return (
     <div
       data-testid="route-summary-card"
-      className="flex flex-col gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm"
+      className="flex flex-col gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm dark:border-transparent dark:!bg-emerald-950"
     >
-      <p className="text-xs font-semibold tracking-wide text-emerald-800 uppercase">
+      <p className="text-xs font-semibold tracking-wide text-emerald-800 uppercase dark:text-emerald-300">
         {t('route.built')}
       </p>
-      <div className="flex items-center gap-3 text-zinc-800">
+      <div className="flex items-center gap-3 text-zinc-800 dark:text-zinc-100">
         <span className="inline-flex items-center gap-1">
           <Clock size={14} aria-hidden /> {etaLabel}
         </span>
@@ -84,8 +84,18 @@ export function RouteSummaryCard() {
         </span>
       </div>
       {arrivalLabel && (
-        <p className="text-xs text-zinc-600">{t('route.arrival', { time: arrivalLabel })}</p>
+        <p className="text-xs text-zinc-600 dark:text-zinc-300">
+          {t('route.arrival', { time: arrivalLabel })}
+        </p>
       )}
+      <a
+        href="https://www.openstreetmap.org/copyright"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="w-fit text-[11px] text-zinc-500 underline-offset-2 hover:underline dark:text-zinc-400"
+      >
+        {t('route.dataAttribution')}
+      </a>
       <div className="hidden lg:block">
         <DesktopDeeplinkPopover from={from} to={zoneCenterLatLon} coordsValid={coordsValid} />
       </div>

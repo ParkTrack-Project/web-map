@@ -50,7 +50,7 @@ export function AccountMenu({ placement }: Props) {
       type="button"
       aria-label={t('account.open')}
       style={{ zIndex: Z_INDEX.accountTrigger }}
-      className={`${placement === 'desktop' ? 'absolute top-4 right-4' : 'absolute top-[calc(env(safe-area-inset-top)+0.5rem)] right-2'} surface-opaque flex h-11 w-11 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-800 shadow-lg hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800`}
+      className={`${placement === 'desktop' ? 'absolute top-4 right-4' : 'absolute top-[calc(env(safe-area-inset-top)+0.5rem)] right-2'} surface-opaque flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-800 shadow-lg transition-colors hover:bg-zinc-50 active:scale-[0.98] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800`}
     >
       <UserRound size={20} aria-hidden />
     </button>

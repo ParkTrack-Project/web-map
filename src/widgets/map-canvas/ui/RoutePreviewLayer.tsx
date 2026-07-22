@@ -1,15 +1,42 @@
 // Phase 4 / ROUTE-03 / D-29:
-import { memo, type ComponentType, type ReactNode } from 'react';
-import { Locate, Target } from 'lucide-react';
 import {
+  memo,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from 'react';
+import { Locate, Target } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  YMapFeature as YMapFeatureRaw,
   YMapMarker as YMapMarkerRaw,
   YMapFeatureDataSource as YMapFeatureDataSourceRaw,
   YMapLayer as YMapLayerRaw,
 } from '@/shared/lib/ymaps';
+import { buildDrivingRoute } from '@/shared/lib/routing';
 import { useRouteByIdQuery } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { MAP_Z } from '@/shared/config';
-import { useRouteId, useRouteSelSync } from '@/widgets/route-preview-summary';
+import {
+  fitMapToCoordinates,
+  routeViewportMargin,
+  useRouteGeometry,
+  useRouteId,
+  useRouteSelSync,
+} from '@/widgets/route-preview-summary';
+import { useI18n } from '@/shared/lib/i18n';
+import { MapRefContext } from '../model/map-ref-context';
+
+type YMapFeatureProps = {
+  id: string;
+  geometry: { type: 'LineString'; coordinates: [number, number][] };
+  style: { stroke: Array<{ color: string; width: number }> };
+  source: string;
+};
 
 type YMapMarkerProps = {
   coordinates: [number, number];
@@ -29,6 +56,7 @@ type YMapLayerProps = {
 };
 
 const YMapMarker = YMapMarkerRaw as unknown as ComponentType<YMapMarkerProps>;
+const YMapFeature = YMapFeatureRaw as unknown as ComponentType<YMapFeatureProps>;
 
 const YMapFeatureDataSource =
   YMapFeatureDataSourceRaw as unknown as ComponentType<YMapFeatureDataSourceProps>;
@@ -36,18 +64,89 @@ const YMapFeatureDataSource =
 const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 
 function RoutePreviewLayerInner() {
+  const { t } = useI18n();
   const { routeId } = useRouteId();
   const { data: route } = useRouteByIdQuery(routeId);
+  const mapRef = useContext(MapRefContext);
+  const lastFittedRouteId = useRef<number | null>(null);
+  const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>([]);
+  const setRouteGeometry = useRouteGeometry((state) => state.setRouteGeometry);
+  const clearRouteGeometry = useRouteGeometry((state) => state.clearRouteGeometry);
 
   useRouteSelSync();
 
+  const endpoints = useMemo<[number, number][] | null>(() => {
+    if (!route) return null;
+    const geometry = route.selected_candidate.geometry;
+    if (!geometry?.coordinates?.length) return null;
+    return [[route.origin.longitude, route.origin.latitude], zoneCentroid(geometry)];
+  }, [route]);
+
+  useEffect(() => {
+    if (!routeId || !endpoints) {
+      setRouteCoordinates([]);
+      clearRouteGeometry();
+      return;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+    setRouteCoordinates([]);
+    clearRouteGeometry();
+    void buildDrivingRoute(endpoints, { signal: controller.signal })
+      .then((coordinates) => {
+        if (cancelled) return;
+        setRouteCoordinates(coordinates);
+        setRouteGeometry(routeId, coordinates);
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return;
+        console.warn('[route-preview] driving route failed', error);
+        toast.error(t('route.geometryError'));
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      clearRouteGeometry(routeId);
+    };
+  }, [clearRouteGeometry, endpoints, routeId, setRouteGeometry, t]);
+
+  useEffect(() => {
+    if (
+      !routeId ||
+      routeCoordinates.length < 2 ||
+      !mapRef?.current ||
+      lastFittedRouteId.current === routeId
+    )
+      return;
+    const map = mapRef.current;
+    try {
+      const isMobile = window.matchMedia('(max-width: 1023px)').matches;
+      const mobilePanelHeight = isMobile
+        ? document
+            .querySelector<HTMLElement>('[data-testid="mobile-zone-card"]')
+            ?.getBoundingClientRect().height
+        : undefined;
+      map.setMargin(routeViewportMargin(isMobile, mobilePanelHeight));
+      fitMapToCoordinates(map, routeCoordinates);
+      lastFittedRouteId.current = routeId;
+    } catch (error) {
+      console.warn('[route-preview] automatic fit failed', error);
+    }
+
+    return () => {
+      map.setMargin([0, 0, 0, 0]);
+    };
+  }, [mapRef, routeCoordinates, routeId]);
+
   if (!routeId || !route) return null;
 
-  const originLngLat: [number, number] = [route.origin.longitude, route.origin.latitude];
+  const originLngLat = endpoints?.[0];
 
   const geometry = route.selected_candidate.geometry;
 
-  if (!geometry?.coordinates?.length) {
+  if (!geometry?.coordinates?.length || !originLngLat) {
     console.warn('[route-preview] selected candidate geometry is missing', {
       routeId,
       selectedCandidate: route.selected_candidate,
@@ -65,8 +164,19 @@ function RoutePreviewLayerInner() {
           слое) их перекрывали бы и парковка Яндекса, и кружки групп. */}
       <YMapFeatureDataSource id="ptk-route-start" />
       <YMapLayer source="ptk-route-start" type="markers" zIndex={MAP_Z.routeStart} />
+      <YMapFeatureDataSource id="ptk-route-line" />
+      <YMapLayer source="ptk-route-line" type="features" zIndex={MAP_Z.routeLine} />
       <YMapFeatureDataSource id="ptk-route-end" />
       <YMapLayer source="ptk-route-end" type="markers" zIndex={MAP_Z.routeEnd} />
+
+      {routeCoordinates.length > 1 && (
+        <YMapFeature
+          id={`route-line-${routeId}`}
+          source="ptk-route-line"
+          geometry={{ type: 'LineString', coordinates: routeCoordinates }}
+          style={{ stroke: [{ color: '#16a34a', width: 5 }] }}
+        />
+      )}
 
       {/* Старт (точка пользователя). */}
       <YMapMarker source="ptk-route-start" coordinates={originLngLat} zIndex={MAP_Z.routeStart}>

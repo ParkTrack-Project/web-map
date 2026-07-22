@@ -49,6 +49,8 @@ describe('Phase 4 constants', () => {
     expect(MAP_Z.cluster).toBeGreaterThan(MAP_Z.zoneParallel);
   });
   it('MAP_Z.routeStart/routeEnd выше кружков групп (точки маршрута поверх кластеров)', () => {
+    expect(MAP_Z.routeLine).toBeGreaterThan(MAP_Z.cluster);
+    expect(MAP_Z.routeStart).toBeGreaterThan(MAP_Z.routeLine);
     expect(MAP_Z.routeStart).toBeGreaterThan(MAP_Z.cluster);
     expect(MAP_Z.routeEnd).toBeGreaterThan(MAP_Z.cluster);
   });

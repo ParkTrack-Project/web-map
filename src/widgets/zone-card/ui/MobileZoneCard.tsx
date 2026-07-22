@@ -7,18 +7,11 @@
 // snap [0.92] (CO-02). Применяем тот же pattern: drawer открывается на 92% экрана,
 // drag-down dismiss; preview-режим [0.4] deferred to v1.x design pass.
 //
-// CARD-07 mobile (D-07): при open зоны карта слегка панорамируется вверх
-// (offset -20% от viewport height) с easing 300ms — чтобы зона не оказалась под
-// bottom sheet'ом. mapRef получаем из MapRefContext, экспонированного MapCanvas.
-// Если mapRef ещё null (mapCanvas не смонтирован) — pan тихо пропускается.
-//
-// Pixel-precision -20% (через map.projection.toPixel/fromPixel) — Phase 5 polish;
-// текущая реализация центрирует на зоне с easing 300ms (уже устраняет 90% «зона
-// под sheet'ом» проблемы, потому что центр зоны попадает в верхнюю половину
-// видимой над sheet'ом области).
-import { useContext, useEffect, useState } from 'react';
+// CARD-07 mobile: после открытия измеряем реальную высоту карточки и сдвигаем
+// центр карты так, чтобы зона оказалась посередине оставшейся видимой области.
+import { useContext, useEffect, useRef } from 'react';
 import { Drawer } from 'vaul';
-import { useSelectedZone } from '@/features/select-zone';
+import { useResultSelection, useSelectedZone } from '@/features/select-zone';
 import { useTimeMode } from '@/features/select-time-mode';
 import { useZoneByIdQuery } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
@@ -28,8 +21,13 @@ import { MapRefContext } from '@/widgets/map-canvas';
 import { useRouteId } from '@/widgets/route-preview-summary';
 import { ZoneCardContent } from './ZoneCard';
 import { useI18n } from '@/shared/lib/i18n';
+import { mobileZoneMapCenter } from '../model/mobile-zone-center';
 
-export function MobileZoneCard() {
+interface MobileZoneCardProps {
+  onBackToResults?: () => void;
+}
+
+export function MobileZoneCard({ onBackToResults }: MobileZoneCardProps) {
   const { t } = useI18n();
   // Phase 5 D-03: keyboard-aware sizing — ZoneCardContent сам по себе input'ов
   // не имеет, но карточка может остаться открытой пока user typing в SearchBar
@@ -47,32 +45,21 @@ export function MobileZoneCard() {
   // `pointer-events: none` + `aria-hidden=true` ко ВСЕМУ остальному DOM.
   // Гейт isMobile защищает desktop.
   const isMobile = useIsMobile();
-  // Race-fix: при click на ResultItem MobileResultsSheet начинает close-animation (~500ms vaul).
-  // Если MobileZoneCard.Drawer.Root mountится сразу — два body lock'а одновременно,
-  // второй Drawer не получает focus и зрительно «пропадает». Ждём cleanup первого.
   const wantsOpen = isMobile && selectedZoneId != null;
-  const [delayedOpen, setDelayedOpen] = useState(false);
-  useEffect(() => {
-    if (wantsOpen) {
-      // 600ms — превышает vaul Drawer.Content close transition (CSS 0.5s cubic-bezier).
-      // 350ms раньше было недостаточно: vaul body lock не успевал освободиться.
-      const t = setTimeout(() => setDelayedOpen(true), 600);
-      return () => clearTimeout(t);
-    }
-    setDelayedOpen(false);
-    return;
-  }, [wantsOpen]);
-  const isOpen = delayedOpen;
+  const isOpen = wantsOpen;
+  const resultZoneIds = useResultSelection((state) => state.resultZoneIds);
+  const canReturnToResults =
+    selectedZoneId !== null && resultZoneIds.includes(selectedZoneId) && !!onBackToResults;
   const mapRefHolder = useContext(MapRefContext);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // Plan 05 / TIME-07: mode → useZoneByIdQuery (тот же key, что и в ZoneCardContent
   // — TanStack Query дедуплицирует, один реальный fetch). При смене mode оба
   // компонента переходят на новый queryKey и получают новые данные синхронно.
-  const { mode, setNow } = useTimeMode();
+  const { mode } = useTimeMode();
   const { data: zone } = useZoneByIdQuery(selectedZoneId, mode);
 
-  // CARD-07 mobile: panorama -20% viewport вверх через ymaps3 setLocation.
-  // duration: 300 — мягкая анимация без jump-эффекта (D-07 mobile half).
+  // CARD-07 mobile: центрирование с учётом фактической высоты bottom sheet.
   // Plan 05 / TIME-07: skip pan для is_active === false — нет смысла центрировать
   // зону, которая «неактивна в этот период» (карточка покажет inactive empty-state).
   useEffect(() => {
@@ -86,28 +73,26 @@ export function MobileZoneCard() {
       return;
     }
 
-    const center = zoneCentroid(zone.geometry);
+    const zoneCenter = zoneCentroid(zone.geometry);
+    // Selection zoom animates for 300 ms. Re-centre only once after that
+    // animation and after Vaul has measured its content; subsequent user pans
+    // must remain untouched.
+    const timeout = window.setTimeout(() => {
+      const map = mapRefHolder.current;
+      const sheetHeight = contentRef.current?.getBoundingClientRect().height ?? 0;
+      if (!map) return;
+      try {
+        map.setLocation({
+          center: mobileZoneMapCenter(zoneCenter, map.zoom, sheetHeight, map.projection),
+          duration: 300,
+        });
+      } catch (error) {
+        console.warn('[ptk] mobile pan failed:', error);
+      }
+    }, 320);
 
-    try {
-      // Pan-only (центр, без zoom): приближение при ВЫБОРЕ зоны делает общий
-      // useZoomToZone в обработчике клика (по карте и в списке). Если ставить
-      // здесь ещё и фиксированный zoom, он перетёр бы относительный зум клика
-      // (откатывал бы к 18). Эта карточка лишь до-центрирует зону над sheet'ом.
-      mapRefHolder.current.setLocation({
-        center,
-        duration: 300, // ms — easing 300ms (D-07 mobile)
-      });
-      console.debug('[ptk] mobile pan to zone', selectedZoneId);
-    } catch (e) {
-      console.warn('[ptk] mobile pan failed:', e);
-    }
+    return () => window.clearTimeout(timeout);
   }, [isOpen, zone, mapRefHolder, selectedZoneId]);
-
-  // Plan 05 / D-16: inactive zone → render mobile-specific empty-state ВМЕСТО
-  // полной ZoneCardContent. ZoneCardContent тоже умеет показывать inactive, но для
-  // mobile показываем сжатый layout (без header/Spinner/etc.) внутри Drawer.
-  // Mirror'ит pattern desktop ZoneCard — D-16 «Зона неактивна в этот период».
-  const renderInactive = zone && zone.is_active === false;
 
   return (
     <Drawer.Root
@@ -116,10 +101,15 @@ export function MobileZoneCard() {
         if (!open) handleClose();
       }}
       dismissible
+      modal={false}
+      noBodyStyles
+      disablePreventScroll
+      autoFocus={false}
     >
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
         <Drawer.Content
+          ref={contentRef}
+          data-testid="mobile-zone-card"
           className="surface-opaque fixed inset-x-0 bottom-0 z-50 mx-auto flex flex-col rounded-t-2xl bg-white outline-none lg:hidden dark:bg-zinc-900"
           aria-describedby={undefined}
           // Phase 5 hot-fix: drawer auto-fit to content height (без snapPoints).
@@ -131,27 +121,16 @@ export function MobileZoneCard() {
           <Drawer.Title className="sr-only">{t('zone.card')}</Drawer.Title>
           <div className="mx-auto my-2 h-1.5 w-12 shrink-0 rounded-full bg-zinc-300" aria-hidden />
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[15px]">
-            {renderInactive ? (
-              <div role="status" data-testid="mobile-zone-card-inactive" className="p-4">
-                <p className="text-sm text-zinc-700">{t('zone.inactive')}</p>
-                {mode.kind !== 'now' && (
-                  <button
-                    type="button"
-                    onClick={setNow}
-                    className="mt-3 inline-flex items-center justify-center rounded-md border border-emerald-600 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
-                  >
-                    {t('time.returnNow')}
-                  </button>
-                )}
-              </div>
-            ) : (
-              selectedZoneId != null && (
-                <ZoneCardContent
-                  key={selectedZoneId}
-                  zoneId={selectedZoneId}
-                  onClose={handleClose}
-                />
-              )
+            {selectedZoneId != null && (
+              <ZoneCardContent
+                key={selectedZoneId}
+                zoneId={selectedZoneId}
+                navigation={canReturnToResults ? 'back' : 'close'}
+                onClose={() => {
+                  handleClose();
+                  if (canReturnToResults) onBackToResults?.();
+                }}
+              />
             )}
           </div>
         </Drawer.Content>

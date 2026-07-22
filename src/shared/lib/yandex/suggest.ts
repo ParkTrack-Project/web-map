@@ -20,7 +20,7 @@ export interface SuggestResult {
   tags?: string[];
   distance?: { text: string; value: number };
   address?: { formatted_address: string };
-  uri?: string; // стабильный key для list-item (raw title от ymaps3.search)
+  uri?: string; // стабильный уникальный key для list-item
   coords?: [number, number]; // [lat, lon] — ymaps3.search отдаёт сразу, потребитель использует напрямую
 }
 
@@ -79,7 +79,7 @@ export async function suggestAddresses(
     return hits.map((h) => ({
       title: { text: h.title },
       ...(h.subtitle ? { subtitle: { text: h.subtitle } } : {}),
-      uri: h.title, // только как list-key; для центрирования карты потребитель берёт coords
+      uri: `${h.title}|${h.subtitle}|${h.coords[0]}|${h.coords[1]}`,
       coords: h.coords,
     }));
   } catch (e) {

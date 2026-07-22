@@ -113,6 +113,8 @@ export const messages = {
     'results.byAddress': 'Парковки у адреса',
     'results.total': 'Всего вариантов: {count}',
     'results.close': 'Закрыть результаты',
+    'results.collapse': 'Свернуть результаты и показать карту',
+    'results.expand': 'Развернуть результаты',
     'results.loading': 'Поиск парковок…',
     'results.error': 'Не удалось загрузить результаты.',
     'results.empty':
@@ -138,6 +140,8 @@ export const messages = {
     'route.yandexMaps': 'Яндекс Карты (web)',
     'route.built': 'Маршрут построен',
     'route.arrival': 'Прибытие в {time} МСК',
+    'route.geometryError': 'Не удалось построить маршрут по дорогам',
+    'route.dataAttribution': 'Данные маршрута © участники OpenStreetMap',
     'time.now': 'Сейчас',
     'time.title': 'Время',
     'time.chooseExact': 'Выберите точное время',
@@ -165,6 +169,7 @@ export const messages = {
     'wtp.allow': 'Разрешить геолокацию',
     'wtp.unavailable': 'Geolocation API недоступен в этом браузере',
     'wtp.failed': 'Не удалось определить местоположение',
+    'wtp.retrying': 'Местоположение пока недоступно. Повторяем запрос…',
     'wtp.denied':
       'Геолокация запрещена. Введите адрес стартовой точки или включите геолокацию в настройках браузера',
     'wtp.timeout': 'Не удалось определить местоположение (timeout)',
@@ -300,6 +305,8 @@ export const messages = {
     'results.byAddress': 'Parking near the address',
     'results.total': 'Total options: {count}',
     'results.close': 'Close results',
+    'results.collapse': 'Collapse results and show the map',
+    'results.expand': 'Expand results',
     'results.loading': 'Searching for parking…',
     'results.error': 'Could not load results.',
     'results.empty':
@@ -325,6 +332,8 @@ export const messages = {
     'route.yandexMaps': 'Yandex Maps (web)',
     'route.built': 'Route ready',
     'route.arrival': 'Arrival at {time} MSK',
+    'route.geometryError': 'Could not build a route along roads',
+    'route.dataAttribution': 'Route data © OpenStreetMap contributors',
     'time.now': 'Now',
     'time.title': 'Time',
     'time.chooseExact': 'Choose an exact time',
@@ -352,6 +361,7 @@ export const messages = {
     'wtp.allow': 'Allow location access',
     'wtp.unavailable': 'The Geolocation API is unavailable in this browser',
     'wtp.failed': 'Could not determine your location',
+    'wtp.retrying': 'Location is temporarily unavailable. Retrying…',
     'wtp.denied':
       'Location access is blocked. Enter a starting address or enable location access in browser settings',
     'wtp.timeout': 'Could not determine your location (timeout)',

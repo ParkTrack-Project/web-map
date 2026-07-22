@@ -97,6 +97,19 @@ describe('computeZoneStyle — семантическая раскраска (D-
     expect(dark.fill).toBe('rgba(0,230,118,0.92)');
   });
 
+  it('fades zones outside the active result context', () => {
+    const dimmed = computeZoneStyle({
+      ...base,
+      zoneId: 61,
+      free_count: 5,
+      confidence: 0.95,
+      is_active: true,
+      dimmed: true,
+    });
+    expect(dimmed.fill).toBe('rgba(22,163,74,0.18)');
+    expect(dimmed.stroke).toBe('rgba(21,94,42,0.36)');
+  });
+
   it('memoization: тот же reference для одинаковых ключей', () => {
     const k = {
       ...base,

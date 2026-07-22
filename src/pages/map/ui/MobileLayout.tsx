@@ -15,7 +15,7 @@
 // - MobileResultsButton — unified entry-point chip (bottom-center): «Припарковаться» →
 //   запрос геолокации → «N парковок рядом» → tap открывает sheet. Заменил отдельный WTPMobileFAB
 //   круглый FAB на компактный pill chip — single CTA для всего mobile-сценария.
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import type { YMap as YMapInstance } from '@yandex/ymaps3-types';
 import { MapErrorBoundary } from '@/app/errors';
 import { MapSkeleton } from '@/widgets/map-canvas/ui/MapSkeleton';
@@ -25,9 +25,14 @@ import { MobileZoneCard } from '@/widgets/zone-card';
 import { useSelectedZone } from '@/features/select-zone';
 import { TimeSelectorChip, MobileTimeSelectorSheet } from '@/widgets/time-selector';
 import { MobileSearchBar, DestPromptBanner } from '@/widgets/search-bar';
-// Phase 4 Plan 03: MobileResultsSheet — vaul Drawer single-snap [0.92], mutually exclusive с MobileZoneCard.
-// MobileResultsButton — unified chip (Найти/Поиск/N парковок), open sheet only by explicit click.
-import { MobileResultsSheet, MobileResultsButton } from '@/widgets/results-panel';
+// MobileResultsSheet opens in the compact map-preview position and remains
+// mutually exclusive with MobileZoneCard.
+import {
+  MobileResultsSheet,
+  MobileResultsButton,
+  MobileResultsViewportSync,
+  RESULTS_SNAP_LOW,
+} from '@/widgets/results-panel';
 // Phase 4 Plan 04 / ROUTE-04: FitToRouteButton — bottom-right map area, gates сам себя по ?route.
 import { FitToRouteButton } from '@/widgets/route-preview-summary';
 import { AccountMenu } from '@/widgets/account-menu';
@@ -40,28 +45,32 @@ export function MobileLayout() {
   const mapRef = useRef<YMapInstance | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [timeSheetOpen, setTimeSheetOpen] = useState(false);
-  // ResultsSheet auto-open removed — user открывает через MobileResultsButton chip.
+  // ResultsSheet открывается по готовности нового поиска или через results chip.
   const [resultsSheetOpen, setResultsSheetOpen] = useState(false);
+  const [resultsSnapPoint, setResultsSnapPoint] = useState<number | string | null>(
+    RESULTS_SNAP_LOW,
+  );
   const { selectedZoneId } = useSelectedZone();
-  // Sync: при selectedZoneId set → закрыть results sheet immediate, чтобы vaul стартовал
-  // close-animation. MobileZoneCard ждёт 350ms перед opening — нет conflict двух body lock'ов.
-  useEffect(() => {
-    if (selectedZoneId !== null && resultsSheetOpen) {
-      setResultsSheetOpen(false);
-    }
-  }, [selectedZoneId, resultsSheetOpen]);
-
-  // Phase 5 D-05 (RESP-07): map controls сдвигаются выше любого открытого
-  // bottom-sheet'а. Single-snap [0.92] (CO-02) → 92vh + 20px gap.
-  // ZoneCard sheet mutually exclusive с ResultsSheet (Phase 4 CO-02), но
-  // отдельно учитываем selectedZoneId — MobileZoneCard монтируется напрямую.
+  const openResults = useCallback(() => {
+    setResultsSnapPoint(RESULTS_SNAP_LOW);
+    setResultsSheetOpen(true);
+  }, []);
+  // Полноэкранные панели требуют большого отступа, а карточка парковки имеет
+  // высоту по контенту: не выталкиваем контролы карты за экран при её открытии.
   useEffect(() => {
     const SHEET_SNAP_VH = 0.92;
-    const anySheetOpen =
-      filtersOpen || timeSheetOpen || resultsSheetOpen || selectedZoneId !== null;
-    const offset = anySheetOpen ? `calc(${SHEET_SNAP_VH * 100}vh + 20px)` : '20px';
+    const resultsVisible = resultsSheetOpen && selectedZoneId === null;
+    const resultsSnap = typeof resultsSnapPoint === 'number' ? resultsSnapPoint : 0.92;
+    const fullSheetOpen = filtersOpen || timeSheetOpen;
+    const offset = fullSheetOpen
+      ? `calc(${SHEET_SNAP_VH * 100}vh + 20px)`
+      : resultsVisible
+        ? `calc(${resultsSnap * 100}vh + 20px)`
+        : selectedZoneId !== null
+          ? 'calc(min(46dvh, 420px) + 20px)'
+          : '20px';
     document.documentElement.style.setProperty('--bottom-sheet-offset', offset);
-  }, [filtersOpen, timeSheetOpen, resultsSheetOpen, selectedZoneId]);
+  }, [filtersOpen, timeSheetOpen, resultsSheetOpen, resultsSnapPoint, selectedZoneId]);
 
   // 2026-05-26: handleManualEntry удалён — кнопка «Указать вручную» из
   // PreFlightDrawer убрана, фокусить инпут больше неоткуда.
@@ -87,21 +96,26 @@ export function MobileLayout() {
           </div>
           {/* Unified mobile entry-point: bottom-center chip «Припарковаться» / «N парковок рядом».
             Сам ведёт WTP flow (permissions check + pre-flight Drawer). При sheet open — скрывается. */}
-          <MobileResultsButton
-            hidden={resultsSheetOpen}
-            onOpenSheet={() => setResultsSheetOpen(true)}
-          />
+          <MobileResultsButton hidden={resultsSheetOpen} onOpenSheet={openResults} />
           {/* Phase 4 Plan 04: FitToRouteButton сам gates рендер по ?route */}
           <FitToRouteButton />
           <AccountMenu placement="mobile" />
         </div>
         <MobileFiltersDrawer open={filtersOpen} onOpenChange={setFiltersOpen} />
         <MobileTimeSelectorSheet open={timeSheetOpen} onOpenChange={setTimeSheetOpen} />
-        {/* Phase 4 Plan 03: ResultsSheet mutually exclusive с MobileZoneCard через selectedZoneId logic (CO-02).
-          Open controlled by Layout — user тапает MobileResultsButton chip чтобы открыть. */}
-        <MobileResultsSheet open={resultsSheetOpen} onOpenChange={setResultsSheetOpen} />
+        {/* ResultsSheet mutually exclusive с MobileZoneCard через selectedZoneId logic. */}
+        <MobileResultsSheet
+          open={resultsSheetOpen}
+          onOpenChange={setResultsSheetOpen}
+          snapPoint={resultsSnapPoint}
+          onSnapPointChange={setResultsSnapPoint}
+        />
         {/* Plan 02 mobile vaul + CARD-07 pan */}
-        <MobileZoneCard />
+        <MobileZoneCard onBackToResults={openResults} />
+        <MobileResultsViewportSync
+          open={resultsSheetOpen && selectedZoneId === null}
+          snapPoint={resultsSnapPoint}
+        />
       </div>
     </MapRefContext.Provider>
   );

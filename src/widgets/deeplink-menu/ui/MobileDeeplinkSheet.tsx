@@ -16,7 +16,8 @@ interface Props {
 export function MobileDeeplinkSheet({ from, to, coordsValid }: Props) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
-  const { launchYandexNavigator, launchYandexMapsWeb, launchGoogleMaps } = useNavigatorLauncher();
+  const { yandexNavigatorAvailable, launchYandexNavigator, launchYandexMapsWeb, launchGoogleMaps } =
+    useNavigatorLauncher();
   const handleAndClose = (fn: () => void) => () => {
     fn();
     setOpen(false);
@@ -37,7 +38,7 @@ export function MobileDeeplinkSheet({ from, to, coordsValid }: Props) {
         <Drawer.Portal>
           <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
           <Drawer.Content
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto rounded-t-2xl bg-white p-4 outline-none lg:hidden"
+            className="surface-opaque fixed inset-x-0 bottom-0 z-50 mx-auto rounded-t-2xl bg-white p-4 text-zinc-900 outline-none lg:hidden dark:bg-zinc-900 dark:text-zinc-100"
             aria-describedby={undefined}
             data-testid="mobile-deeplink-sheet"
           >
@@ -46,32 +47,35 @@ export function MobileDeeplinkSheet({ from, to, coordsValid }: Props) {
             </Drawer.Title>
             <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-zinc-300" aria-hidden />
             <div className="flex flex-col gap-2">
+              {yandexNavigatorAvailable && (
+                <button
+                  type="button"
+                  autoFocus
+                  onClick={handleAndClose(() => launchYandexNavigator(from, to))}
+                  className="flex min-h-[44px] items-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
+                >
+                  <Navigation size={14} aria-hidden /> {t('route.yandexNavigator')}
+                </button>
+              )}
               <button
                 type="button"
-                autoFocus
-                onClick={handleAndClose(() => launchYandexNavigator(from, to))}
-                className="flex min-h-[44px] items-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700"
-              >
-                <Navigation size={14} aria-hidden /> {t('route.yandexNavigator')}
-              </button>
-              <button
-                type="button"
+                autoFocus={!yandexNavigatorAvailable}
                 onClick={handleAndClose(() => launchYandexMapsWeb(from, to))}
-                className="min-h-[44px] rounded-md border border-zinc-300 px-4 text-sm font-medium hover:bg-zinc-50"
+                className="min-h-[44px] rounded-md border border-zinc-300 px-4 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
               >
                 {t('route.yandexMaps')}
               </button>
               <button
                 type="button"
                 onClick={handleAndClose(() => launchGoogleMaps(from, to))}
-                className="min-h-[44px] rounded-md border border-zinc-300 px-4 text-sm font-medium hover:bg-zinc-50"
+                className="min-h-[44px] rounded-md border border-zinc-300 px-4 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
               >
                 Google Maps
               </button>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="min-h-[44px] rounded-md text-sm font-medium text-zinc-500 hover:bg-zinc-50"
+                className="min-h-[44px] rounded-md text-sm font-medium text-zinc-500 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:bg-zinc-800"
               >
                 {t('common.cancel')}
               </button>

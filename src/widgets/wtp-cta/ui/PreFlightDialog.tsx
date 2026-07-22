@@ -20,9 +20,11 @@ interface PreFlightDialogProps {
 export function PreFlightDialog({ open, onOpenChange, onAllow }: PreFlightDialogProps) {
   const { t } = useI18n();
   const handleAllow = async () => {
-    await onAllow();
-    // Close dialog независимо от исхода — denied/timeout state читается через banner.
+    // Запрос начинается в user gesture, а окно закрывается сразу: loading/error
+    // остаются видимы на основной кнопке и в inline banner.
+    const request = onAllow();
     onOpenChange(false);
+    await request;
   };
 
   return (

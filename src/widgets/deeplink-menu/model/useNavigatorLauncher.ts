@@ -15,15 +15,18 @@ import {
   buildYandexNavigatorDeeplink,
   buildYandexMapsWebUrl,
   buildGoogleMapsUrl,
+  isYandexNavigatorAvailable,
   isValidCoords,
 } from '@/shared/lib/deeplink';
 import { DEEPLINK_FALLBACK_MS } from '@/shared/config';
 
 export function useNavigatorLauncher() {
+  const yandexNavigatorAvailable = isYandexNavigatorAvailable();
   const launchYandexNavigator = (
     from: [number, number] | null,
     to: [number, number] | null,
   ): boolean => {
+    if (!yandexNavigatorAvailable) return false;
     if (!isValidCoords(from) || !isValidCoords(to)) {
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('ptk:deeplink-invalid'));
@@ -69,5 +72,10 @@ export function useNavigatorLauncher() {
     return true;
   };
 
-  return { launchYandexNavigator, launchYandexMapsWeb, launchGoogleMaps };
+  return {
+    yandexNavigatorAvailable,
+    launchYandexNavigator,
+    launchYandexMapsWeb,
+    launchGoogleMaps,
+  };
 }

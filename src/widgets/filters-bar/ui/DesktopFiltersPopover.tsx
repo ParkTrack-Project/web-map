@@ -30,9 +30,9 @@ export function DesktopFiltersPopover() {
               ? t('filters.openActive', { count: f.activeCount })
               : t('filters.open')
           }
-          className="relative hidden h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-zinc-200 transition-colors hover:bg-zinc-100 active:scale-[0.98] lg:inline-flex dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-800"
+          className="surface-opaque relative hidden h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-800 shadow-lg transition-colors hover:bg-zinc-50 active:scale-[0.98] lg:inline-flex dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
         >
-          <Filter size={16} aria-hidden />
+          <Filter size={20} aria-hidden />
           {f.activeCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1 text-[11px] font-semibold text-white shadow-sm">
               {f.activeCount}

@@ -18,7 +18,7 @@
 // - На success → setRouteId → ?route=<id> в URL → RouteSummaryCard renders inline
 // - Закрытие карточки (X / outside click) → clearRouteId + closeCard atomically
 import { useEffect, useState } from 'react';
-import { X, Lock, Accessibility, Car, MapPin, Navigation } from 'lucide-react';
+import { ArrowLeft, X, Lock, Accessibility, Car, MapPin, Navigation } from 'lucide-react';
 import { useSelectedZone } from '@/features/select-zone';
 import { useTimeMode } from '@/features/select-time-mode';
 import {
@@ -63,9 +63,10 @@ export function ZoneCard() {
 interface ContentProps {
   zoneId: number;
   onClose: () => void;
+  navigation?: 'back' | 'close';
 }
 
-export function ZoneCardContent({ zoneId, onClose }: ContentProps) {
+export function ZoneCardContent({ zoneId, onClose, navigation = 'close' }: ContentProps) {
   const { t } = useI18n();
   // Plan 05 / TIME-07: mode инжектится в useZoneByIdQuery → atomic card refetch.
   const { mode, setNow } = useTimeMode();
@@ -75,23 +76,35 @@ export function ZoneCardContent({ zoneId, onClose }: ContentProps) {
   return (
     <div
       className="flex flex-col gap-4 p-5"
-      // 2026-05-30: клик по карточке парковки → максимальный зум на неё. Клики по
+      // Повторный клик мягко центрирует парковку без прыжка на максимальный zoom. Клики по
       // кнопкам/ссылкам внутри (Закрыть, Построить маршрут, Повторить) не трогаем.
       onClick={(e) => {
         if ((e.target as HTMLElement).closest('button, a')) return;
-        if (data?.geometry) zoomToZone(data.geometry, { max: true });
+        if (data?.geometry) zoomToZone(data.geometry);
       }}
     >
-      <header className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{t('zone.title', { id: zoneId })}</h2>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={t('zone.close')}
-          className="rounded p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-        >
-          <X size={20} aria-hidden />
-        </button>
+      <header className="flex items-center gap-2">
+        {navigation === 'back' && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t('common.back')}
+            className="rounded p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          >
+            <ArrowLeft size={20} aria-hidden />
+          </button>
+        )}
+        <h2 className="flex-1 text-lg font-semibold">{t('zone.title', { id: zoneId })}</h2>
+        {navigation === 'close' && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t('zone.close')}
+            className="rounded p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          >
+            <X size={20} aria-hidden />
+          </button>
+        )}
       </header>
 
       {isPending && <Spinner label={t('zone.loading')} />}

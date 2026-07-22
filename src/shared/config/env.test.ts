@@ -30,6 +30,11 @@ describe('EnvSchema', () => {
     expect(result.VITE_API_BASE_URL).toBe('https://api.parktrack.live');
   });
 
+  it('defaults route geometry to the OSRM demo endpoint', () => {
+    const result = EnvSchema.parse({ VITE_YMAP_KEY: 'x' });
+    expect(result.VITE_ROUTING_GEOMETRY_BASE_URL).toBe('https://router.project-osrm.org');
+  });
+
   it("defaults VITE_API_MODE to 'mock' when undefined", () => {
     const result = EnvSchema.parse({
       VITE_YMAP_KEY: 'x',

@@ -12,7 +12,6 @@ import { useFilters, useFilteredCandidates } from '@/features/filter-zones';
 import { Z_INDEX, RESULTS_PANEL_WIDTH_PX } from '@/shared/config';
 import { Spinner } from '@/shared/ui';
 import { useRoutingResults } from '../model/useRoutingResults';
-import { useAutoSelectBestVariant } from '../model/useAutoSelectBestVariant';
 import { ResultsList } from './ResultsList';
 import { EmptyResultsState } from './EmptyResultsState';
 import { useI18n } from '@/shared/lib/i18n';
@@ -27,8 +26,6 @@ function DesktopResultsPanelInner() {
   const { activeCount, resetAll } = useFilters();
   const { data, isFetching, isError, refetch } = useRoutingResults();
   const filtered = useFilteredCandidates(data?.candidates);
-  // D-21 / WTP-06: auto-select best
-  useAutoSelectBestVariant(data?.selected_zone_id ?? null);
 
   // CO-03 / W-1: open ТОЛЬКО когда ?from set (origin обязателен per D-15 mode dispatch).
   // ?dest без ?from → inline prompt в SearchBar (widgets/search-bar), а не пустая panel.
