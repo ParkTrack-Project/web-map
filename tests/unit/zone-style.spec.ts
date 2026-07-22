@@ -106,8 +106,8 @@ describe('computeZoneStyle — семантическая раскраска (D-
       is_active: true,
       dimmed: true,
     });
-    expect(dimmed.fill).toBe('rgba(22,163,74,0.1)');
-    expect(dimmed.stroke).toBe('rgba(21,94,42,0.22)');
+    expect(dimmed.fill).toBe('rgba(22,163,74,0.18)');
+    expect(dimmed.stroke).toBe('rgba(21,94,42,0.36)');
   });
 
   it('memoization: тот же reference для одинаковых ключей', () => {

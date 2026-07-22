@@ -54,7 +54,12 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
       role="option"
       aria-selected={isSelected}
       data-testid={`result-item-${c.zone_id}`}
-      onClick={handleClick}
+      onClick={(event) => {
+        // Панель результатов станет aria-hidden, когда откроется карточка.
+        // Снимаем фокус заранее, чтобы Vaul не скрывал сфокусированный элемент.
+        event.currentTarget.blur();
+        handleClick();
+      }}
       className={
         'flex w-full flex-col gap-1 rounded-md border-2 px-3 py-2 text-left text-sm transition-colors hover:bg-emerald-50 dark:text-zinc-100 dark:hover:bg-zinc-800 ' +
         (isSelected

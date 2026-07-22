@@ -7,16 +7,9 @@
 // snap [0.92] (CO-02). Применяем тот же pattern: drawer открывается на 92% экрана,
 // drag-down dismiss; preview-режим [0.4] deferred to v1.x design pass.
 //
-// CARD-07 mobile (D-07): при open зоны карта слегка панорамируется вверх
-// (offset -20% от viewport height) с easing 300ms — чтобы зона не оказалась под
-// bottom sheet'ом. mapRef получаем из MapRefContext, экспонированного MapCanvas.
-// Если mapRef ещё null (mapCanvas не смонтирован) — pan тихо пропускается.
-//
-// Pixel-precision -20% (через map.projection.toPixel/fromPixel) — Phase 5 polish;
-// текущая реализация центрирует на зоне с easing 300ms (уже устраняет 90% «зона
-// под sheet'ом» проблемы, потому что центр зоны попадает в верхнюю половину
-// видимой над sheet'ом области).
-import { useContext, useEffect } from 'react';
+// CARD-07 mobile: после открытия измеряем реальную высоту карточки и сдвигаем
+// центр карты так, чтобы зона оказалась посередине оставшейся видимой области.
+import { useContext, useEffect, useRef } from 'react';
 import { Drawer } from 'vaul';
 import { useResultSelection, useSelectedZone } from '@/features/select-zone';
 import { useTimeMode } from '@/features/select-time-mode';
@@ -28,6 +21,7 @@ import { MapRefContext } from '@/widgets/map-canvas';
 import { useRouteId } from '@/widgets/route-preview-summary';
 import { ZoneCardContent } from './ZoneCard';
 import { useI18n } from '@/shared/lib/i18n';
+import { mobileZoneMapCenter } from '../model/mobile-zone-center';
 
 interface MobileZoneCardProps {
   onBackToResults?: () => void;
@@ -57,6 +51,7 @@ export function MobileZoneCard({ onBackToResults }: MobileZoneCardProps) {
   const canReturnToResults =
     selectedZoneId !== null && resultZoneIds.includes(selectedZoneId) && !!onBackToResults;
   const mapRefHolder = useContext(MapRefContext);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // Plan 05 / TIME-07: mode → useZoneByIdQuery (тот же key, что и в ZoneCardContent
   // — TanStack Query дедуплицирует, один реальный fetch). При смене mode оба
@@ -64,8 +59,7 @@ export function MobileZoneCard({ onBackToResults }: MobileZoneCardProps) {
   const { mode } = useTimeMode();
   const { data: zone } = useZoneByIdQuery(selectedZoneId, mode);
 
-  // CARD-07 mobile: panorama -20% viewport вверх через ymaps3 setLocation.
-  // duration: 300 — мягкая анимация без jump-эффекта (D-07 mobile half).
+  // CARD-07 mobile: центрирование с учётом фактической высоты bottom sheet.
   // Plan 05 / TIME-07: skip pan для is_active === false — нет смысла центрировать
   // зону, которая «неактивна в этот период» (карточка покажет inactive empty-state).
   useEffect(() => {
@@ -79,21 +73,25 @@ export function MobileZoneCard({ onBackToResults }: MobileZoneCardProps) {
       return;
     }
 
-    const center = zoneCentroid(zone.geometry);
+    const zoneCenter = zoneCentroid(zone.geometry);
+    // Selection zoom animates for 300 ms. Re-centre only once after that
+    // animation and after Vaul has measured its content; subsequent user pans
+    // must remain untouched.
+    const timeout = window.setTimeout(() => {
+      const map = mapRefHolder.current;
+      const sheetHeight = contentRef.current?.getBoundingClientRect().height ?? 0;
+      if (!map) return;
+      try {
+        map.setLocation({
+          center: mobileZoneMapCenter(zoneCenter, map.zoom, sheetHeight, map.projection),
+          duration: 300,
+        });
+      } catch (error) {
+        console.warn('[ptk] mobile pan failed:', error);
+      }
+    }, 320);
 
-    try {
-      // Pan-only (центр, без zoom): приближение при ВЫБОРЕ зоны делает общий
-      // useZoomToZone в обработчике клика (по карте и в списке). Если ставить
-      // здесь ещё и фиксированный zoom, он перетёр бы относительный зум клика
-      // (откатывал бы к 18). Эта карточка лишь до-центрирует зону над sheet'ом.
-      mapRefHolder.current.setLocation({
-        center,
-        duration: 300, // ms — easing 300ms (D-07 mobile)
-      });
-      console.debug('[ptk] mobile pan to zone', selectedZoneId);
-    } catch (e) {
-      console.warn('[ptk] mobile pan failed:', e);
-    }
+    return () => window.clearTimeout(timeout);
   }, [isOpen, zone, mapRefHolder, selectedZoneId]);
 
   return (
@@ -104,9 +102,13 @@ export function MobileZoneCard({ onBackToResults }: MobileZoneCardProps) {
       }}
       dismissible
       modal={false}
+      noBodyStyles
+      disablePreventScroll
+      autoFocus={false}
     >
       <Drawer.Portal>
         <Drawer.Content
+          ref={contentRef}
           className="surface-opaque fixed inset-x-0 bottom-0 z-50 mx-auto flex flex-col rounded-t-2xl bg-white outline-none lg:hidden dark:bg-zinc-900"
           aria-describedby={undefined}
           // Phase 5 hot-fix: drawer auto-fit to content height (без snapPoints).

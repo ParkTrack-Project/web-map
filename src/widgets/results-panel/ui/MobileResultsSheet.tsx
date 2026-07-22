@@ -2,10 +2,8 @@
 // Mobile vaul Drawer mutually exclusive with MobileZoneCard.
 // Open condition (CO-03 / W-1): ?from set (origin обязателен; ?dest без ?from → prompt в SearchBar).
 //
-// CO-02 supersedes D-19 snap-points partial: используем SINGLE-SNAP [0.92]
-// (как Phase 3 MobileTimeSelectorSheet — verified pattern). Two-snap [0.4, 0.85]
-// требует UAT-verification на реальных устройствах + design pass для co-existence
-// двух открытых Drawer'ов (focus trap conflict, Pitfall 11). Deferred to Phase 5.
+// Два snap-положения: 0.92 для списка и 0.32 для просмотра результатов на
+// интерактивной карте. Нижнее положение не закрывает поиск и не очищает URL.
 //
 // Mutual-exclusion с MobileZoneCard реализуется через `open` precondition
 // (`open = !!from && selectedZoneId === null`), а НЕ через snap-cooperation:
@@ -14,7 +12,6 @@
 // - MobileZoneCard mounts (Phase 2 single-snap логика)
 // - User закрывает ZoneCard → selectedZoneId=null → MobileResultsSheet вновь open=true
 // Sequential focus, без двух одновременно открытых Drawer'ов.
-import { useState } from 'react';
 import { Drawer } from 'vaul';
 import { X } from 'lucide-react';
 import { useFromCoords } from '@/features/request-geolocation';
@@ -31,13 +28,19 @@ import { useI18n } from '@/shared/lib/i18n';
 
 interface MobileResultsSheetProps {
   // Controlled — Layout owns mobileResultsSheetOpen state.
-  // Sheet auto-open removed по UX feedback («открывать только по нажатию»).
-  // User тапает MobileResultsButton чтобы открыть; X в header — sheet close + clear search.
+  // Готовый новый поиск раскрывает sheet автоматически; X очищает поиск.
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  snapPoint: number | string | null;
+  onSnapPointChange?: (snapPoint: number | string | null) => void;
 }
 
-export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResultsSheetProps) {
+export function MobileResultsSheet({
+  open: openProp,
+  onOpenChange,
+  snapPoint,
+  onSnapPointChange,
+}: MobileResultsSheetProps) {
   const { t } = useI18n();
   // Phase 5 D-03: keyboard-aware. ResultsList не имеет input'ов, но ResultItem'ы
   // с длинным title могут переехать под keyboard если pop'ится из soft-keyboard
@@ -54,12 +57,10 @@ export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResul
   // (`pointer-events: none` + `aria-hidden=true`) даже когда `lg:hidden` скрывает
   // Drawer.Content. isMobile-гейт защищает desktop.
   // CO-02 mutual-exclusion: closed когда selectedZoneId !== null (ZoneCard takes focus).
-  // openProp от Layout: user должен явно тапнуть «N парковок рядом» (MobileResultsButton).
+  // openProp от Layout: новый поиск либо пользователь открывают sheet.
   const isMobile = useIsMobile();
   const open = isMobile && openProp && !!from && selectedZoneId === null;
-  // CO-02: single-snap [0.92] — массив с одним элементом per vaul API.
-  const [snap, setSnap] = useState<number | string | null>(0.92);
-
+  // Верхнее положение показывает весь список, нижнее освобождает карту.
   // X в header — clear search + close sheet полностью.
   const handleCloseAndClear = () => {
     clearFromCoords();
@@ -80,15 +81,19 @@ export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResul
         if (!nextOpen && selectedZoneId !== null) return;
         onOpenChange(nextOpen);
       }}
-      snapPoints={[0.92]}
-      activeSnapPoint={snap}
-      setActiveSnapPoint={setSnap}
-      dismissible
+      snapPoints={[0.32, 0.92]}
+      activeSnapPoint={snapPoint}
+      setActiveSnapPoint={(nextSnap) => onSnapPointChange?.(nextSnap)}
+      dismissible={false}
       modal={false}
+      noBodyStyles
+      disablePreventScroll
+      autoFocus={false}
+      snapToSequentialPoint
     >
       <Drawer.Portal>
         <Drawer.Content
-          className="surface-opaque fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[95dvh] flex-col rounded-t-2xl bg-white outline-none lg:hidden dark:bg-zinc-900"
+          className="surface-opaque fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[92dvh] max-h-[95dvh] flex-col rounded-t-2xl bg-white outline-none lg:hidden dark:bg-zinc-900"
           aria-describedby={undefined}
           data-testid="mobile-results-sheet"
           style={{ maxHeight: 'calc(var(--keyboard-aware-height, 100dvh) - 80px)' }}

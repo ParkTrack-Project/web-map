@@ -8,7 +8,7 @@
 // Hidden когда sheet открыт (open prop) или на desktop.
 //
 // Permissions API: skip pre-flight если permission='granted' (как WTPCTAButton).
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ListChecks } from 'lucide-react';
 import { useFromCoords, useGeolocationRequest } from '@/features/request-geolocation';
 import { useFilteredCandidates } from '@/features/filter-zones';
@@ -38,11 +38,26 @@ async function isGeolocationAlreadyGranted(): Promise<boolean> {
 export function MobileResultsButton({ hidden, onOpenSheet }: MobileResultsButtonProps) {
   const { t, formatCount } = useI18n();
   const { from, setFromCoords } = useFromCoords();
-  const { data, isFetching } = useRoutingResults();
+  const { data, isFetching, body } = useRoutingResults();
   const filtered = useFilteredCandidates(data?.candidates);
   const isMobile = useIsMobile();
   const { request, state } = useGeolocationRequest();
   const [preFlightOpen, setPreFlightOpen] = useState(false);
+  const openedSearchRef = useRef<string | null>(null);
+
+  // Первый готовый ответ нового поиска сразу раскрывает результаты. Повторные
+  // polling/refetch не дёргают панель, пока origin остаётся тем же.
+  useEffect(() => {
+    if (!from) {
+      openedSearchRef.current = null;
+      return;
+    }
+    if (isFetching || !data) return;
+    const searchKey = JSON.stringify(body);
+    if (openedSearchRef.current === searchKey) return;
+    openedSearchRef.current = searchKey;
+    onOpenSheet();
+  }, [body, data, from, isFetching, onOpenSheet]);
 
   const requestGeolocation = useCallback(async () => {
     const coords = await request();

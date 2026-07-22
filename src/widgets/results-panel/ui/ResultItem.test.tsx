@@ -122,4 +122,13 @@ describe('ResultItem (RANK-04 / D-20)', () => {
     expect(fn).toHaveBeenCalledWith(c);
     expect(useResultSelection.getState().lastViewedZoneId).toBe(c.zone_id);
   });
+
+  it('releases focus before the results drawer becomes hidden', () => {
+    render(wrap(<ResultItem candidate={c} onClick={() => {}} />));
+    const item = screen.getByTestId('result-item-42');
+    item.focus();
+    expect(item).toHaveFocus();
+    fireEvent.click(item);
+    expect(item).not.toHaveFocus();
+  });
 });

@@ -59,8 +59,8 @@ export function computeZoneStyle(k: StyleKey): ZoneStyle {
   if (hit) return hit;
   const base = pickPalette(k);
   const style: ZoneStyle = {
-    fill: k.dimmed ? withOpacity(base.fill, 0.1) : base.fill,
-    stroke: k.dimmed ? withOpacity(base.stroke, 0.22) : base.stroke,
+    fill: k.dimmed ? withOpacity(base.fill, 0.18) : base.fill,
+    stroke: k.dimmed ? withOpacity(base.stroke, 0.36) : base.stroke,
     strokeWidth: k.selected ? 3 : 1, // D-08
   };
   cache.set(key, style);

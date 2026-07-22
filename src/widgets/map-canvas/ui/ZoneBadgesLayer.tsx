@@ -101,7 +101,7 @@ export function ZoneBadgesLayer({ zoom }: Props) {
                   top: 0,
                   transform: 'translate(-50%, -50%)',
                   backgroundColor: stroke,
-                  opacity: shouldDimZone(z.zone_id, selectedZoneId, resultZoneIds) ? 0.2 : 1,
+                  opacity: shouldDimZone(z.zone_id, selectedZoneId, resultZoneIds) ? 0.38 : 1,
                 }}
               >
                 {z.free_count}

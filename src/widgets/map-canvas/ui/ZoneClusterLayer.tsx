@@ -120,7 +120,7 @@ export function ZoneClusterLayer({ zoom }: Props) {
                   height: size,
                   backgroundColor: clusterColor(cl.freeSum, theme),
                   fontSize: size >= 38 ? 13 : 11,
-                  opacity: shouldDimCluster(cl.zoneIds, selectedZoneId, resultZoneIds) ? 0.2 : 1,
+                  opacity: shouldDimCluster(cl.zoneIds, selectedZoneId, resultZoneIds) ? 0.38 : 1,
                 }}
               >
                 {cl.freeSum}
