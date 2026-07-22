@@ -5,20 +5,22 @@
 import { useEffect, useRef } from 'react';
 import type { Virtualizer } from '@tanstack/react-virtual';
 import type { RouteCandidate } from '@/entities/zone';
-import { useSelectedZone } from '@/features/select-zone';
+import { useResultSelection, useSelectedZone } from '@/features/select-zone';
 
 export function useResultsScrollSync(
   virtualizer: Virtualizer<HTMLDivElement, Element>,
   candidates: RouteCandidate[],
 ) {
   const { selectedZoneId } = useSelectedZone();
+  const lastViewedZoneId = useResultSelection((state) => state.lastViewedZoneId);
+  const focusedZoneId = selectedZoneId ?? lastViewedZoneId;
   const lastSyncedRef = useRef<number | null>(null);
   useEffect(() => {
-    if (selectedZoneId == null) return;
-    if (lastSyncedRef.current === selectedZoneId) return;
-    const idx = candidates.findIndex((c) => c.zone_id === selectedZoneId);
+    if (focusedZoneId == null) return;
+    if (lastSyncedRef.current === focusedZoneId) return;
+    const idx = candidates.findIndex((c) => c.zone_id === focusedZoneId);
     if (idx === -1) return; // not in candidates → no scroll
     virtualizer.scrollToIndex(idx, { align: 'center', behavior: 'smooth' });
-    lastSyncedRef.current = selectedZoneId;
-  }, [selectedZoneId, candidates, virtualizer]);
+    lastSyncedRef.current = focusedZoneId;
+  }, [focusedZoneId, candidates, virtualizer]);
 }

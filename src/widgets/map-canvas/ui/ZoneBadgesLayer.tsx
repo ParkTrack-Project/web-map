@@ -6,13 +6,14 @@ import {
   YMapLayer as YMapLayerRaw,
 } from '@/shared/lib/ymaps';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
-import { useSelectedZone } from '@/features/select-zone';
+import { shouldDimZone, useResultSelection, useSelectedZone } from '@/features/select-zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { ZONE_BADGE_MIN_ZOOM, MAP_Z } from '@/shared/config';
 import { computeZoneStyle } from '../model/zone-style';
 import { useZoneClusters } from '../model/useZoneClusters';
 import { useI18n } from '@/shared/lib/i18n';
 import { usePreferences } from '@/features/preferences';
+import { useZoomToZone } from '../model/useZoomToZone';
 
 interface Props {
   zoom: number;
@@ -45,7 +46,10 @@ const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 export function ZoneBadgesLayer({ zoom }: Props) {
   const { t } = useI18n();
   const { data } = useFilteredZones();
-  const { setSelectedZone } = useSelectedZone();
+  const { selectedZoneId, setSelectedZone } = useSelectedZone();
+  const resultZoneIds = useResultSelection((state) => state.resultZoneIds);
+  const markZoneViewed = useResultSelection((state) => state.markZoneViewed);
+  const zoomToZone = useZoomToZone();
   const { singletonIds } = useZoneClusters(zoom);
   const theme = usePreferences((state) => state.theme);
 
@@ -86,13 +90,18 @@ export function ZoneBadgesLayer({ zoom }: Props) {
                 type="button"
                 data-testid="zone-badge"
                 aria-label={t('map.parkingLabel', { id: z.zone_id, free: z.free_count })}
-                onClick={() => setSelectedZone(z.zone_id)}
+                onClick={() => {
+                  markZoneViewed(z.zone_id);
+                  setSelectedZone(z.zone_id);
+                  zoomToZone(z.geometry, { zoneId: z.zone_id });
+                }}
                 className={`absolute cursor-pointer rounded-full border-0 px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap shadow ${theme === 'dark' ? 'text-zinc-950' : 'text-white'}`}
                 style={{
                   left: 0,
                   top: 0,
                   transform: 'translate(-50%, -50%)',
                   backgroundColor: stroke,
+                  opacity: shouldDimZone(z.zone_id, selectedZoneId, resultZoneIds) ? 0.2 : 1,
                 }}
               >
                 {z.free_count}

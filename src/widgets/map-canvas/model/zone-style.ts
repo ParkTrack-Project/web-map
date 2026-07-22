@@ -17,6 +17,7 @@ export type StyleKey = {
   is_active: boolean;
   mode: 'now' | 'past' | 'future';
   selected: boolean;
+  dimmed?: boolean;
   theme?: 'light' | 'dark';
 };
 
@@ -29,7 +30,17 @@ export type ZoneStyle = {
 const cache = new Map<string, ZoneStyle>();
 
 function keyOf(k: StyleKey): string {
-  return `${k.zoneId}|${k.free_count}|${k.confidence}|${k.is_active}|${k.mode}|${k.selected}|${k.theme ?? 'light'}`;
+  return `${k.zoneId}|${k.free_count}|${k.confidence}|${k.is_active}|${k.mode}|${k.selected}|${k.dimmed ?? false}|${k.theme ?? 'light'}`;
+}
+
+function withOpacity(color: string, opacity: number): string {
+  const hex = color.match(/^#([\da-f]{2})([\da-f]{2})([\da-f]{2})(?:[\da-f]{2})?$/i);
+  if (hex) {
+    return `rgba(${parseInt(hex[1]!, 16)},${parseInt(hex[2]!, 16)},${parseInt(hex[3]!, 16)},${opacity})`;
+  }
+  const rgb = color.match(/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/i);
+  if (rgb) return `rgba(${rgb[1]},${rgb[2]},${rgb[3]},${opacity})`;
+  return color;
 }
 
 function pickPalette(k: StyleKey): { fill: string; stroke: string } {
@@ -48,8 +59,8 @@ export function computeZoneStyle(k: StyleKey): ZoneStyle {
   if (hit) return hit;
   const base = pickPalette(k);
   const style: ZoneStyle = {
-    fill: base.fill,
-    stroke: base.stroke,
+    fill: k.dimmed ? withOpacity(base.fill, 0.1) : base.fill,
+    stroke: k.dimmed ? withOpacity(base.stroke, 0.22) : base.stroke,
     strokeWidth: k.selected ? 3 : 1, // D-08
   };
   cache.set(key, style);

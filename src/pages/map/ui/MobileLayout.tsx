@@ -43,23 +43,16 @@ export function MobileLayout() {
   // ResultsSheet auto-open removed — user открывает через MobileResultsButton chip.
   const [resultsSheetOpen, setResultsSheetOpen] = useState(false);
   const { selectedZoneId } = useSelectedZone();
-  // Sync: при selectedZoneId set → закрыть results sheet immediate, чтобы vaul стартовал
-  // close-animation. MobileZoneCard ждёт 350ms перед opening — нет conflict двух body lock'ов.
-  useEffect(() => {
-    if (selectedZoneId !== null && resultsSheetOpen) {
-      setResultsSheetOpen(false);
-    }
-  }, [selectedZoneId, resultsSheetOpen]);
-
-  // Phase 5 D-05 (RESP-07): map controls сдвигаются выше любого открытого
-  // bottom-sheet'а. Single-snap [0.92] (CO-02) → 92vh + 20px gap.
-  // ZoneCard sheet mutually exclusive с ResultsSheet (Phase 4 CO-02), но
-  // отдельно учитываем selectedZoneId — MobileZoneCard монтируется напрямую.
+  // Полноэкранные панели требуют большого отступа, а карточка парковки имеет
+  // высоту по контенту: не выталкиваем контролы карты за экран при её открытии.
   useEffect(() => {
     const SHEET_SNAP_VH = 0.92;
-    const anySheetOpen =
-      filtersOpen || timeSheetOpen || resultsSheetOpen || selectedZoneId !== null;
-    const offset = anySheetOpen ? `calc(${SHEET_SNAP_VH * 100}vh + 20px)` : '20px';
+    const fullSheetOpen = filtersOpen || timeSheetOpen || resultsSheetOpen;
+    const offset = fullSheetOpen
+      ? `calc(${SHEET_SNAP_VH * 100}vh + 20px)`
+      : selectedZoneId !== null
+        ? 'calc(min(46dvh, 420px) + 20px)'
+        : '20px';
     document.documentElement.style.setProperty('--bottom-sheet-offset', offset);
   }, [filtersOpen, timeSheetOpen, resultsSheetOpen, selectedZoneId]);
 
@@ -101,7 +94,7 @@ export function MobileLayout() {
           Open controlled by Layout — user тапает MobileResultsButton chip чтобы открыть. */}
         <MobileResultsSheet open={resultsSheetOpen} onOpenChange={setResultsSheetOpen} />
         {/* Plan 02 mobile vaul + CARD-07 pan */}
-        <MobileZoneCard />
+        <MobileZoneCard onBackToResults={() => setResultsSheetOpen(true)} />
       </div>
     </MapRefContext.Provider>
   );

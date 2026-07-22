@@ -25,7 +25,6 @@ import { Spinner } from '@/shared/ui';
 import { useIsMobile } from '@/shared/lib/responsive';
 import { useVisualViewportHeight } from '@/shared/lib/dom';
 import { useRoutingResults } from '../model/useRoutingResults';
-import { useAutoSelectBestVariant } from '../model/useAutoSelectBestVariant';
 import { ResultsList } from './ResultsList';
 import { EmptyResultsState } from './EmptyResultsState';
 import { useI18n } from '@/shared/lib/i18n';
@@ -50,7 +49,6 @@ export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResul
   const { activeCount, resetAll } = useFilters();
   const { data, isFetching, isError, refetch } = useRoutingResults();
   const filtered = useFilteredCandidates(data?.candidates);
-  useAutoSelectBestVariant(data?.selected_zone_id ?? null);
 
   // КРИТИЧНО: vaul Drawer.Root рендерит Portal в body и применяет body lock
   // (`pointer-events: none` + `aria-hidden=true`) даже когда `lg:hidden` скрывает
@@ -76,14 +74,19 @@ export function MobileResultsSheet({ open: openProp, onOpenChange }: MobileResul
   return (
     <Drawer.Root
       open={open}
-      onOpenChange={(o) => onOpenChange(o)}
+      onOpenChange={(nextOpen) => {
+        // Выбор результата временно закрывает эту панель в пользу карточки.
+        // Не сбрасываем controlled-state: кнопка «Назад» должна вернуть список.
+        if (!nextOpen && selectedZoneId !== null) return;
+        onOpenChange(nextOpen);
+      }}
       snapPoints={[0.92]}
       activeSnapPoint={snap}
       setActiveSnapPoint={setSnap}
       dismissible
+      modal={false}
     >
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
         <Drawer.Content
           className="surface-opaque fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[95dvh] flex-col rounded-t-2xl bg-white outline-none lg:hidden dark:bg-zinc-900"
           aria-describedby={undefined}

@@ -1,9 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import { ResultItem } from './ResultItem';
 import type { RouteCandidate } from '@/entities/zone';
+import { useResultSelection } from '@/features/select-zone';
 
 const c: RouteCandidate = {
   zone_id: 42,
@@ -55,6 +56,10 @@ function wrap(children: React.ReactNode) {
 }
 
 describe('ResultItem (RANK-04 / D-20)', () => {
+  beforeEach(() => {
+    useResultSelection.getState().clearResultSelection();
+  });
+
   it('rank=1 shows «Лучший вариант» badge', () => {
     render(wrap(<ResultItem candidate={c} onClick={() => {}} />));
     expect(screen.getByText('Лучший вариант')).toBeInTheDocument();
@@ -107,8 +112,10 @@ describe('ResultItem (RANK-04 / D-20)', () => {
   });
   it('onClick prop called с candidate', () => {
     const fn = vi.fn();
+    useResultSelection.getState().setResultZoneIds([c.zone_id]);
     render(wrap(<ResultItem candidate={c} onClick={fn} />));
     fireEvent.click(screen.getByTestId('result-item-42'));
     expect(fn).toHaveBeenCalledWith(c);
+    expect(useResultSelection.getState().lastViewedZoneId).toBe(c.zone_id);
   });
 });

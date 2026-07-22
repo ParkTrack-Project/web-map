@@ -84,8 +84,7 @@ describe('ZoneCardContent (CARD-01..07)', () => {
       isPending: false,
       isError: false,
       refetch: vi.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+    } as unknown as ReturnType<typeof useZoneByIdQuery>);
     render(withProviders(<ZoneCardContent zoneId={42} onClose={vi.fn()} />));
     expect(screen.getByText(/5 мест/)).toBeInTheDocument();
   });
@@ -152,6 +151,21 @@ describe('ZoneCardContent (CARD-01..07)', () => {
     const btn = screen.getByLabelText('Закрыть карточку');
     fireEvent.click(btn);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('в режиме результата показывает кнопку возврата вместо закрытия', () => {
+    const onClose = vi.fn();
+    mockUseZoneByIdQuery.mockReturnValue({
+      data: baseZone,
+      isPending: false,
+      isError: false,
+      refetch: vi.fn(),
+    } as unknown as ReturnType<typeof useZoneByIdQuery>);
+    render(withProviders(<ZoneCardContent zoneId={42} navigation="back" onClose={onClose} />));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Назад' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.queryByLabelText('Закрыть карточку')).not.toBeInTheDocument();
   });
 
   it('кнопка «Построить маршрут» присутствует (CARD-05)', () => {

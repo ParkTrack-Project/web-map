@@ -28,7 +28,7 @@ import {
 } from '@/shared/lib/ymaps';
 import { MAP_Z } from '@/shared/config';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
-import { useSelectedZone } from '@/features/select-zone';
+import { shouldDimZone, useResultSelection, useSelectedZone } from '@/features/select-zone';
 import { computeZoneStyle, toDrawingStyle } from '../model/zone-style';
 import { useZoomToZone } from '../model/useZoomToZone';
 import { usePreferences } from '@/features/preferences';
@@ -74,6 +74,8 @@ function ZoneLayerInner() {
   // useSelectedZone wiring (Plan 02) сохранён ниже без изменений.
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
+  const resultZoneIds = useResultSelection((state) => state.resultZoneIds);
+  const markZoneViewed = useResultSelection((state) => state.markZoneViewed);
   const zoomToZone = useZoomToZone();
   const theme = usePreferences((state) => state.theme);
 
@@ -101,6 +103,7 @@ function ZoneLayerInner() {
           is_active: z.is_active,
           mode: 'now', // Phase 3 forward-compat
           selected: z.zone_id === selectedZoneId, // D-08 highlight
+          dimmed: shouldDimZone(z.zone_id, selectedZoneId, resultZoneIds),
           theme,
         });
 
@@ -117,6 +120,7 @@ function ZoneLayerInner() {
             style={toDrawingStyle(style)}
             source="ptk-zones-standard"
             onClick={() => {
+              markZoneViewed(z.zone_id);
               setSelectedZone(z.zone_id);
               // клик по карте → приближаем к зоне, дотягивая до выхода из кластера
               zoomToZone(z.geometry, { zoneId: z.zone_id });

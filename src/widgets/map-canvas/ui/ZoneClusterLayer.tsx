@@ -14,6 +14,7 @@ import { clusterBubbleSizePx } from '../model/cluster-zones';
 import { nextClusterExpansionZoom } from '../model/cluster-expansion';
 import { useI18n } from '@/shared/lib/i18n';
 import { usePreferences } from '@/features/preferences';
+import { shouldDimCluster, useResultSelection, useSelectedZone } from '@/features/select-zone';
 
 interface Props {
   zoom: number;
@@ -56,6 +57,8 @@ export function ZoneClusterLayer({ zoom }: Props) {
   const { data: zones = [] } = useFilteredZones();
   const ctx = useContext(MapRefContext);
   const theme = usePreferences((state) => state.theme);
+  const { selectedZoneId } = useSelectedZone();
+  const resultZoneIds = useResultSelection((state) => state.resultZoneIds);
 
   if (clusters.length === 0) return null;
 
@@ -117,6 +120,7 @@ export function ZoneClusterLayer({ zoom }: Props) {
                   height: size,
                   backgroundColor: clusterColor(cl.freeSum, theme),
                   fontSize: size >= 38 ? 13 : 11,
+                  opacity: shouldDimCluster(cl.zoneIds, selectedZoneId, resultZoneIds) ? 0.2 : 1,
                 }}
               >
                 {cl.freeSum}

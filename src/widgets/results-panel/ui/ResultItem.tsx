@@ -3,7 +3,7 @@
 // Лучший вариант badge — brand-green с иконкой Star (D-21).
 import { Star, MapPin, Target } from 'lucide-react';
 import type { RouteCandidate } from '@/entities/zone';
-import { useSelectedZone } from '@/features/select-zone';
+import { useResultSelection, useSelectedZone } from '@/features/select-zone';
 import { useZoomToZone } from '@/widgets/map-canvas';
 import { formatDurationFromSeconds, useI18n } from '@/shared/lib/i18n';
 
@@ -15,8 +15,11 @@ interface ResultItemProps {
 export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
   const { t, language } = useI18n();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
+  const lastViewedZoneId = useResultSelection((state) => state.lastViewedZoneId);
+  const markZoneViewed = useResultSelection((state) => state.markZoneViewed);
   const zoomToZone = useZoomToZone();
-  const isSelected = selectedZoneId === c.zone_id;
+  const isSelected =
+    selectedZoneId === c.zone_id || (selectedZoneId === null && lastViewedZoneId === c.zone_id);
   const isBest = c.rank === 1;
   // 2026-05-26: единый форматтер длительности — «4 мин», «1 ч 30 мин»,
   // «2 д 18 ч». Раньше всегда печаталось в минутах → дальние маршруты
@@ -38,6 +41,7 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
 
   const handleClick = () => {
     onClick?.(c);
+    markZoneViewed(c.zone_id);
     setSelectedZone(c.zone_id);
     // zoneId → useZoomToZone дотягивает зум до уровня, где парковка выходит из
     // кружка-группы и сразу видна (тот же расчёт, что и при клике по зоне на карте).
