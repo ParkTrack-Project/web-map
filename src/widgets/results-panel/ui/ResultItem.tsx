@@ -57,6 +57,14 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
     // кружка-группы и сразу видна (тот же расчёт, что и при клике по зоне на карте).
     zoomToZone(c.geometry, { zoneId: c.zone_id });
   };
+  const handleHover = () => {
+    setHoveredZone(c.zone_id, 'list');
+    zoomToZone(c.geometry, {
+      zoneId: c.zone_id,
+      centerMode: 'if-outside',
+      intent: 'hover',
+    });
+  };
 
   return (
     <button
@@ -70,9 +78,9 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
         event.currentTarget.blur();
         handleClick();
       }}
-      onPointerEnter={() => setHoveredZone(c.zone_id, 'list')}
+      onPointerEnter={handleHover}
       onPointerLeave={() => clearHoveredZone(c.zone_id, 'list')}
-      onFocus={() => setHoveredZone(c.zone_id, 'list')}
+      onFocus={handleHover}
       onBlur={() => clearHoveredZone(c.zone_id, 'list')}
       className={
         'flex w-full flex-col gap-1 rounded-md border-2 px-3 py-2 text-left text-sm transition-colors dark:text-zinc-100 ' +

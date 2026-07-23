@@ -125,7 +125,6 @@ function ParallelZoneLayerInner({ zoom }: Props) {
             onMouseEnter={() => {
               if (!canHoverResultZone(z.zone_id, resultZoneIds, singletonIds)) return;
               setHoveredZone(z.zone_id, 'map');
-              zoomToZone(z.geometry, { zoneId: z.zone_id });
             }}
             onMouseLeave={() => clearHoveredZone(z.zone_id, 'map')}
           />

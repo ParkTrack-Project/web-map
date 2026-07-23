@@ -1,7 +1,7 @@
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import type { Virtualizer } from '@tanstack/react-virtual';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RouteCandidate } from '@/entities/zone';
 import { useResultSelection } from '@/features/select-zone';
 import { useResultsScrollSync } from './useResultsScrollSync';
@@ -37,8 +37,12 @@ describe('useResultsScrollSync', () => {
   beforeEach(() => {
     useResultSelection.getState().clearResultSelection();
   });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
 
-  it('scrolls to a map-hovered result without jumping back when hover ends', async () => {
+  it('scrolls to a map-hovered result only after 500 ms', () => {
+    vi.useFakeTimers();
     const scrollToIndex = vi.fn();
     const virtualizer = { scrollToIndex } as unknown as Virtualizer<HTMLDivElement, Element>;
     const candidates = [candidate(10), candidate(20), candidate(30)];
@@ -50,26 +54,45 @@ describe('useResultsScrollSync', () => {
         <NuqsTestingAdapter searchParams="">{children}</NuqsTestingAdapter>
       ),
     });
-    await waitFor(() => expect(scrollToIndex).toHaveBeenCalledWith(0, expect.any(Object)));
+    expect(scrollToIndex).toHaveBeenCalledWith(0, expect.any(Object));
     scrollToIndex.mockClear();
 
     act(() => useResultSelection.getState().setHoveredZone(30, 'map'));
-    await waitFor(() =>
-      expect(scrollToIndex).toHaveBeenCalledWith(2, {
-        align: 'center',
-        behavior: 'smooth',
-      }),
-    );
+    expect(scrollToIndex).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(499));
+    expect(scrollToIndex).not.toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(1));
+    expect(scrollToIndex).toHaveBeenCalledWith(2, {
+      align: 'center',
+      behavior: 'smooth',
+    });
     scrollToIndex.mockClear();
 
-    await act(async () => {
-      useResultSelection.getState().clearHoveredZone(30, 'map');
-      await Promise.resolve();
-    });
+    act(() => useResultSelection.getState().clearHoveredZone(30, 'map'));
     expect(scrollToIndex).not.toHaveBeenCalled();
   });
 
-  it('does not scroll when the pointer moves across the list itself', async () => {
+  it('cancels delayed scrolling when map hover was accidental', () => {
+    vi.useFakeTimers();
+    const scrollToIndex = vi.fn();
+    const virtualizer = { scrollToIndex } as unknown as Virtualizer<HTMLDivElement, Element>;
+    const candidates = [candidate(10), candidate(20), candidate(30)];
+    useResultSelection.getState().setResultCandidates(candidates);
+
+    renderHook(() => useResultsScrollSync(virtualizer, candidates), {
+      wrapper: ({ children }) => (
+        <NuqsTestingAdapter searchParams="">{children}</NuqsTestingAdapter>
+      ),
+    });
+
+    act(() => useResultSelection.getState().setHoveredZone(30, 'map'));
+    act(() => vi.advanceTimersByTime(250));
+    act(() => useResultSelection.getState().clearHoveredZone(30, 'map'));
+    act(() => vi.advanceTimersByTime(500));
+    expect(scrollToIndex).not.toHaveBeenCalled();
+  });
+
+  it('does not scroll when the pointer moves across the list itself', () => {
     const scrollToIndex = vi.fn();
     const virtualizer = { scrollToIndex } as unknown as Virtualizer<HTMLDivElement, Element>;
     const candidates = [candidate(10), candidate(20), candidate(30)];
@@ -82,7 +105,6 @@ describe('useResultsScrollSync', () => {
     });
 
     act(() => useResultSelection.getState().setHoveredZone(30, 'list'));
-    await act(() => Promise.resolve());
     expect(scrollToIndex).not.toHaveBeenCalled();
   });
 });

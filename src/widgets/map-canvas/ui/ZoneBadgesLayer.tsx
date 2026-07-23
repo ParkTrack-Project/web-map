@@ -107,13 +107,11 @@ export function ZoneBadgesLayer({ zoom }: Props) {
                 onPointerEnter={() => {
                   if (!canHoverResultZone(z.zone_id, resultZoneIds, singletonIds)) return;
                   setHoveredZone(z.zone_id, 'map');
-                  zoomToZone(z.geometry, { zoneId: z.zone_id });
                 }}
                 onPointerLeave={() => clearHoveredZone(z.zone_id, 'map')}
                 onFocus={() => {
                   if (!canHoverResultZone(z.zone_id, resultZoneIds, singletonIds)) return;
                   setHoveredZone(z.zone_id, 'map');
-                  zoomToZone(z.geometry, { zoneId: z.zone_id });
                 }}
                 onBlur={() => clearHoveredZone(z.zone_id, 'map')}
                 className={`absolute cursor-pointer rounded-full border-0 px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap shadow ${theme === 'dark' ? 'text-zinc-950' : 'text-white'}`}

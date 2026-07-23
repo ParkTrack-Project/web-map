@@ -1,11 +1,12 @@
 // Phase 4 / D-22 / RANK-05:
-// Когда ?sel меняется И zone в candidates — virtualizer.scrollToIndex.
-// НЕ скроллим если zone не в candidates (D-22 explicit).
-// useRef-guard против infinite loop.
+// Постоянный выбор синхронизируем сразу. Hover с карты синхронизируем через
+// паузу, чтобы случайный проход курсора над парковкой не дёргал список.
+// Hover самого списка никогда не запускает scrollToIndex.
 import { useEffect, useRef } from 'react';
 import type { Virtualizer } from '@tanstack/react-virtual';
 import type { RouteCandidate } from '@/entities/zone';
 import { useResultSelection, useSelectedZone } from '@/features/select-zone';
+import { RESULTS_MAP_HOVER_SCROLL_DELAY_MS } from '@/shared/config';
 
 export function useResultsScrollSync(
   virtualizer: Virtualizer<HTMLDivElement, Element>,
@@ -16,17 +17,23 @@ export function useResultsScrollSync(
   const hoveredZoneId = useResultSelection((state) => state.hoveredZoneId);
   const hoveredZoneSource = useResultSelection((state) => state.hoveredZoneSource);
   const persistentZoneId = selectedZoneId ?? lastViewedZoneId;
-  const lastHoveredRef = useRef<number | null>(null);
   const lastPersistentRef = useRef<number | null>(null);
   useEffect(() => {
-    const mapHoveredZoneId = hoveredZoneSource === 'map' ? hoveredZoneId : null;
-    const focusedZoneId = mapHoveredZoneId ?? persistentZoneId;
-    if (focusedZoneId == null) return;
-    const lastSyncedRef = mapHoveredZoneId === null ? lastPersistentRef : lastHoveredRef;
-    if (lastSyncedRef.current === focusedZoneId) return;
-    const idx = candidates.findIndex((c) => c.zone_id === focusedZoneId);
+    if (persistentZoneId == null || lastPersistentRef.current === persistentZoneId) return;
+    const idx = candidates.findIndex((c) => c.zone_id === persistentZoneId);
     if (idx === -1) return; // not in candidates → no scroll
     virtualizer.scrollToIndex(idx, { align: 'center', behavior: 'smooth' });
-    lastSyncedRef.current = focusedZoneId;
-  }, [candidates, hoveredZoneId, hoveredZoneSource, persistentZoneId, virtualizer]);
+    lastPersistentRef.current = persistentZoneId;
+  }, [candidates, persistentZoneId, virtualizer]);
+
+  useEffect(() => {
+    if (hoveredZoneSource !== 'map' || hoveredZoneId === null) return;
+    const idx = candidates.findIndex((candidate) => candidate.zone_id === hoveredZoneId);
+    if (idx === -1) return;
+
+    const timeoutId = window.setTimeout(() => {
+      virtualizer.scrollToIndex(idx, { align: 'center', behavior: 'smooth' });
+    }, RESULTS_MAP_HOVER_SCROLL_DELAY_MS);
+    return () => window.clearTimeout(timeoutId);
+  }, [candidates, hoveredZoneId, hoveredZoneSource, virtualizer]);
 }

@@ -14,14 +14,35 @@
 //
 // mapRef берётся из MapRefContext (Provider в Desktop/MobileLayout, оборачивает
 // и MapCanvas, и панель результатов) — тот же паттерн, что у ZoneClusterLayer.
+// Hover результата использует более мягкий режим: уже видимую singleton-зону
+// не двигает, зону вне viewport центрирует, а сгруппированную приближает только
+// до собственного счётчика.
 import { useCallback, useContext, useRef } from 'react';
 import { zoneCentroid } from '@/shared/lib/geo';
-import { SELECTED_ZONE_ZOOM, CLUSTER_MERGE_PX, CLUSTER_ZOOM_STEP } from '@/shared/config';
+import {
+  SELECTED_ZONE_ZOOM,
+  CLUSTER_MERGE_PX,
+  CLUSTER_ZOOM_STEP,
+  ZONE_BADGE_MIN_ZOOM,
+} from '@/shared/config';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
+import { useResultSelection } from '@/features/select-zone';
 import { MapRefContext } from './map-ref-context';
 import { minZoomToDecluster } from './cluster-zones';
+import { clusterZonesForZoom } from './cluster-expansion';
+import {
+  isPointInsideMapBounds,
+  resolveZoneCameraCenter,
+  shouldUpdateHoverCamera,
+  type ZoneCenterMode,
+} from './zone-camera';
 
 type ZoneGeometry = Parameters<typeof zoneCentroid>[0];
+interface ZoomToZoneOptions {
+  zoneId?: number;
+  centerMode?: ZoneCenterMode;
+  intent?: 'select' | 'hover';
+}
 
 export function useZoomToZone() {
   const mapRef = useContext(MapRefContext);
@@ -32,9 +53,12 @@ export function useZoomToZone() {
   const { data } = useFilteredZones();
   const zonesRef = useRef(data);
   zonesRef.current = data;
+  const resultCandidates = useResultSelection((state) => state.resultCandidates);
+  const resultCandidatesRef = useRef(resultCandidates);
+  resultCandidatesRef.current = resultCandidates;
 
   return useCallback(
-    (geometry: ZoneGeometry | null | undefined, opts?: { zoneId?: number }) => {
+    (geometry: ZoneGeometry | null | undefined, opts?: ZoomToZoneOptions) => {
       const map = mapRef?.current;
       // Карта ещё не смонтирована или геометрия пустая — тихо пропускаем.
       if (!map || !geometry?.coordinates?.[0]?.length) return;
@@ -45,6 +69,19 @@ export function useZoomToZone() {
       // не зависеть от наличия поля в .d.ts; при сбое падаем на 0 → возьмётся порог.
       const currentZoom = (map as { zoom?: number }).zoom ?? 0;
       const maxZoom = (map as { zoomRange?: { max?: number } }).zoomRange?.max ?? 21;
+      const isVisible = isPointInsideMapBounds(center, map.bounds);
+      const currentZones = zonesRef.current;
+      const isSingleton =
+        opts?.zoneId != null &&
+        currentZones != null &&
+        clusterZonesForZoom(currentZones, currentZoom).singletonIds.has(opts.zoneId);
+
+      if (
+        opts?.intent === 'hover' &&
+        !shouldUpdateHoverCamera(isVisible, isSingleton, currentZoom, ZONE_BADGE_MIN_ZOOM)
+      ) {
+        return;
+      }
 
       // «Зум разъединения»: если выбранная парковка на текущем масштабе слита в
       // кружок-группу, приближаем минимум до уровня, где её центроид отходит от
@@ -54,9 +91,14 @@ export function useZoomToZone() {
       // неравенство слияния (dist == mergePx ещё сливает). Только при выборе
       // конкретной зоны (есть zoneId).
       let declusterZoom = 0;
-      const zones = zonesRef.current;
-      if (opts?.zoneId != null && zones) {
-        const req = minZoomToDecluster(center, zones, CLUSTER_MERGE_PX, opts.zoneId);
+      const declusterZones = [
+        ...(currentZones ?? []),
+        ...resultCandidatesRef.current.filter(
+          (candidate) => !currentZones?.some((zone) => zone.zone_id === candidate.zone_id),
+        ),
+      ];
+      if (opts?.zoneId != null && declusterZones.length > 0) {
+        const req = minZoomToDecluster(center, declusterZones, CLUSTER_MERGE_PX, opts.zoneId);
         if (req != null) declusterZoom = req + CLUSTER_ZOOM_STEP;
       }
 
@@ -64,12 +106,22 @@ export function useZoomToZone() {
       // зума (без отдаления) и зума разъединения. Клампим по пределу карты.
       const targetZoom = Math.min(
         maxZoom,
-        Math.max(SELECTED_ZONE_ZOOM, currentZoom, declusterZoom),
+        Math.max(
+          opts?.intent === 'hover' ? ZONE_BADGE_MIN_ZOOM : SELECTED_ZONE_ZOOM,
+          currentZoom,
+          declusterZoom,
+        ),
+      );
+      const cameraCenter = resolveZoneCameraCenter(
+        center,
+        map.center,
+        map.bounds,
+        opts?.centerMode ?? 'always',
       );
 
       try {
         map.setLocation({
-          center,
+          center: cameraCenter,
           zoom: targetZoom,
           duration: 300, // ms — единый easing с остальными pan'ами
         });

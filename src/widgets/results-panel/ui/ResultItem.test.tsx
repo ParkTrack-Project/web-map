@@ -2,9 +2,11 @@ import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
+import type { YMap as YMapInstance } from '@yandex/ymaps3-types';
 import { ResultItem } from './ResultItem';
 import type { RouteCandidate } from '@/entities/zone';
 import { useResultSelection } from '@/features/select-zone';
+import { MapRefContext } from '@/widgets/map-canvas';
 
 const c: RouteCandidate = {
   zone_id: 42,
@@ -42,15 +44,18 @@ const c: RouteCandidate = {
   rank: 1,
 };
 
-function wrap(children: React.ReactNode) {
+function wrap(children: React.ReactNode, map: YMapInstance | null = null) {
   // 2026-06-06: ResultItem → useZoomToZone теперь читает useFilteredZones
   // (нужны зоны для «зума разъединения»), а тот вызывает useZonesQuery →
   // требуется QueryClientProvider. Без ?bbox запрос disabled (data undefined),
   // расчёт разъединения тихо пропускается — поведение item'а не меняется.
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const mapRef = { current: map };
   return (
     <QueryClientProvider client={qc}>
-      <NuqsTestingAdapter>{children}</NuqsTestingAdapter>
+      <MapRefContext.Provider value={mapRef}>
+        <NuqsTestingAdapter>{children}</NuqsTestingAdapter>
+      </MapRefContext.Provider>
     </QueryClientProvider>
   );
 }
@@ -101,6 +106,54 @@ describe('ResultItem (RANK-04 / D-20)', () => {
 
     fireEvent.pointerLeave(item);
     expect(useResultSelection.getState().hoveredZoneId).toBeNull();
+  });
+
+  it('zooms a list-hovered parking without panning when it is already visible', () => {
+    const setLocation = vi.fn();
+    const map = {
+      zoom: 12,
+      zoomRange: { min: 2, max: 21 },
+      center: [30.5, 59.5],
+      bounds: [
+        [30, 59],
+        [31, 60],
+      ],
+      setLocation,
+    } as unknown as YMapInstance;
+    useResultSelection.getState().setResultZoneIds([c.zone_id]);
+    render(wrap(<ResultItem candidate={c} />, map));
+
+    fireEvent.pointerEnter(screen.getByTestId('result-item-42'));
+
+    expect(setLocation).toHaveBeenCalledWith({
+      center: [30.5, 59.5],
+      zoom: 14,
+      duration: 300,
+    });
+  });
+
+  it('centers a list-hovered parking when it is outside the viewport', () => {
+    const setLocation = vi.fn();
+    const map = {
+      zoom: 14,
+      zoomRange: { min: 2, max: 21 },
+      center: [0.5, 0.5],
+      bounds: [
+        [0, 0],
+        [1, 1],
+      ],
+      setLocation,
+    } as unknown as YMapInstance;
+    useResultSelection.getState().setResultZoneIds([c.zone_id]);
+    render(wrap(<ResultItem candidate={c} />, map));
+
+    fireEvent.pointerEnter(screen.getByTestId('result-item-42'));
+
+    expect(setLocation).toHaveBeenCalledWith({
+      center: [expect.closeTo(30.305), expect.closeTo(59.955)],
+      zoom: 14,
+      duration: 300,
+    });
   });
 
   it('keeps the last opened parking highlighted after returning to results', () => {
