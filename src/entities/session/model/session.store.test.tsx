@@ -22,7 +22,7 @@ describe('session lifecycle', () => {
         <div />
       </SessionProvider>,
     );
-    await apiClient.get('/users/me').catch(() => undefined);
+    await apiClient.get('/api/v1/users/me').catch(() => undefined);
     await waitFor(() => expect(useSession.getState().status).toBe('unauthenticated'));
     expect(localStorage.getItem('parktrack:session:v1')).toBeNull();
   });
