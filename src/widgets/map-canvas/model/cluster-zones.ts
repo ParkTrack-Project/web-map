@@ -25,8 +25,6 @@
 import type { ZoneMapItem } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 
-type ZoneWithGeometry = Pick<ZoneMapItem, 'zone_id' | 'geometry'>;
-
 export interface ZoneCluster {
   key: string;
   center: [number, number]; // [lon, lat] — порядок ymaps3
@@ -297,7 +295,7 @@ export function clusterZones(
  */
 export function minZoomToDecluster(
   target: [number, number],
-  zones: readonly ZoneWithGeometry[],
+  zones: ZoneMapItem[],
   mergePx: number,
   excludeZoneId: number,
 ): number | null {

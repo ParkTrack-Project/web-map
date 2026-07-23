@@ -82,7 +82,6 @@ export function ZoneCardContent({ zoneId, onClose, navigation = 'close' }: Conte
   const { setSelectedZone } = useSelectedZone();
   const resultCandidates = useResultSelection((state) => state.resultCandidates);
   const markZoneViewed = useResultSelection((state) => state.markZoneViewed);
-  const setHoveredZone = useResultSelection((state) => state.setHoveredZone);
   const resultIndex = resultCandidates.findIndex((candidate) => candidate.zone_id === zoneId);
   const resultCandidate = resultIndex >= 0 ? resultCandidates[resultIndex] : undefined;
   const { clearRouteId } = useRouteId();
@@ -91,7 +90,6 @@ export function ZoneCardContent({ zoneId, onClose, navigation = 'close' }: Conte
     const candidate = resultCandidates[index];
     if (!candidate) return;
     clearRouteId();
-    setHoveredZone(null);
     markZoneViewed(candidate.zone_id);
     setSelectedZone(candidate.zone_id);
     zoomToZone(candidate.geometry, { zoneId: candidate.zone_id });

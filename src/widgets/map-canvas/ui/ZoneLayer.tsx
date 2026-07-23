@@ -28,20 +28,10 @@ import {
 } from '@/shared/lib/ymaps';
 import { MAP_Z } from '@/shared/config';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
-import {
-  canHoverResultZone,
-  shouldDimZone,
-  useResultSelection,
-  useSelectedZone,
-} from '@/features/select-zone';
+import { shouldDimZone, useResultSelection, useSelectedZone } from '@/features/select-zone';
 import { computeZoneStyle, toDrawingStyle } from '../model/zone-style';
 import { useZoomToZone } from '../model/useZoomToZone';
-import { useZoneClusters } from '../model/useZoneClusters';
 import { usePreferences } from '@/features/preferences';
-
-interface Props {
-  zoom: number;
-}
 
 type PolygonGeometry = {
   type: 'Polygon';
@@ -54,8 +44,6 @@ type YMapFeatureProps = {
   style: ReturnType<typeof toDrawingStyle>;
   source: string;
   onClick?: () => void;
-  onMouseEnter?: () => void;
-  onMouseLeave?: () => void;
 };
 
 type YMapFeatureDataSourceProps = {
@@ -80,19 +68,15 @@ const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 // Phase 5 D-31 (NFR-03): React.memo для тяжёлых widgets — рендерит 200+ features.
 // memo() предотвращает rerender при изменении parent state, не относящегося
 // к зонам или масштабу кластеризации.
-function ZoneLayerInner({ zoom }: Props) {
+function ZoneLayerInner() {
   // Phase 2 Plan 03: переключено с useViewportZones на useFilteredZones —
   // тот же data shape, но с server-side + client-side фильтрами применёнными.
   // useSelectedZone wiring (Plan 02) сохранён ниже без изменений.
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
   const resultZoneIds = useResultSelection((state) => state.resultZoneIds);
-  const hoveredZoneId = useResultSelection((state) => state.hoveredZoneId);
   const markZoneViewed = useResultSelection((state) => state.markZoneViewed);
-  const setHoveredZone = useResultSelection((state) => state.setHoveredZone);
-  const clearHoveredZone = useResultSelection((state) => state.clearHoveredZone);
   const zoomToZone = useZoomToZone();
-  const { singletonIds } = useZoneClusters(zoom);
   const theme = usePreferences((state) => state.theme);
 
   // Quick-fix 2026-05-16 (п.1): рендерим, пока есть данные (keepPreviousData),
@@ -119,7 +103,7 @@ function ZoneLayerInner({ zoom }: Props) {
           is_active: z.is_active,
           mode: 'now', // Phase 3 forward-compat
           selected: z.zone_id === selectedZoneId, // D-08 highlight
-          dimmed: shouldDimZone(z.zone_id, selectedZoneId, resultZoneIds, hoveredZoneId),
+          dimmed: shouldDimZone(z.zone_id, selectedZoneId, resultZoneIds),
           theme,
         });
 
@@ -136,17 +120,11 @@ function ZoneLayerInner({ zoom }: Props) {
             style={toDrawingStyle(style)}
             source="ptk-zones-standard"
             onClick={() => {
-              clearHoveredZone(z.zone_id);
               markZoneViewed(z.zone_id);
               setSelectedZone(z.zone_id);
               // клик по карте → приближаем к зоне, дотягивая до выхода из кластера
               zoomToZone(z.geometry, { zoneId: z.zone_id });
             }}
-            onMouseEnter={() => {
-              if (!canHoverResultZone(z.zone_id, resultZoneIds, singletonIds)) return;
-              setHoveredZone(z.zone_id, 'map');
-            }}
-            onMouseLeave={() => clearHoveredZone(z.zone_id, 'map')}
           />
         );
       })}

@@ -88,30 +88,15 @@ describe('ResultItem (RANK-04 / D-20)', () => {
     expect(screen.getByText(/850 м/)).toBeInTheDocument();
     expect(screen.getByText(/4 мин/)).toBeInTheDocument(); // 240 sec / 60 = 4 min
   });
-  it('uses an opaque dark surface before hover', () => {
+  it('uses an opaque dark surface', () => {
     render(wrap(<ResultItem candidate={c} onClick={() => {}} />));
     expect(screen.getByTestId('result-item-42')).toHaveClass('surface-opaque', 'dark:bg-zinc-900');
   });
 
-  it('synchronizes hover without applying the selected green border', () => {
-    useResultSelection.getState().setResultZoneIds([c.zone_id]);
-    render(wrap(<ResultItem candidate={c} onClick={() => {}} />));
-    const item = screen.getByTestId('result-item-42');
-
-    fireEvent.pointerEnter(item);
-    expect(useResultSelection.getState().hoveredZoneId).toBe(c.zone_id);
-    expect(useResultSelection.getState().hoveredZoneSource).toBe('list');
-    expect(item).toHaveClass('surface-hovered', 'border-transparent');
-    expect(item).not.toHaveClass('border-emerald-500');
-
-    fireEvent.pointerLeave(item);
-    expect(useResultSelection.getState().hoveredZoneId).toBeNull();
-  });
-
-  it('zooms a list-hovered parking without panning when it is already visible', () => {
+  it('does not select or move the map on pointer hover or focus', () => {
     const setLocation = vi.fn();
     const map = {
-      zoom: 12,
+      zoom: 14,
       zoomRange: { min: 2, max: 21 },
       center: [30.5, 59.5],
       bounds: [
@@ -122,38 +107,14 @@ describe('ResultItem (RANK-04 / D-20)', () => {
     } as unknown as YMapInstance;
     useResultSelection.getState().setResultZoneIds([c.zone_id]);
     render(wrap(<ResultItem candidate={c} />, map));
+    const item = screen.getByTestId('result-item-42');
 
-    fireEvent.pointerEnter(screen.getByTestId('result-item-42'));
+    fireEvent.pointerEnter(item);
+    fireEvent.focus(item);
 
-    expect(setLocation).toHaveBeenCalledWith({
-      center: [30.5, 59.5],
-      zoom: 14,
-      duration: 300,
-    });
-  });
-
-  it('centers a list-hovered parking when it is outside the viewport', () => {
-    const setLocation = vi.fn();
-    const map = {
-      zoom: 14,
-      zoomRange: { min: 2, max: 21 },
-      center: [0.5, 0.5],
-      bounds: [
-        [0, 0],
-        [1, 1],
-      ],
-      setLocation,
-    } as unknown as YMapInstance;
-    useResultSelection.getState().setResultZoneIds([c.zone_id]);
-    render(wrap(<ResultItem candidate={c} />, map));
-
-    fireEvent.pointerEnter(screen.getByTestId('result-item-42'));
-
-    expect(setLocation).toHaveBeenCalledWith({
-      center: [expect.closeTo(30.305), expect.closeTo(59.955)],
-      zoom: 14,
-      duration: 300,
-    });
+    expect(setLocation).not.toHaveBeenCalled();
+    expect(useResultSelection.getState().lastViewedZoneId).toBeNull();
+    expect(item).not.toHaveClass('surface-selected', 'border-emerald-500');
   });
 
   it('keeps the last opened parking highlighted after returning to results', () => {
@@ -197,11 +158,9 @@ describe('ResultItem (RANK-04 / D-20)', () => {
     useResultSelection.getState().setResultZoneIds([c.zone_id]);
     render(wrap(<ResultItem candidate={c} onClick={fn} />));
     const item = screen.getByTestId('result-item-42');
-    fireEvent.pointerEnter(item);
     fireEvent.click(item);
     expect(fn).toHaveBeenCalledWith(c);
     expect(useResultSelection.getState().lastViewedZoneId).toBe(c.zone_id);
-    expect(useResultSelection.getState().hoveredZoneId).toBeNull();
   });
 
   it('releases focus before the results drawer becomes hidden', () => {

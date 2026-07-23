@@ -5,7 +5,6 @@ import {
   GEOLOCATION_TIMEOUT_MS,
   RESULTS_PANEL_WIDTH_PX,
   RESULTS_LIST_ITEM_HEIGHT_PX,
-  RESULTS_MAP_HOVER_SCROLL_DELAY_MS,
   LIVE_DATA_REFETCH_MS,
   SUGGEST_MIN_QUERY_LENGTH,
   Z_INDEX,
@@ -27,9 +26,6 @@ describe('Phase 4 constants', () => {
   });
   it('RESULTS_LIST_ITEM_HEIGHT_PX fits the parking metrics', () => {
     expect(RESULTS_LIST_ITEM_HEIGHT_PX).toBe(160);
-  });
-  it('delays map-hover list synchronization to ignore accidental hover', () => {
-    expect(RESULTS_MAP_HOVER_SCROLL_DELAY_MS).toBe(500);
   });
   it('refreshes live occupancy within 15–30 seconds', () => {
     expect(LIVE_DATA_REFETCH_MS).toBeGreaterThanOrEqual(15_000);

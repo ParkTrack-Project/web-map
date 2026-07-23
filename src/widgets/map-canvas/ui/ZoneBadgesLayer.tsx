@@ -6,12 +6,7 @@ import {
   YMapLayer as YMapLayerRaw,
 } from '@/shared/lib/ymaps';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
-import {
-  canHoverResultZone,
-  shouldDimZone,
-  useResultSelection,
-  useSelectedZone,
-} from '@/features/select-zone';
+import { shouldDimZone, useResultSelection, useSelectedZone } from '@/features/select-zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { ZONE_BADGE_MIN_ZOOM, MAP_Z } from '@/shared/config';
 import { computeZoneStyle } from '../model/zone-style';
@@ -53,10 +48,7 @@ export function ZoneBadgesLayer({ zoom }: Props) {
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
   const resultZoneIds = useResultSelection((state) => state.resultZoneIds);
-  const hoveredZoneId = useResultSelection((state) => state.hoveredZoneId);
   const markZoneViewed = useResultSelection((state) => state.markZoneViewed);
-  const setHoveredZone = useResultSelection((state) => state.setHoveredZone);
-  const clearHoveredZone = useResultSelection((state) => state.clearHoveredZone);
   const zoomToZone = useZoomToZone();
   const { singletonIds } = useZoneClusters(zoom);
   const theme = usePreferences((state) => state.theme);
@@ -99,30 +91,17 @@ export function ZoneBadgesLayer({ zoom }: Props) {
                 data-testid="zone-badge"
                 aria-label={t('map.parkingLabel', { id: z.zone_id, free: z.free_count })}
                 onClick={() => {
-                  clearHoveredZone(z.zone_id);
                   markZoneViewed(z.zone_id);
                   setSelectedZone(z.zone_id);
                   zoomToZone(z.geometry, { zoneId: z.zone_id });
                 }}
-                onPointerEnter={() => {
-                  if (!canHoverResultZone(z.zone_id, resultZoneIds, singletonIds)) return;
-                  setHoveredZone(z.zone_id, 'map');
-                }}
-                onPointerLeave={() => clearHoveredZone(z.zone_id, 'map')}
-                onFocus={() => {
-                  if (!canHoverResultZone(z.zone_id, resultZoneIds, singletonIds)) return;
-                  setHoveredZone(z.zone_id, 'map');
-                }}
-                onBlur={() => clearHoveredZone(z.zone_id, 'map')}
                 className={`absolute cursor-pointer rounded-full border-0 px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap shadow ${theme === 'dark' ? 'text-zinc-950' : 'text-white'}`}
                 style={{
                   left: 0,
                   top: 0,
                   transform: 'translate(-50%, -50%)',
                   backgroundColor: stroke,
-                  opacity: shouldDimZone(z.zone_id, selectedZoneId, resultZoneIds, hoveredZoneId)
-                    ? 0.38
-                    : 1,
+                  opacity: shouldDimZone(z.zone_id, selectedZoneId, resultZoneIds) ? 0.38 : 1,
                 }}
               >
                 {z.free_count}

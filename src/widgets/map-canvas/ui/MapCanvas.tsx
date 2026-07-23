@@ -243,8 +243,8 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
             фильтруются по кластерам — парковки видны всегда, кружок ложится
             поверх схлопнутой группы. */}
         <MapGestureLayer />
-        <ZoneLayer zoom={clusterZoom} />
-        <ParallelZoneLayer zoom={clusterZoom} />
+        <ZoneLayer />
+        <ParallelZoneLayer />
         <ZoneBadgesLayer zoom={clusterZoom} />
         <ZoneClusterLayer zoom={clusterZoom} />
 

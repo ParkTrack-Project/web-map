@@ -84,10 +84,6 @@ html[data-theme='dark'] .surface-selected {
   background-color: #052e16 !important;
 }
 
-html[data-theme='dark'] .surface-hovered {
-  background-color: #064e3b !important;
-}
-
 html[data-theme='dark'] :is(button, [role='button'], a).surface-opaque:hover {
   background-color: #27272a !important;
 }

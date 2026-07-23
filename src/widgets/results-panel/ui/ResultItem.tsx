@@ -16,15 +16,11 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
   const { t, language } = useI18n();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
   const lastViewedZoneId = useResultSelection((state) => state.lastViewedZoneId);
-  const hoveredZoneId = useResultSelection((state) => state.hoveredZoneId);
   const markZoneViewed = useResultSelection((state) => state.markZoneViewed);
-  const setHoveredZone = useResultSelection((state) => state.setHoveredZone);
-  const clearHoveredZone = useResultSelection((state) => state.clearHoveredZone);
   const zoomToZone = useZoomToZone();
   const isSelected =
     selectedZoneId === c.zone_id || (selectedZoneId === null && lastViewedZoneId === c.zone_id);
   const isBest = c.rank === 1;
-  const isHovered = hoveredZoneId === c.zone_id && !isSelected;
   // 2026-05-26: единый форматтер длительности — «4 мин», «1 ч 30 мин»,
   // «2 д 18 ч». Раньше всегда печаталось в минутах → дальние маршруты
   // показывали «4000 мин» вместо «2 д 18 ч».
@@ -50,20 +46,11 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
 
   const handleClick = () => {
     onClick?.(c);
-    clearHoveredZone(c.zone_id, 'list');
     markZoneViewed(c.zone_id);
     setSelectedZone(c.zone_id);
     // zoneId → useZoomToZone дотягивает зум до уровня, где парковка выходит из
     // кружка-группы и сразу видна (тот же расчёт, что и при клике по зоне на карте).
     zoomToZone(c.geometry, { zoneId: c.zone_id });
-  };
-  const handleHover = () => {
-    setHoveredZone(c.zone_id, 'list');
-    zoomToZone(c.geometry, {
-      zoneId: c.zone_id,
-      centerMode: 'if-outside',
-      intent: 'hover',
-    });
   };
 
   return (
@@ -78,17 +65,11 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
         event.currentTarget.blur();
         handleClick();
       }}
-      onPointerEnter={handleHover}
-      onPointerLeave={() => clearHoveredZone(c.zone_id, 'list')}
-      onFocus={handleHover}
-      onBlur={() => clearHoveredZone(c.zone_id, 'list')}
       className={
         'flex w-full flex-col gap-1 rounded-md border-2 px-3 py-2 text-left text-sm transition-colors dark:text-zinc-100 ' +
         (isSelected
           ? 'surface-selected border-emerald-500 bg-emerald-50'
-          : isHovered
-            ? 'surface-hovered border-transparent bg-emerald-100'
-            : 'surface-opaque border-zinc-100 bg-white dark:bg-zinc-900')
+          : 'surface-opaque border-zinc-100 bg-white dark:bg-zinc-900')
       }
       style={{ height: '100%' }}
     >

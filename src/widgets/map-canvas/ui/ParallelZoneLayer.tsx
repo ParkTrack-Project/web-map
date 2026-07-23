@@ -8,21 +8,11 @@ import {
 } from '@/shared/lib/ymaps';
 import { MAP_Z } from '@/shared/config';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
-import {
-  canHoverResultZone,
-  shouldDimZone,
-  useResultSelection,
-  useSelectedZone,
-} from '@/features/select-zone';
+import { shouldDimZone, useResultSelection, useSelectedZone } from '@/features/select-zone';
 import { polygonToParallelLine } from '@/shared/lib/geo';
 import { computeZoneStyle } from '../model/zone-style';
 import { useZoomToZone } from '../model/useZoomToZone';
-import { useZoneClusters } from '../model/useZoneClusters';
 import { usePreferences } from '@/features/preferences';
-
-interface Props {
-  zoom: number;
-}
 
 type LineStringGeometry = {
   type: 'LineString';
@@ -40,8 +30,6 @@ type YMapFeatureProps = {
   };
   source: string;
   onClick?: () => void;
-  onMouseEnter?: () => void;
-  onMouseLeave?: () => void;
 };
 
 type YMapFeatureDataSourceProps = {
@@ -61,16 +49,12 @@ const YMapFeatureDataSource =
 
 const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 
-function ParallelZoneLayerInner({ zoom }: Props) {
+function ParallelZoneLayerInner() {
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
   const resultZoneIds = useResultSelection((state) => state.resultZoneIds);
-  const hoveredZoneId = useResultSelection((state) => state.hoveredZoneId);
   const markZoneViewed = useResultSelection((state) => state.markZoneViewed);
-  const setHoveredZone = useResultSelection((state) => state.setHoveredZone);
-  const clearHoveredZone = useResultSelection((state) => state.clearHoveredZone);
   const zoomToZone = useZoomToZone();
-  const { singletonIds } = useZoneClusters(zoom);
   const theme = usePreferences((state) => state.theme);
 
   if (!data) return null;
@@ -97,7 +81,7 @@ function ParallelZoneLayerInner({ zoom }: Props) {
           is_active: z.is_active,
           mode: 'now',
           selected: z.zone_id === selectedZoneId,
-          dimmed: shouldDimZone(z.zone_id, selectedZoneId, resultZoneIds, hoveredZoneId),
+          dimmed: shouldDimZone(z.zone_id, selectedZoneId, resultZoneIds),
           theme,
         });
 
@@ -116,17 +100,11 @@ function ParallelZoneLayerInner({ zoom }: Props) {
             style={{ stroke: [{ color: palette.stroke, width: strokeWidth }] }}
             source="ptk-zones-parallel"
             onClick={() => {
-              clearHoveredZone(z.zone_id);
               markZoneViewed(z.zone_id);
               setSelectedZone(z.zone_id);
               // клик по карте → приближаем к зоне, дотягивая до выхода из кластера
               zoomToZone(z.geometry, { zoneId: z.zone_id });
             }}
-            onMouseEnter={() => {
-              if (!canHoverResultZone(z.zone_id, resultZoneIds, singletonIds)) return;
-              setHoveredZone(z.zone_id, 'map');
-            }}
-            onMouseLeave={() => clearHoveredZone(z.zone_id, 'map')}
           />
         );
       })}
