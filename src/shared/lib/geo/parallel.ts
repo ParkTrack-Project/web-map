@@ -1,8 +1,3 @@
-// D-04: parallel zone — полоса между центрами двух коротких сторон 4-угольника.
-// Алгоритм: посчитать длины 4 рёбер замкнутого ring'а, отсортировать, взять 2
-// кратчайших ребра и построить LineString между midpoint'ами этих рёбер.
-// Используем squared distance — для масштаба 30м сравнение валидно без honest
-// haversine (порядок останется тем же).
 export interface PolygonRing {
   type: 'Polygon';
   coordinates: number[][][];

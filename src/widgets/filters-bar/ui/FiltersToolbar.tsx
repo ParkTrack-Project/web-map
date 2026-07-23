@@ -1,8 +1,3 @@
-// FILTER-01..09 / D-09: Desktop top-toolbar.
-// FILTER-01/04/05/07 — простые chip-toggle через FilterChip.
-// FILTER-02 (minConf), FILTER-03 (maxPay) — chip + popover-slider через FilterPopoverChip.
-// FILTER-06 (locationType) — chip + popover-checkboxes через FilterPopoverChip.
-// FILTER-09 — badge-count «Активно: N» (текст в правой части toolbar).
 import { useFiltersHydration, useFilters } from '@/features/filter-zones';
 import { ALL_LOCATION_TYPES, type LocationType } from '@/entities/filters';
 import { FilterChip } from './FilterChip';
@@ -27,7 +22,6 @@ export function FiltersToolbar() {
       role="toolbar"
       aria-label={t('filters.title')}
     >
-      {/* FILTER-01: chip-toggle */}
       <FilterChip
         pressed={f.filters.hideNoFree}
         onToggle={() => f.setHideNoFree(!f.filters.hideNoFree)}
@@ -56,7 +50,6 @@ export function FiltersToolbar() {
         </label>
       </FilterPopoverChip>
 
-      {/* FILTER-02: chip + popover-slider (D-09) */}
       <FilterPopoverChip
         label={t('filters.confidence', { percent: Math.round(f.filters.minConf * 100) })}
         active={f.filters.minConf > 0}
@@ -77,7 +70,6 @@ export function FiltersToolbar() {
         </label>
       </FilterPopoverChip>
 
-      {/* FILTER-03: chip + popover-slider (D-09) */}
       <FilterPopoverChip
         label={t('filters.price', {
           price: f.filters.maxPay === null ? '∞' : `${f.filters.maxPay} ₽`,

@@ -1,7 +1,3 @@
-// Phase 4 / WTP-03 / D-10 (TDD).
-// - содержит EXACT explainer text per D-10
-// - единственная primary-кнопка «Разрешить геолокацию»
-//   (Fix 2026-05-26: secondary «Указать вручную» удалён по запросу продукта).
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

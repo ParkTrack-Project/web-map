@@ -1,20 +1,8 @@
-// Phase 4 / D-32..D-36 / ROUTE-06/07:
-// Pure URL builders для deeplink menu (Yandex Navigator app, Yandex Maps web, Google Maps).
-// - НЕ выполняют side-effects (window.location.href, window.open) — это caller responsibility.
-// - НЕ валидируют coords — caller обязан вызвать isValidCoords ПЕРЕД использованием (D-34).
-// - Tests pure: input → output, без DOM/network mocks.
-//
-// Pattern для caller (widgets/deeplink-menu):
-//   if (!isValidCoords(from) || !isValidCoords(to)) { toast.error(...); return; }
-//   window.location.href = buildYandexNavigatorDeeplink({ from, to });
-//   setTimeout(() => { ... if not visibility-hidden, window.open(buildYandexMapsWebUrl(...))}, DEEPLINK_FALLBACK_MS);
-
 export interface DeeplinkArgs {
-  from: [number, number]; // [lat, lon] convention (URL-05/06)
+  from: [number, number];
   to: [number, number];
 }
 
-/** D-33 / ROUTE-07: yandexnavi:// scheme. Параметры lat_to/lon_to/lat_from/lon_from per spec из webmap.mdx §22. */
 export function buildYandexNavigatorDeeplink({ from, to }: DeeplinkArgs): string {
   const [latFrom, lonFrom] = from;
   const [latTo, lonTo] = to;
@@ -28,7 +16,6 @@ export function buildYandexMapsWebUrl({ from, to }: DeeplinkArgs): string {
   return `https://yandex.ru/maps/?rtext=${latFrom},${lonFrom}~${latTo},${lonTo}&rtt=auto`;
 }
 
-/** D-32 menu option 3: Google Maps directions URL — стабильный API. */
 export function buildGoogleMapsUrl({ from, to }: DeeplinkArgs): string {
   const [latFrom, lonFrom] = from;
   const [latTo, lonTo] = to;

@@ -1,9 +1,3 @@
-// D-12: маппинг UI-фильтров → API query params.
-// Параметры с дефолтным значением НЕ отправляются (короткий URL → меньше нагрузки на API).
-// Если API вернёт 400/422 на любой из этих params — fallback на client-side
-// фильтрацию (см. docs/filters-contract.md и Phase 5 интеграцию).
-//
-// FILTER-06 инверсия: locationType хранит ВИДИМЫЕ типы; сервер ожидает СКРЫТЫЕ.
 import { ALL_LOCATION_TYPES, type ZoneFilters } from '@/entities/filters';
 
 export function buildServerQuery(f: ZoneFilters): Record<string, string> {

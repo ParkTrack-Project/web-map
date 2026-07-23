@@ -1,7 +1,3 @@
-// Unit-тест EnvSchema под FOUND-10 acceptance.
-// Дублирует src/shared/config/env.test.ts (Plan 01) — оставляем оба, потому что
-// файл tests/unit/env.spec.ts фигурирует в Plan 02 acceptance buffer'е, а
-// src/shared/config/env.test.ts даёт co-located test для FSD slice-владельца.
 import { describe, it, expect } from 'vitest';
 import { EnvSchema } from '@/shared/config/env';
 

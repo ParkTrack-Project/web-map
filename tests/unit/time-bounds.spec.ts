@@ -1,6 +1,3 @@
-// D-09 / TIME-08: bounds-helpers для past/future диапазонов.
-// I-4: явный import beforeEach (без globals).
-// I-5: optional now param — atomic time consistency с applyPreset.
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   isWithinBounds,
@@ -46,7 +43,6 @@ describe('time bounds (D-09, TIME-08)', () => {
     expect(msg).toMatch(/^Прогноз доступен только до \d{1,2} \S+ \d{2}:\d{2}$/);
   });
 
-  // I-5: now-param consistency
   it('isWithinBounds + явный now → одинаковый ответ как Date.now()', () => {
     expect(isWithinBounds(NOW - 1000, 'past', NOW)).toBe(true);
     expect(isWithinBounds(NOW + 25 * 3_600_000, 'future', NOW)).toBe(false);

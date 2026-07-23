@@ -6,8 +6,6 @@ export interface PolygonGeometry {
   coordinates: number[][][];
 }
 
-// Соответствует docs-website/docs/api/parking_zones.mdx §5.5 + MSW generator
-// (web-map/src/mocks/generators/zones.ts) — единый источник истины формы.
 export type LocationType = 'street' | 'yard' | 'open_lot' | 'underground' | 'multilevel';
 export type ConfidenceLevel = 'very_low' | 'low' | 'medium' | 'high';
 
@@ -28,7 +26,6 @@ export interface ZoneMapItem {
   is_active: boolean;
 }
 
-// Полная Zone (для GET /zones/:id) — Plan 02 добавит fetchZoneById/useZoneByIdQuery.
 export interface Zone extends ZoneMapItem {
   camera_id: number;
   image_polygon: number[][];
@@ -38,8 +35,6 @@ export interface Zone extends ZoneMapItem {
   updated_at: string;
 }
 
-// Phase 3 forward-compat: режим времени включён в queryKey и cache-key стиля
-// заранее, чтобы Phase 3 (селектор времени) был аддитивным изменением.
 export type TimeMode =
   | { kind: 'now' }
   | { kind: 'past'; at: string }

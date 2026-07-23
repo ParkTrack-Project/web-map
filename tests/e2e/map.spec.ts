@@ -1,12 +1,3 @@
-// Playwright smoke для Plan 03 + Plan 02-01: реальный браузер, реальный Vite
-// dev-server, MSW в режиме mock через VITE_API_MODE='mock' (см. main.tsx).
-// Yandex CDN тянется живьём — на CI понадобится сетевой доступ, иначе тест
-// упадёт и должен быть skipped manual'но.
-//
-// NOTE (Phase 2 Plan 01): Phase 1 ZoneLayer-debug-overlay (data-testid="zone-count")
-// удалён в Plan 02-01 Task 3. Сигнал «зоны загрузились» теперь — наличие хотя бы
-// одного [data-testid="zone-badge"] на карте (бейджи free_count появляются на
-// zoom >= ZONE_BADGE_MIN_ZOOM=14, а DEFAULT_ZOOM=15 → они видны сразу).
 import { test, expect } from '@playwright/test';
 
 test('карта монтируется и показывает зоны (badges visible at zoom >= 14)', async ({ page }) => {

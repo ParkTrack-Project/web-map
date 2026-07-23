@@ -1,10 +1,3 @@
-// TIME-09 / UX-03 / D-16 / I-6: ZoneStateOverlay mode-aware empty/error states.
-// Mock useFilteredZones для детерминированной симуляции data-states.
-//
-// Quick task 260426-hhb: TimeMode стал derived из at + Date.now() через parser.
-// Fake timers нужны для детерминированной derivation legacy-URL фикстур
-// (?t=past:2026-04-22T... должен derive past, ?t=future:2026-04-25T17:00...
-// должен derive future относительно freezed system time).
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -31,8 +24,6 @@ function wrap(initialUrl: string) {
 }
 
 describe('<ZoneStateOverlay /> mode-aware (TIME-09, UX-03, D-16)', () => {
-  // Freeze system time посередине между past-фикстурой (2026-04-22T09:00:00)
-  // и future-фикстурой (2026-04-25T17:00:00) → стабильная derivation.
   const NOW = new Date('2026-04-24T12:00:00.000Z').getTime();
   beforeEach(() =>
     vi.useFakeTimers({ shouldAdvanceTime: true, toFake: ['Date'] }).setSystemTime(NOW),
@@ -114,7 +105,6 @@ describe('<ZoneStateOverlay /> mode-aware (TIME-09, UX-03, D-16)', () => {
     expect(screen.queryByRole('button', { name: 'Вернуться к Сейчас' })).toBeNull();
   });
 
-  // I-6: typed error → ZoneStateOverlay использует error.message
   it('I-6: error instanceof TimeModeUnavailableError → отображает error.message (не дефолт)', () => {
     const customMsg = 'Прогноз на это время недоступен';
     vi.mocked(useFilteredZones).mockReturnValue({

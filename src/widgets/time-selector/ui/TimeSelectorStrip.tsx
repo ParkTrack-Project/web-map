@@ -1,11 +1,3 @@
-// TIME-03 / D-01 / D-03: Desktop top-strip ВЫШЕ FiltersToolbar.
-// Glassmorphism: bg-white/85 backdrop-blur с тонким border-bottom — floating
-// effect над картой, без агрессивного emerald-50 фона из v1.
-//
-// Pill+Reset теперь живут внутри Content (не дублируются на strip), что
-// убирает визуальный шум справа. Strip — просто тонкий контейнер для Content.
-//
-// Wiring в DesktopLayout — Plan 04 Task 1.
 import { TimeSelectorContent } from './TimeSelectorContent';
 import { useI18n } from '@/shared/lib/i18n';
 

@@ -1,4 +1,3 @@
-// Quick-fix 2026-05-16: маркер выбранного адреса (?dest).
 import { memo, type ComponentType, type ReactNode } from 'react';
 import { MapPin } from 'lucide-react';
 import { YMapMarker as YMapMarkerRaw } from '@/shared/lib/ymaps';

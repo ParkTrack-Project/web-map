@@ -1,6 +1,3 @@
-// MAP-07: изолирует падения ymaps3 (CDN-блок, истёкший ключ, top-level-await throw).
-// Покажет текстовый fallback с кнопкой «Перезагрузить карту» вместо пустого экрана.
-// В Phase 2 здесь же будет рендериться list-only fallback.
 import { ErrorBoundary } from 'react-error-boundary';
 import type { PropsWithChildren } from 'react';
 import { useI18n } from '@/shared/lib/i18n';

@@ -1,7 +1,3 @@
-// D-09: chip + popover-slider (FILTER-02/03) и chip + popover-checkboxes (FILTER-06).
-// Используем Radix Popover (headless, focus trap, Esc, click-outside, a11y «из
-// коробки»). Trigger — обычная chip-кнопка (визуально аналогична FilterChip);
-// Content — slider или checkbox-group.
 import * as Popover from '@radix-ui/react-popover';
 import { clsx } from 'clsx';
 import type { ReactNode } from 'react';

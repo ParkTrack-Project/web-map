@@ -1,11 +1,3 @@
-// D-06: 5 past + 5 future preset chips.
-// B-1: Preset = discriminated union 'static' | 'daily' (без Date.now() at module load).
-// I-4: явный beforeEach import.
-// B-2 (iter 2): out-of-range покрытие unit-уровня — единственное (UI-тест дропнут как избыточный).
-//
-// Quick task 260426-hhb: PRESETS объединены (5 past + 5 future = 10 элементов).
-// applyPreset больше НЕ принимает kind — kind derived из delta-знака внутри.
-// Возвращаемый shape упрощён: { at: string, outOfRangeMsg, clamped } (без mode).
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { PRESETS, applyPreset } from '@/widgets/time-selector/lib/presets';
 
@@ -96,9 +88,6 @@ describe('time presets (D-06, B-1: discriminated union, quick 260426-hhb merged 
     expect(r.clamped).toBe(false);
   });
 
-  // B-1: out-of-range clamp test
-  // ВАЖНО (B-2 iter 2): этот юнит-тест — ЕДИНСТВЕННОЕ покрытие out-of-range
-  // поведения applyPreset.
   it('out-of-range past preset (вне -7d) → clamp + outOfRangeMsg', () => {
     const out = applyPreset(
       { type: 'static', label: '10 дней назад', deltaMs: -10 * 86_400_000 },

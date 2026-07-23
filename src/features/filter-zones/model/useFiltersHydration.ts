@@ -1,8 +1,3 @@
-// D-11: на первом mount читаем sessionStorage и, если URL пуст для фильтра,
-// записываем сохранённое значение в URL через nuqs `history: 'replace'`.
-//
-// URL имеет приоритет: если в URL есть хоть один f*-параметр — пропускаем hydration
-// (deeplink приоритетнее, чем последняя сессия пользователя).
 import { useEffect, useRef } from 'react';
 import { readFiltersFromStorage } from '@/entities/filters';
 import { useFilters } from './useFilters';

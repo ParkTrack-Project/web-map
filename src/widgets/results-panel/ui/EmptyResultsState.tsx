@@ -1,5 +1,3 @@
-// Phase 4 / D-44 / UX-02:
-// Empty state когда total_candidates === 0.
 interface EmptyResultsStateProps {
   activeFiltersCount: number;
   onResetFilters: () => void;

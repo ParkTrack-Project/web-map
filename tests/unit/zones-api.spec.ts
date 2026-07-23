@@ -1,8 +1,3 @@
-// TIME-02 / Q1 fix: fetchZones диспатчит правильный endpoint+params на основе TimeMode.
-// Mock apiClient.get → проверяем точно URL и query params, что отправляются в axios.
-//
-// Plan 05 / TIME-07: fetchZoneById тоже принимает mode и dispatches через timeModeAdapter
-// для card-уровня (now → /zones/:id; past → /occupancy?view=card&zone_id=:id; future → /forecasts?view=card&zone_id=:id).
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/shared/api', () => ({

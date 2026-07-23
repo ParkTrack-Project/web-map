@@ -1,6 +1,3 @@
-// Phase 5 D-34 (NFR-07): offline detection via TanStack onlineManager.
-// Pitfall 8: navigator.onLine залипает на false в Chrome — НЕ читаем напрямую.
-// onlineManager handles edge cases (Chrome bug) and listens to online/offline events.
 import { useEffect, useState } from 'react';
 import { onlineManager } from '@tanstack/react-query';
 import { toast } from '@/shared/ui';

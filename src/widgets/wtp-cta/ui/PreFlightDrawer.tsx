@@ -1,10 +1,3 @@
-// Phase 4 / WTP-03 / D-10:
-// Mobile pre-flight через vaul Drawer — тот же текст, что в Dialog.
-// Single-snap по умолчанию (Phase 3 pattern; Pitfall 11 — nested vaul / focus-trap conflict).
-// Pure presentational — request flow lifted to parent (WTPMobileFAB) per Permissions API skip-logic.
-//
-// Fix 2026-05-26: убрана кнопка «Указать вручную» (по запросу продукта,
-// синхронно с PreFlightDialog).
 import { Drawer } from 'vaul';
 import { Locate } from 'lucide-react';
 import { useI18n } from '@/shared/lib/i18n';

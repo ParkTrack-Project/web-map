@@ -1,5 +1,3 @@
-// CARD-02: «обновлено N минут назад» через date-fns с локалью ru.
-// date-fns ^4.1.0 → каноничный путь импорта ru-локали — `date-fns/locale`.
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, ru } from 'date-fns/locale';
 

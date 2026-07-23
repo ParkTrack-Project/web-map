@@ -1,11 +1,3 @@
-// TIME-03 / Quick task 260426-hhb (SUPERSEDES D-03):
-// Single picker — без segmented control.
-// - Один <input type="datetime-local"> всегда видим
-// - Объединённый chip-список (PRESETS) всегда видим
-// - Reset «Сейчас» CTA только когда mode != now
-//
-// Out-of-range UI integration purely state-driven; источник state — applyPreset,
-// покрытый отдельно в time-presets.spec.ts. Доп. UI-тест избыточен.
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

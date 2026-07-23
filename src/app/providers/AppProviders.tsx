@@ -1,8 +1,3 @@
-// Композиция всех корневых провайдеров. Порядок важен:
-//   RootErrorBoundary  — внешний, ловит всё ниже
-//   NuqsAdapter        — для useQueryState (URL-state в map viewport)
-//   QueryProvider      — для useQuery
-//   <Toaster/>         — Sonner mounted с zIndex 100 (выше vaul Drawer overlay z-50).
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { Toaster } from 'sonner';
 import type { PropsWithChildren } from 'react';

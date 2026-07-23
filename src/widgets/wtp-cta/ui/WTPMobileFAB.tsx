@@ -1,12 +1,3 @@
-// Phase 4 / WTP-01 / D-09 / D-50 / CO-04 (W-3 fix):
-// Mobile FAB bottom-right 56×56 brand-green с иконкой Locate.
-// Z_INDEX.wtpFabMobile = 20 — НИЖЕ filtersFab/timeSelectorChip (z-30) во избежание перекрытия (D-50).
-// CO-04: при `from || dest` (results-active mode) FAB скрывается.
-// Permissions API skip-logic: при state='granted' click сразу запрашивает координаты,
-// pre-flight Drawer показывается только при первом запросе.
-//
-// Fix 2026-05-26: пропс `onManualEntry` удалён — кнопка «Указать вручную» из
-// PreFlightDrawer убрана, callback некому вызывать.
 import { useState, useCallback } from 'react';
 import { Locate } from 'lucide-react';
 import { Z_INDEX } from '@/shared/config';
@@ -45,7 +36,6 @@ export function WTPMobileFAB() {
     setOpen(true);
   }, [requestGeolocation]);
 
-  // CO-04 / D-50: results-active mode → FAB скрывается; X в sheet header'е закрывает.
   if (from !== null || dest !== null) return null;
 
   return (

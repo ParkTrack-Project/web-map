@@ -1,17 +1,3 @@
-// Phase 4 / RANK-03 / D-19 / CO-02 (B-3 fix):
-// Mobile vaul Drawer mutually exclusive with MobileZoneCard.
-// Open condition (CO-03 / W-1): ?from set (origin обязателен; ?dest без ?from → prompt в SearchBar).
-//
-// Два snap-положения: 0.92 для списка и 0.38 для просмотра результатов на
-// интерактивной карте. Нижнее положение не закрывает поиск и не очищает URL.
-//
-// Mutual-exclusion с MobileZoneCard реализуется через `open` precondition
-// (`open = !!from && selectedZoneId === null`), а НЕ через snap-cooperation:
-// - поиск завершается → MobileResultsSheet open=true, compact snap
-// - User clicks item → setSelectedZone → selectedZoneId !== null → open=false (close)
-// - MobileZoneCard mounts (Phase 2 single-snap логика)
-// - User закрывает ZoneCard → selectedZoneId=null → MobileResultsSheet вновь open=true
-// Sequential focus, без двух одновременно открытых Drawer'ов.
 import { useRef } from 'react';
 import { X } from 'lucide-react';
 import { useFromCoords } from '@/features/request-geolocation';
@@ -43,9 +29,6 @@ export function MobileResultsSheet({
   onSnapPointChange,
 }: MobileResultsSheetProps) {
   const { t } = useI18n();
-  // Phase 5 D-03: keyboard-aware. ResultsList не имеет input'ов, но ResultItem'ы
-  // с длинным title могут переехать под keyboard если pop'ится из soft-keyboard
-  // event (например, user открыл sheet поверх focused MobileSearchBar).
   useVisualViewportHeight();
   const { from, clearFromCoords } = useFromCoords();
   const { dest, clearDestination } = useDestination();
@@ -54,11 +37,6 @@ export function MobileResultsSheet({
   const { data, isFetching, isError, refetch } = useRoutingResults();
   const filtered = useFilteredCandidates(data?.candidates);
 
-  // КРИТИЧНО: vaul Drawer.Root рендерит Portal в body и применяет body lock
-  // (`pointer-events: none` + `aria-hidden=true`) даже когда `lg:hidden` скрывает
-  // Drawer.Content. isMobile-гейт защищает desktop.
-  // CO-02 mutual-exclusion: closed когда selectedZoneId !== null (ZoneCard takes focus).
-  // openProp от Layout: новый поиск либо пользователь открывают sheet.
   const isMobile = useIsMobile();
   const open = isMobile && openProp && !!from && selectedZoneId === null;
   const numericSnap = typeof snapPoint === 'number' ? snapPoint : RESULTS_SNAP_HIGH;
@@ -73,7 +51,6 @@ export function MobileResultsSheet({
     onOpenChange(false);
   };
 
-  // CO-03: panel вообще не монтируется без ?from (даже если ?dest есть).
   if (!from) return null;
   if (!open) return null;
 

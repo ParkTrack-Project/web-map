@@ -1,17 +1,3 @@
-// Phase 5 D-04 (RESP-06): runtime tap-target enforcement.
-//
-// Research finding: eslint-plugin-tailwindcss НЕ поддерживает Tailwind 4 (issue #325 open),
-// поэтому статический ESLint-rule на min-h-11/min-w-11 невозможен. Этот Playwright тест —
-// единственный enforcement-mechanism для WCAG 2.5.5 (Target Size 44x44).
-//
-// Тест эмулирует iPhone 13 (390x844 viewport), переходит на /, ждёт пока mobile UI
-// смонтируется (FiltersFAB), затем проверяет computed bounding box каждой interactive
-// element'и (button / a / [role=button]). Элементы внутри <canvas>, <svg>, .ymaps3-controls
-// пропускаются (Yandex рисует их в canvas).
-//
-// ymaps3 CDN может fail в headless Chrome (Phase 3 known blocker per STATE.md). В этом
-// случае top-level await @/shared/lib/ymaps бросает TypeError, и весь page crash'ится
-// до того, как FiltersFAB смонтируется. Когда селектор не находит FAB → skip с reason.
 import { test, expect, devices } from '@playwright/test';
 
 test.use({ ...devices['iPhone 13'] });

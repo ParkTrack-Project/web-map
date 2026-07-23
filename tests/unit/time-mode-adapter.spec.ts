@@ -1,5 +1,3 @@
-// TIME-02 / D-13: timeModeAdapter — pure function dispatch (TimeMode → endpoint+params).
-// Эта функция выражает hard-separation rule (ТЗ §15) одной строкой кода.
 import { describe, it, expect } from 'vitest';
 import { timeModeAdapter } from '@/entities/zone';
 

@@ -1,9 +1,3 @@
-// Phase 4 / D-16 / D-27 / D-28: TanStack Query hooks для routing.
-// - useRoutingSearch: queryKey ['routing-search', body] — args сериализуется через JSON для cache key.
-//   keepPreviousData → нет flicker при изменении filter (Pitfall 6 staleTime 30s acceptable).
-// - useRouteByIdQuery: queryKey ['route', routeId] — staleTime 5min (route immutable после create).
-// - useCreateRouteMutation: после success → qc.setQueryData(['route', id], route) →
-//   useRouteByIdQuery instant-hit при reload без re-fetch.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { LIVE_DATA_REFETCH_MS } from '@/shared/config';
 import { searchRouting, createRoute, getRouteById } from '../api/routing.api';
@@ -24,21 +18,6 @@ function sameSearchLocation(a: RoutingSearchBody | null, b: RoutingSearchBody | 
   );
 }
 
-/**
- * D-16: queryKey включает full body — atomic refetch при изменении filters/timeMode/from/dest.
- * enabled: body !== null && body.origin valid — D-15 mode dispatch.
- *
- * placeholderData (2026-05-30): держим прошлые результаты ТОЛЬКО когда не менялся
- * адрес (origin/destination) — смена фильтров/времени/радиуса не должна мигать
- * (Pitfall 6). При НОВОМ поиске у другого адреса возвращаем undefined → data
- * пустеет → consumers показывают "Поиск парковок…" и прячут старый список, пока
- * не придёт новый (небыстрый) ответ. Раньше тут был keepPreviousData без условия,
- * из-за чего старые ранжированные резы висели до конца нового поиска.
- *
- * `live` (2026-06-06): в режиме «Сейчас» панель результатов авто-обновляет
- * current_free_count кандидатов каждые 20 секунд (refetchInterval). В past/future
- * (история/прогноз) поллинг выключен. Передаётся из useRoutingResults по mode.
- */
 export function useRoutingSearch(body: RoutingSearchBody | null, live = false) {
   return useQuery({
     queryKey: ['routing-search', body] as const,
@@ -48,15 +27,11 @@ export function useRoutingSearch(body: RoutingSearchBody | null, live = false) {
       const prevBody = (previousQuery?.queryKey?.[1] as RoutingSearchBody | null) ?? null;
       return sameSearchLocation(prevBody, body) ? previousData : undefined;
     },
-    staleTime: 30_000, // Pitfall 6: short stale window
+    staleTime: 30_000,
     refetchInterval: live ? LIVE_DATA_REFETCH_MS : false,
   });
 }
 
-/**
- * D-28: route-by-id для reload-recovery. enabled только при не-null routeId.
- * staleTime 5min — route неизменен после create (если не PUT'нули status).
- */
 export function useRouteByIdQuery(routeId: number | null) {
   return useQuery({
     queryKey: ['route', routeId] as const,
@@ -66,10 +41,6 @@ export function useRouteByIdQuery(routeId: number | null) {
   });
 }
 
-/**
- * D-27 / ROUTE-01: создание маршрута. После success — hydrate ['route', id] cache,
- * чтобы reload через ?route=<id> не делал второй fetch.
- */
 export function useCreateRouteMutation() {
   const qc = useQueryClient();
   return useMutation({

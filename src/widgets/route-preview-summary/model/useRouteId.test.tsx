@@ -1,5 +1,3 @@
-// Phase 4 / D-28: useRouteId URL state hook tests.
-// RED → GREEN: writes/reads ?route=<int>; rejects invalid; clearRouteId removes param.
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';

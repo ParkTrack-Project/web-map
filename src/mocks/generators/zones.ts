@@ -1,16 +1,8 @@
-// Детерминированный генератор парковочных зон вокруг ИТМО (D-05..D-07).
-// Использует Mulberry32 PRNG, что бы при seed=42 + count=200 давать
-// тот же результат на каждом запуске → стабильные снапшоты тестов и UI-демо.
-//
-// Геометрия: GeoJSON Polygon (lon,lat order — Yandex Maps API v3, PITFALLS #2).
-// Прямоугольник 10–30 м на сторону, аппроксимация по широте 60° (1° lat ≈ 111 km,
-// 1° lon ≈ 55.6 km на 60° N).
 import { ITMO_CENTER } from '@/shared/config';
 
 const LAT_PER_M = 1 / 111_000;
 const LON_PER_M = 1 / (111_000 * Math.cos((59.9575 * Math.PI) / 180));
 
-// Облегчённая ZoneMapItem (docs api/parking_zones.mdx §5.5)
 export interface ZoneMapItem {
   zone_id: number;
   zone_type: 'parallel' | 'standard';
@@ -176,8 +168,6 @@ export function filterByBbox(zones: ZoneMapItem[], bbox: Bbox): ZoneMapItem[] {
   });
 }
 
-// Phase 2 Plan 03: эмулирует серверную фильтрацию (D-12 server-side path в mock).
-// Используется MSW handler'ом /zones для применения query params после filterByBbox.
 export interface MockFilterParams {
   min_free_count?: number;
   min_confidence?: number;

@@ -1,10 +1,3 @@
-// A11Y-03 / D-17: TimeModeLiveRegion specs.
-// Verify aria-live="polite", debounced 500мс, lazy initial.
-//
-// Pattern (Plan 03 B-1 iter-2): mock useTimeMode directly + stable Wrapper.
-// `NuqsTestingAdapter` нельзя использовать с rerender'ом потому что .searchParams
-// initial-only — а смена adapter'а через rerender создаёт НОВЫЙ Wrapper identity →
-// React unmount+remount → isFirstRef ресет → второй render считается «первым».
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import type { ReactNode } from 'react';

@@ -1,8 +1,3 @@
-// D-10 / FILTER-09 mobile: компактная круглая FAB-кнопка фильтра в top-bar.
-// Размещается справа от MobileSearchBar (top-2 right-2, 44×44) — раньше pill «Фильтры [N]»
-// перекрывался поиском (поиск right-20 = 80px не оставлял места для широкой pill).
-// Теперь icon-only круг + activeCount badge поверх.
-// Tap → открывает MobileFiltersDrawer (vaul). aria-label включает activeCount для скринридеров.
 import { Filter } from 'lucide-react';
 import { useFilters } from '@/features/filter-zones';
 import { useI18n } from '@/shared/lib/i18n';

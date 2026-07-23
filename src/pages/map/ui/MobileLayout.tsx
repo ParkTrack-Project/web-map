@@ -1,20 +1,3 @@
-// Mobile layout: full-screen map + FiltersFAB + MobileFiltersDrawer (vaul) +
-// Legend + MobileZoneCard (Plan 02 vaul + CARD-07 mobile pan).
-// CSS @media gate (`flex lg:hidden`); полный dvh / visualViewport polish — Phase 5.
-//
-// Plan 02 wiring сохранён: <MobileZoneCard/> рендерится внутри этого layout'а,
-// MapRefContext доступен через MapCanvas (Provider в widgets/map-canvas).
-//
-// Phase 3 Plan 04 / D-02 / I-1: TimeSelectorChip (top-16 right-4 z-30) +
-// MobileTimeSelectorSheet. State lifted (как для FiltersFAB + MobileFiltersDrawer).
-// FiltersFAB остаётся в top-4 right-4 z-30; chip — вертикально под ним.
-//
-// Phase 4 Plan 02 / D-05 + D-09 + CO-04:
-// - MobileSearchBar (top-2 left-2 right-20) — top-bar input
-// - DestPromptBanner — рендерится в top-bar когда ?dest && !?from (CO-03)
-// - MobileResultsButton — unified entry-point chip (bottom-center): «Припарковаться» →
-//   запрос геолокации → «N парковок рядом» → tap открывает sheet. Заменил отдельный WTPMobileFAB
-//   круглый FAB на компактный pill chip — single CTA для всего mobile-сценария.
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import type { YMap as YMapInstance } from '@yandex/ymaps3-types';
 import { MapErrorBoundary } from '@/app/errors';
@@ -33,7 +16,6 @@ import {
   MobileResultsViewportSync,
   RESULTS_SNAP_LOW,
 } from '@/widgets/results-panel';
-// Phase 4 Plan 04 / ROUTE-04: FitToRouteButton — bottom-right map area, gates сам себя по ?route.
 import { FitToRouteButton } from '@/widgets/route-preview-summary';
 import { AccountMenu } from '@/widgets/account-menu';
 

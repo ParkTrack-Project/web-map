@@ -1,6 +1,3 @@
-// Phase 4 / SEARCH-02 / D-06:
-// ARIA-listbox с keyboard navigation. Highlight'ит совпадение через hl ranges от Yandex.
-// Empty/error — D-06 / SEARCH-05 текст.
 import type { ReactNode } from 'react';
 import type { SuggestResult } from '@/shared/lib/yandex';
 import { useI18n } from '@/shared/lib/i18n';

@@ -1,6 +1,3 @@
-// Phase 4 / ROUTE-06 / D-32:
-// Desktop radix Popover, 3 опции вертикально; Яндекс Навигатор autoFocus.
-// Trigger button [В путь →] disabled когда coordsValid===false (D-34 guard).
 import * as Popover from '@radix-ui/react-popover';
 import { Navigation, ArrowRightCircle } from 'lucide-react';
 import { Z_INDEX } from '@/shared/config';

@@ -1,21 +1,3 @@
-// D-06: 5 preset chips для past + 5 для future.
-//
-// Quick task 260426-hhb (SUPERSEDES D-03):
-// Объединённый список PRESETS (10 элементов: 5 past + 5 future). Сегментированный
-// контрол past/now/future удалён из UI — chip-list теперь единый.
-// applyPreset больше НЕ принимает kind — kind derived из delta-знака внутри.
-// Возвращаемый shape: { at: string, outOfRangeMsg, clamped } (без mode).
-// Caller (TimeSelectorContent) превращает at в mode через parser.deriveMode.
-//
-// B-1 fix: Preset = discriminated union { type:'static' | 'daily' }.
-// Раньше было `deltaMs: -((Date.now() % 86_400_000) - 9*3600000) - 86_400_000`
-// на module load — это (a) UTC ms, не local; (b) freeze'ится при импорте.
-// 'daily' presets динамически вычисляют at внутри applyPreset через
-// setHours (LOCAL midnight + hour) — корректно для любой TZ.
-//
-// I-5: applyPreset принимает now (default Date.now()) и пробрасывает его
-// во все bounds-helpers — atomic time consistency.
-
 import { clampToBounds, formatBoundMessage, isWithinBounds } from './bounds';
 
 export type Preset =
@@ -53,14 +35,6 @@ export interface ApplyPresetResult {
   clamped: boolean;
 }
 
-/**
- * Применить preset → получить { at, outOfRangeMsg, clamped }.
- *
- * Quick task 260426-hhb: kind больше НЕ передаётся аргументом — derived
- * из знака delta (rawAt < now → 'past', иначе 'future'). Boundary case
- * (rawAt === now) маппится на 'past' для consistency: bounds.ts trait
- * isWithinBounds(now, 'past', now) === true (lo ≤ now ≤ now).
- */
 export function applyPreset(
   preset: Preset,
   now: number = Date.now(),

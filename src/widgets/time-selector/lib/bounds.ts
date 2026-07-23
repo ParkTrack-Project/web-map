@@ -1,13 +1,3 @@
-// D-09 / D-10 / TIME-08: clamp / bound-check для past/future ввода.
-// Используется в preset application (D-06) и inline-сообщении под picker'ом.
-//
-// I-5: optional `now` param чтобы applyPreset мог передать свой Date.now()
-// — одна точка времени на cycle (иначе isWithinBounds и applyPreset
-// считают разные now с расхождением в ms).
-//
-// Quick task 260426-hhb note: kind теперь derived caller'ом через
-// `at < now ? 'past' : 'future'` — сами bound-helpers сигнатуру не меняют,
-// продолжают принимать explicit kind для clarity.
 import { MAX_PAST_DAYS, MAX_FUTURE_HOURS } from '@/shared/config';
 
 export function isWithinBounds(

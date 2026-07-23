@@ -1,22 +1,3 @@
-// CARD-01..07 / D-05: Десктоп карточка — anchored right-side panel 400px,
-// overlay над картой (карта НЕ ужимается — D-05 «карточка лежит position:absolute»).
-// CARD-07 desktop: НЕ авто-центрируем карту (избегаем jump-effect, D-07 desktop half).
-// D-08a: ключ {selectedZoneId} на ZoneCardContent → smooth re-render при быстром
-// перетыке зон, не unmount/remount.
-//
-// Hidden lg:block — на мобильном показывается MobileZoneCard (vaul Portal).
-// Оба компонента слушают один и тот же useSelectedZone.
-//
-// Phase 3 Plan 05 / TIME-07 / D-16:
-// - useTimeMode().mode инжектится в useZoneByIdQuery → atomic card mode-switch
-//   (queryKey включает mode → smena ?t= → новый запрос /occupancy?view=card&...)
-// - is_active === false → empty-state «Зона неактивна в этот период»
-//   + CTA «Вернуться к Сейчас» (когда mode != now). Pattern из ZoneStateOverlay (Plan 04).
-//
-// Phase 4 Plan 04 / D-27 / D-28:
-// - BuildRouteSection wires CARD-05 [Построить маршрут] → useCreateRouteMutation
-// - На success → setRouteId → ?route=<id> в URL → RouteSummaryCard renders inline
-// - Закрытие карточки (X / outside click) → clearRouteId + closeCard atomically
 import { useEffect, useState } from 'react';
 import { ArrowLeft, X, Lock, Accessibility, Car, MapPin, Navigation } from 'lucide-react';
 import { useResultSelection, useSelectedZone } from '@/features/select-zone';
@@ -42,7 +23,6 @@ export function ZoneCard() {
   const { t } = useI18n();
   const { selectedZoneId, closeCard } = useSelectedZone();
   const resultZoneIds = useResultSelection((state) => state.resultZoneIds);
-  // D-28: при закрытии карточки — atomic clear ?route + ?sel.
   const { clearRouteId } = useRouteId();
   const handleClose = () => {
     clearRouteId();
@@ -75,7 +55,6 @@ interface ContentProps {
 
 export function ZoneCardContent({ zoneId, onClose, navigation = 'close' }: ContentProps) {
   const { t } = useI18n();
-  // Plan 05 / TIME-07: mode инжектится в useZoneByIdQuery → atomic card refetch.
   const { mode, setNow } = useTimeMode();
   const { data, isPending, isError, refetch } = useZoneByIdQuery(zoneId, mode);
   const zoomToZone = useZoomToZone();
@@ -138,9 +117,6 @@ export function ZoneCardContent({ zoneId, onClose, navigation = 'close' }: Conte
           </button>
         </div>
       )}
-      {/* Plan 05 / D-16: «Зона неактивна в этот период» empty-state.
-          Возникает фактически в past/future, когда зона была не-активна на выбранный момент.
-          CTA «Вернуться к Сейчас» — только при mode != now (pattern из ZoneStateOverlay). */}
       {data && data.is_active === false && (
         <div
           role="status"
@@ -187,8 +163,6 @@ function ZoneCardBody({
 }) {
   const { t, language, formatCount } = useI18n();
 
-  // 2026-05-30: тип локации может прийти пустым/неизвестным — тогда НЕ рисуем
-  // бейдж вовсе (иначе пустой серый прямоугольник рядом с типом зоны).
   const locationLabel = zone.location_type ? t(`location.${zone.location_type}` as MessageKey) : '';
 
   const forecastCreatedAt =

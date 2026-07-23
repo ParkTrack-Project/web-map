@@ -1,7 +1,3 @@
-// Phase 4 / D-06 / SEARCH-02 (TDD).
-// - listbox + option roles
-// - click → onSelect(suggestion)
-// - empty state
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SuggestionsList } from './SuggestionsList';

@@ -1,6 +1,3 @@
-// FILTER-01/04/05/07: простой toggle-чип. button с aria-pressed (НЕ role=switch
-// — см. RESEARCH § Alternatives Considered: aria-pressed более consistent для
-// фильтров «вкл/выкл» категории).
 import { clsx } from 'clsx';
 import type { ReactNode } from 'react';
 

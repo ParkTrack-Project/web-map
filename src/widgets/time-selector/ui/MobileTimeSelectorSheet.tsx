@@ -1,7 +1,3 @@
-// TIME-03 mobile / D-02 / D-04:
-// Vaul snap[0.92] — single-snap. Multi-snap без controlled activeSnapPoint
-// ломает vaul body-state: даже после dismiss следующий Drawer (MobileZoneCard)
-// не открывается. Single snap = reliable.
 import { Drawer } from 'vaul';
 import { useVisualViewportHeight } from '@/shared/lib/dom';
 import { TimeSelectorContent } from './TimeSelectorContent';
@@ -14,7 +10,6 @@ interface Props {
 
 export function MobileTimeSelectorSheet({ open, onOpenChange }: Props) {
   const { t } = useI18n();
-  // Phase 5 D-03: keyboard-aware sizing — datetime-local input на mobile тянет keyboard.
   useVisualViewportHeight();
   return (
     <Drawer.Root open={open} onOpenChange={onOpenChange} dismissible>

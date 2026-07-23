@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { parseAsZoom, parseAsLocationTypeCsv, parseAsTimeMode } from '@/shared/lib/url';
 
-// URL-01 / D-13: parseAsZoom — integer 8..19 с zod-валидацией.
-// Невалидное значение → null + console.warn (D-16). nuqs.withDefault подставит дефолт.
 describe('parseAsZoom (URL-01, D-13)', () => {
   beforeEach(() => vi.spyOn(console, 'warn').mockImplementation(() => {}));
 
@@ -26,9 +24,6 @@ describe('parseAsZoom (URL-01, D-13)', () => {
   });
 });
 
-// FILTER-06: parseAsLocationTypeCsv — CSV строки в массив.
-// Валидация против enum НЕ на уровне парсера (applyClientFilters/buildServerQuery
-// игнорируют неизвестные значения).
 describe('parseAsLocationTypeCsv (FILTER-06)', () => {
   it('CSV → массив', () => {
     expect(parseAsLocationTypeCsv.parse('street,yard')).toEqual(['street', 'yard']);
@@ -47,12 +42,6 @@ describe('parseAsLocationTypeCsv (FILTER-06)', () => {
   });
 });
 
-// Quick task 260426-hhb: parseAsTimeMode — derived mode из чистого ISO.
-// SUPERSEDES D-11 формат ?t=now|past:ISO|future:ISO. Новый формат:
-//   - отсутствие param'а или 'now' → { kind: 'now' }
-//   - чистый ISO UTC → derived past/future в зависимости от Date.now() ± TOLERANCE
-//   - legacy past:ISO/future:ISO → silently strip prefix, derive normally (backward-compat)
-// Битый ввод → null + console.warn.
 describe('parseAsTimeMode (TIME-04, URL-02, derived mode — quick 260426-hhb)', () => {
   // Fixed system time чтобы derive был детерминированный.
   // Tolerance ≈ 7.5 минут (MIN_RESOLUTION_MINUTES / 2).

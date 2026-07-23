@@ -1,9 +1,3 @@
-// D-11: sessionStorage namespace 'parktrack:f:v1:' — version-bumped, чтобы Phase 3+
-// могли вводить новые фильтры без collision'ов с старыми сессиями.
-// SSR-safe: typeof window guard (RESEARCH Pitfall #14).
-//
-// Запись фильтра == default → удаление ключа из SS, чтобы readFiltersFromStorage
-// не возвращал «пустые подсказки» и URL hydration пропускал ненужные значения.
 import { FILTER_STORAGE_PREFIX } from '@/shared/config';
 import { type ZoneFilters, type LocationType, DEFAULT_FILTERS } from './filter.types';
 

@@ -2,12 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
-// B-1 fix: мокаем оба хука НАПРЯМУЮ — так refs внутри ModeTransitionOverlay
-// персистят между rerender'ами (компонент один и тот же; нет remount).
-// Старый паттерн с `makeWrapper(url)` + `TestHost` создавал НОВЫЙ Wrapper
-// identity на каждый rerender → React unmount+remount поддерева →
-// prevModeRef ресет → modeChanged() всегда false → overlay не появлялся.
-// Кроме того, NuqsTestingAdapter.searchParams — initial-only, не реактивен.
 vi.mock('@/features/select-time-mode', () => ({
   useTimeMode: vi.fn(),
 }));
@@ -37,8 +31,6 @@ describe('<ModeTransitionOverlay /> (TIME-06, D-08)', () => {
     vi.clearAllMocks();
   });
 
-  // case 1 — viewport pan: fetching > 0, mode unchanged → overlay НЕ появляется
-  // (Pitfall #7 / prevModeRef guard)
   it('viewport pan (fetching > 0, mode unchanged) → overlay НЕ появляется', () => {
     mockedUseTimeMode.mockReturnValue({
       mode: { kind: 'now' },
@@ -117,7 +109,6 @@ describe('<ModeTransitionOverlay /> (TIME-06, D-08)', () => {
     expect(screen.queryByTestId('mode-transition-overlay')).toBeNull();
   });
 
-  // case 4 — N-5 hard-timeout: fetching залип на 1, overlay уходит через 5с детерминированно
   it('N-5: hard timeout 5с — fetching не падает в 0, overlay уходит через 5с', () => {
     mockedUseTimeMode.mockReturnValue({
       mode: { kind: 'now' },

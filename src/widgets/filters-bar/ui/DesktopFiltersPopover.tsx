@@ -1,7 +1,3 @@
-// Desktop: круглая icon-only кнопка фильтра в top-4 flex row (рядом с TimeSelector / WTP / Search)
-// + radix Popover с теми же фильтрами в вертикальной раскладке.
-// Заменяет горизонтальный FiltersToolbar (раньше strip над картой) — освобождает ~50px vertical
-// space карты, единый pattern с mobile FiltersFAB (icon-only круг + counter badge).
 import * as Popover from '@radix-ui/react-popover';
 import { Filter } from 'lucide-react';
 import { useFiltersHydration, useFilters } from '@/features/filter-zones';

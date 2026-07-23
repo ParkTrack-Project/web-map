@@ -1,7 +1,3 @@
-// Phase 3 E2E smoke (TIME-04, URL-02): UI смена time-mode → URL deeplink.
-// Полная zone-rendering проверка отложена на HUMAN-UAT (требует реального
-// ymaps3 рендера + мониторинга). Здесь — только URL-state переходы через
-// видимые UI-элементы TimeSelectorStrip (desktop default viewport).
 import { test, expect } from '@playwright/test';
 
 test.describe('Phase 3 — TimeSelector URL serialization', () => {
@@ -33,7 +29,6 @@ test.describe('Phase 3 — TimeSelector URL serialization', () => {
   test('Reset CTA «Вернуться к Сейчас» очищает URL', async ({ page }) => {
     await page.getByRole('button', { name: 'Прошлое' }).click();
     await expect(page).toHaveURL(/[?&]t=past/);
-    // В strip справа есть Reset CTA (D-03); .first() — duplicate'а внутри Content тоже подойдёт
     await page
       .getByRole('button', { name: /Вернуться к Сейчас/ })
       .first()

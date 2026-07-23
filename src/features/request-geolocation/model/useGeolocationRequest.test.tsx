@@ -1,5 +1,3 @@
-// Phase 4 / WTP-02..05 / D-11..D-13 / Pitfall 4 (TDD RED):
-// Tests for useGeolocationRequest — discriminated state, options, NO call on mount.
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useGeolocationRequest } from './useGeolocationRequest';

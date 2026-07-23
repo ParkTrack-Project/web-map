@@ -1,6 +1,3 @@
-// TIME-03 / D-17: formatTimeLabelRu — единая функция для меток в TimeSelector pill,
-// ARIA live region, error-state messages.
-// I-7: tests asserting что вывод — MSK независимо от TZ test runner'а.
 import { describe, it, expect } from 'vitest';
 import { formatTimeLabelRu } from '@/shared/lib/i18n';
 
@@ -10,7 +7,6 @@ describe('formatTimeLabelRu (TIME-03, I-7: Intl + Europe/Moscow)', () => {
   });
 
   it('past → "История на " + ru-formatted MSK time', () => {
-    // 2026-04-12T09:00:00.000Z UTC = 12:00 MSK (UTC+3)
     const out = formatTimeLabelRu({ kind: 'past', at: '2026-04-12T09:00:00.000Z' });
     expect(out).toMatch(/^История на 12 апр\.? 12:00$/);
   });
@@ -24,8 +20,6 @@ describe('formatTimeLabelRu (TIME-03, I-7: Intl + Europe/Moscow)', () => {
     const out = formatTimeLabelRu({ kind: 'past', at: '2026-04-12T09:00:00.000Z' }, { full: true });
     expect(out).toContain('апреля');
     expect(out).toContain('МСК');
-    // I-7: фиксированный UTC instant → assertion не зависит от runner TZ.
-    // 09:00 UTC = 12:00 MSK
     expect(out).toContain('12:00');
   });
 

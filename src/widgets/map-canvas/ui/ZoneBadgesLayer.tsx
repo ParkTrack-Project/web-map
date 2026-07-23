@@ -1,4 +1,3 @@
-// ZONE-06 / D-02: redundant encoding — pill с free_count поверх каждой зоны.
 import { type ComponentType, type ReactNode } from 'react';
 import {
   YMapMarker as YMapMarkerRaw,

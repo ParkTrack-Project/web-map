@@ -1,8 +1,3 @@
-// Phase 4 / RANK-03 / D-18:
-// Desktop left-side panel 400px, full-height overlay над картой.
-// CO-03 / W-1: ОТКРЫТА ТОЛЬКО когда ?from set (origin обязателен per D-15 mode dispatch).
-// ?dest без ?from → inline prompt в SearchBar (widgets/search-bar/DestPromptBanner).
-// НЕ ужимает карту — overlay поверх (пользователь видит и list, и map, и ZoneCard).
 import { memo } from 'react';
 import { X } from 'lucide-react';
 import { useFromCoords } from '@/features/request-geolocation';
@@ -16,8 +11,6 @@ import { ResultsList } from './ResultsList';
 import { EmptyResultsState } from './EmptyResultsState';
 import { useI18n } from '@/shared/lib/i18n';
 
-// Phase 5 D-31 (NFR-03): React.memo — react-virtual handles internal virtualization,
-// но wrapper memo предотвращает rerender DesktopResultsPanel при unrelated parent state changes.
 function DesktopResultsPanelInner() {
   const { t } = useI18n();
   const { from, clearFromCoords } = useFromCoords();
@@ -27,8 +20,6 @@ function DesktopResultsPanelInner() {
   const { data, isFetching, isError, refetch } = useRoutingResults();
   const filtered = useFilteredCandidates(data?.candidates);
 
-  // CO-03 / W-1: open ТОЛЬКО когда ?from set (origin обязателен per D-15 mode dispatch).
-  // ?dest без ?from → inline prompt в SearchBar (widgets/search-bar), а не пустая panel.
   if (!from) return null;
 
   const handleCloseResults = () => {
@@ -37,9 +28,6 @@ function DesktopResultsPanelInner() {
     closeCard();
   };
 
-  // top-16 bottom-0 оставляет место для top-row (TimeSelector / WTP / Search / Filters
-  // в top-4 left-4 z-30) выше — раньше results-panel начиналась с top-0 и её header
-  // прятался под top-row кнопками (z-30 поверх z-20).
   return (
     <aside
       className="surface-opaque absolute top-16 bottom-0 left-0 hidden overflow-hidden bg-white shadow-2xl lg:flex lg:flex-col dark:bg-zinc-900"

@@ -1,13 +1,3 @@
-// TIME-03 mobile / D-02 / D-04 / I-1:
-// Mobile chip-кнопка под поиском в левом верхнем углу карты.
-//
-// Glass-style chip с lucide иконкой — современнее + читаемее на любом фоне карты.
-//
-// Quick task 260426-hhb (SUPERSEDES D-03):
-// Derived mode display: показываем «Сейчас» либо короткое форматированное
-// время («12 апр 09:00») без mode-prefix («История на » / «Прогноз на »).
-// Иконка остаётся mode-aware (History / TrendingUp / Clock) как тонкий
-// visual hint для quick state recognition.
 import { Clock, History, TrendingUp } from 'lucide-react';
 import { useTimeMode } from '@/features/select-time-mode';
 import { formatTimeLabel, useI18n } from '@/shared/lib/i18n';

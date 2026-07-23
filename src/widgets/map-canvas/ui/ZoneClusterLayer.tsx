@@ -1,4 +1,3 @@
-// Quick-fix 2026-05-17: scale-adaptive кластеризация (см. model/cluster-zones.ts).
 import { useContext, type ComponentType, type ReactNode } from 'react';
 import {
   YMapMarker as YMapMarkerRaw,

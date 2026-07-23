@@ -1,7 +1,3 @@
-// FILTER-01..07 + URL-03: один hook для 7 фильтров через nuqs.
-// На каждое изменение — пишем в sessionStorage (D-11). URL hydration делает useFiltersHydration.
-// clearOnDefault: true — поведение nuqs по умолчанию (D-15: дефолтные значения
-// не сериализуются → toggle ON-then-OFF удаляет ?f-param из URL).
 import { useCallback } from 'react';
 import { useQueryState } from 'nuqs';
 import {
