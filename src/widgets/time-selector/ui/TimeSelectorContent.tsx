@@ -102,8 +102,8 @@ export function TimeSelectorContent() {
         className={
           'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ' +
           (isActivePreset
-            ? 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-1 ring-emerald-500/40'
-            : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900')
+            ? 'border-emerald-500 bg-emerald-50 text-emerald-800 ring-1 ring-emerald-500/40 dark:bg-emerald-950/70 dark:text-emerald-200'
+            : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:border-zinc-600 dark:hover:bg-zinc-700 dark:hover:text-white')
         }
       >
         {language === 'ru' ? preset.label : (preset.labelEn ?? preset.label)}
@@ -118,7 +118,7 @@ export function TimeSelectorContent() {
         <CalendarClock
           size={14}
           aria-hidden
-          className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-zinc-400"
+          className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-zinc-400 dark:text-zinc-300"
         />
         <input
           type="datetime-local"
@@ -128,23 +128,23 @@ export function TimeSelectorContent() {
           step={MIN_RESOLUTION_MINUTES * 60}
           onChange={onInputChange}
           aria-label={t('time.chooseExact')}
-          className="w-full rounded-lg border border-zinc-200 bg-white py-2 pr-3 pl-9 text-[13px] font-medium text-zinc-800 shadow-xs transition-colors focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 focus:outline-none"
+          className="w-full rounded-lg border border-zinc-200 bg-white py-2 pr-3 pl-9 text-[13px] font-medium text-zinc-800 shadow-xs transition-colors focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-900"
         />
       </div>
 
       {/* Preset chips — всегда видим объединённый список (5 past + 5 future) */}
       {/* Preset chips — прошлое и будущее отдельно */}
       <div role="group" aria-label={t('time.quick')} className="flex flex-col gap-2">
-        <div className="text-[11px] font-medium tracking-wide text-zinc-400 uppercase">
+        <div className="text-[11px] font-medium tracking-wide text-zinc-400 uppercase dark:text-zinc-300">
           {t('time.past')}
         </div>
         <div role="group" aria-label={t('time.past')} className="flex flex-wrap gap-1.5">
           {pastPresets.map(renderPresetButton)}
         </div>
 
-        <div className="h-px w-full bg-zinc-200" aria-hidden="true" />
+        <div className="h-px w-full bg-zinc-200 dark:bg-zinc-700" aria-hidden="true" />
 
-        <div className="text-[11px] font-medium tracking-wide text-zinc-400 uppercase">
+        <div className="text-[11px] font-medium tracking-wide text-zinc-400 uppercase dark:text-zinc-300">
           {t('time.future')}
         </div>
         <div role="group" aria-label={t('time.future')} className="flex flex-wrap gap-1.5">
