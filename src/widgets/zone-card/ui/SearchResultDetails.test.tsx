@@ -5,7 +5,6 @@ import { SearchResultDetails } from './SearchResultDetails';
 
 const candidate: RouteCandidate = {
   zone_id: 42,
-  address: 'Невский проспект, 1',
   camera_id: null,
   geometry: { type: 'Polygon', coordinates: [[[30, 60]]] },
   zone_type: 'standard',
@@ -65,5 +64,24 @@ describe('SearchResultDetails', () => {
 
     expect(screen.getByRole('button', { name: 'Предыдущий вариант парковки' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Следующий вариант парковки' })).toBeDisabled();
+  });
+
+  it('shows long distances in kilometers', () => {
+    render(
+      <SearchResultDetails
+        candidate={{
+          ...candidate,
+          distance_from_origin_meters: 2350,
+          distance_to_destination_meters: 1400,
+        }}
+        index={0}
+        total={1}
+        onPrevious={() => {}}
+        onNext={() => {}}
+      />,
+    );
+
+    expect(screen.getByText(/2,4 км \(3 мин на машине\)/)).toBeInTheDocument();
+    expect(screen.getByText(/1,4 км до точки назначения/)).toBeInTheDocument();
   });
 });

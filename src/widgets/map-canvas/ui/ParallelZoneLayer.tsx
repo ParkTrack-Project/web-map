@@ -8,11 +8,21 @@ import {
 } from '@/shared/lib/ymaps';
 import { MAP_Z } from '@/shared/config';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
-import { shouldDimZone, useResultSelection, useSelectedZone } from '@/features/select-zone';
+import {
+  canHoverResultZone,
+  shouldDimZone,
+  useResultSelection,
+  useSelectedZone,
+} from '@/features/select-zone';
 import { polygonToParallelLine } from '@/shared/lib/geo';
 import { computeZoneStyle } from '../model/zone-style';
 import { useZoomToZone } from '../model/useZoomToZone';
+import { useZoneClusters } from '../model/useZoneClusters';
 import { usePreferences } from '@/features/preferences';
+
+interface Props {
+  zoom: number;
+}
 
 type LineStringGeometry = {
   type: 'LineString';
@@ -51,7 +61,7 @@ const YMapFeatureDataSource =
 
 const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 
-function ParallelZoneLayerInner() {
+function ParallelZoneLayerInner({ zoom }: Props) {
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
   const resultZoneIds = useResultSelection((state) => state.resultZoneIds);
@@ -60,6 +70,7 @@ function ParallelZoneLayerInner() {
   const setHoveredZone = useResultSelection((state) => state.setHoveredZone);
   const clearHoveredZone = useResultSelection((state) => state.clearHoveredZone);
   const zoomToZone = useZoomToZone();
+  const { singletonIds } = useZoneClusters(zoom);
   const theme = usePreferences((state) => state.theme);
 
   if (!data) return null;
@@ -111,8 +122,12 @@ function ParallelZoneLayerInner() {
               // клик по карте → приближаем к зоне, дотягивая до выхода из кластера
               zoomToZone(z.geometry, { zoneId: z.zone_id });
             }}
-            onMouseEnter={() => setHoveredZone(z.zone_id)}
-            onMouseLeave={() => clearHoveredZone(z.zone_id)}
+            onMouseEnter={() => {
+              if (!canHoverResultZone(z.zone_id, resultZoneIds, singletonIds)) return;
+              setHoveredZone(z.zone_id, 'map');
+              zoomToZone(z.geometry, { zoneId: z.zone_id });
+            }}
+            onMouseLeave={() => clearHoveredZone(z.zone_id, 'map')}
           />
         );
       })}

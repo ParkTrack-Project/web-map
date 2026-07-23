@@ -28,10 +28,20 @@ import {
 } from '@/shared/lib/ymaps';
 import { MAP_Z } from '@/shared/config';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
-import { shouldDimZone, useResultSelection, useSelectedZone } from '@/features/select-zone';
+import {
+  canHoverResultZone,
+  shouldDimZone,
+  useResultSelection,
+  useSelectedZone,
+} from '@/features/select-zone';
 import { computeZoneStyle, toDrawingStyle } from '../model/zone-style';
 import { useZoomToZone } from '../model/useZoomToZone';
+import { useZoneClusters } from '../model/useZoneClusters';
 import { usePreferences } from '@/features/preferences';
+
+interface Props {
+  zoom: number;
+}
 
 type PolygonGeometry = {
   type: 'Polygon';
@@ -68,9 +78,9 @@ const YMapFeatureDataSource =
 const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 
 // Phase 5 D-31 (NFR-03): React.memo для тяжёлых widgets — рендерит 200+ features.
-// Props нет; memo() предотвращает rerender при изменении parent state, не
-// относящегося к зонам.
-function ZoneLayerInner() {
+// memo() предотвращает rerender при изменении parent state, не относящегося
+// к зонам или масштабу кластеризации.
+function ZoneLayerInner({ zoom }: Props) {
   // Phase 2 Plan 03: переключено с useViewportZones на useFilteredZones —
   // тот же data shape, но с server-side + client-side фильтрами применёнными.
   // useSelectedZone wiring (Plan 02) сохранён ниже без изменений.
@@ -82,6 +92,7 @@ function ZoneLayerInner() {
   const setHoveredZone = useResultSelection((state) => state.setHoveredZone);
   const clearHoveredZone = useResultSelection((state) => state.clearHoveredZone);
   const zoomToZone = useZoomToZone();
+  const { singletonIds } = useZoneClusters(zoom);
   const theme = usePreferences((state) => state.theme);
 
   // Quick-fix 2026-05-16 (п.1): рендерим, пока есть данные (keepPreviousData),
@@ -131,8 +142,12 @@ function ZoneLayerInner() {
               // клик по карте → приближаем к зоне, дотягивая до выхода из кластера
               zoomToZone(z.geometry, { zoneId: z.zone_id });
             }}
-            onMouseEnter={() => setHoveredZone(z.zone_id)}
-            onMouseLeave={() => clearHoveredZone(z.zone_id)}
+            onMouseEnter={() => {
+              if (!canHoverResultZone(z.zone_id, resultZoneIds, singletonIds)) return;
+              setHoveredZone(z.zone_id, 'map');
+              zoomToZone(z.geometry, { zoneId: z.zone_id });
+            }}
+            onMouseLeave={() => clearHoveredZone(z.zone_id, 'map')}
           />
         );
       })}

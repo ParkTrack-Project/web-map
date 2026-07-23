@@ -8,7 +8,6 @@ import { useResultSelection } from '@/features/select-zone';
 
 const c: RouteCandidate = {
   zone_id: 42,
-  address: 'Невский проспект, 1',
   camera_id: null,
   geometry: {
     type: 'Polygon',
@@ -74,7 +73,6 @@ describe('ResultItem (RANK-04 / D-20)', () => {
     expect(screen.getByText(/Парковка #42/)).toBeInTheDocument();
     expect(screen.getByText(/5\/12/)).toBeInTheDocument();
     expect(screen.getByText(/150 ₽\/час/)).toBeInTheDocument();
-    expect(screen.getByText('Невский проспект, 1')).toBeInTheDocument();
   });
   it('pay=0 shows «Бесплатно»', () => {
     render(wrap(<ResultItem candidate={{ ...c, pay: 0 }} onClick={() => {}} />));
@@ -97,6 +95,7 @@ describe('ResultItem (RANK-04 / D-20)', () => {
 
     fireEvent.pointerEnter(item);
     expect(useResultSelection.getState().hoveredZoneId).toBe(c.zone_id);
+    expect(useResultSelection.getState().hoveredZoneSource).toBe('list');
     expect(item).toHaveClass('surface-hovered', 'border-transparent');
     expect(item).not.toHaveClass('border-emerald-500');
 

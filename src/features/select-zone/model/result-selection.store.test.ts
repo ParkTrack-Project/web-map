@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { shouldDimCluster, shouldDimZone, useResultSelection } from './result-selection.store';
+import {
+  canHoverResultZone,
+  shouldDimCluster,
+  shouldDimZone,
+  useResultSelection,
+} from './result-selection.store';
 
 describe('result selection', () => {
   beforeEach(() => {
@@ -24,12 +29,16 @@ describe('result selection', () => {
     useResultSelection.getState().setHoveredZone(99);
     expect(useResultSelection.getState().hoveredZoneId).toBeNull();
 
-    useResultSelection.getState().setHoveredZone(20);
+    useResultSelection.getState().setHoveredZone(20, 'map');
     expect(useResultSelection.getState().hoveredZoneId).toBe(20);
-    useResultSelection.getState().clearHoveredZone(10);
+    expect(useResultSelection.getState().hoveredZoneSource).toBe('map');
+    useResultSelection.getState().clearHoveredZone(10, 'map');
     expect(useResultSelection.getState().hoveredZoneId).toBe(20);
-    useResultSelection.getState().clearHoveredZone(20);
+    useResultSelection.getState().clearHoveredZone(20, 'list');
+    expect(useResultSelection.getState().hoveredZoneId).toBe(20);
+    useResultSelection.getState().clearHoveredZone(20, 'map');
     expect(useResultSelection.getState().hoveredZoneId).toBeNull();
+    expect(useResultSelection.getState().hoveredZoneSource).toBeNull();
   });
 
   it('dims non-results and then every zone except the opened one', () => {
@@ -49,5 +58,12 @@ describe('result selection', () => {
   it('keeps clusters containing a relevant zone emphasized', () => {
     expect(shouldDimCluster([10, 11], null, [11, 20])).toBe(false);
     expect(shouldDimCluster([10, 11], 20, [11, 20])).toBe(true);
+  });
+
+  it('allows map hover only for an unclustered search result', () => {
+    const singletonIds = new Set([10, 30]);
+    expect(canHoverResultZone(10, [10, 20], singletonIds)).toBe(true);
+    expect(canHoverResultZone(20, [10, 20], singletonIds)).toBe(false);
+    expect(canHoverResultZone(30, [10, 20], singletonIds)).toBe(false);
   });
 });

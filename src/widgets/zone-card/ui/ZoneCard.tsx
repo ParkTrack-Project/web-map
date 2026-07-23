@@ -22,7 +22,6 @@ import { ArrowLeft, X, Lock, Accessibility, Car, MapPin, Navigation } from 'luci
 import { useResultSelection, useSelectedZone } from '@/features/select-zone';
 import { useTimeMode } from '@/features/select-time-mode';
 import {
-  ParkingAddress,
   useZoneByIdQuery,
   useCreateRouteMutation,
   useRouteByIdQuery,
@@ -131,13 +130,6 @@ export function ZoneCardContent({ zoneId, onClose, navigation = 'close' }: Conte
           </button>
         )}
       </header>
-
-      <ParkingAddress
-        zoneId={zoneId}
-        geometry={data?.geometry ?? resultCandidate?.geometry}
-        suppliedAddress={data?.address ?? resultCandidate?.address}
-        truncate={false}
-      />
 
       {isPending && <Spinner label={t('zone.loading')} />}
       {isError && (

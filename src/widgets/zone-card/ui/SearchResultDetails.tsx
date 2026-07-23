@@ -1,6 +1,6 @@
 import { Car, ChevronLeft, ChevronRight, Star, Target } from 'lucide-react';
 import type { RouteCandidate } from '@/entities/zone';
-import { formatDurationFromSeconds, useI18n } from '@/shared/lib/i18n';
+import { formatDistanceFromMeters, formatDurationFromSeconds, useI18n } from '@/shared/lib/i18n';
 
 interface SearchResultDetailsProps {
   candidate: RouteCandidate;
@@ -19,6 +19,11 @@ export function SearchResultDetails({
 }: SearchResultDetailsProps) {
   const { t, language, formatCount } = useI18n();
   const duration = formatDurationFromSeconds(candidate.duration_from_origin_seconds, language);
+  const originDistance = formatDistanceFromMeters(candidate.distance_from_origin_meters, language);
+  const destinationDistance =
+    candidate.distance_to_destination_meters === null
+      ? null
+      : formatDistanceFromMeters(candidate.distance_to_destination_meters, language);
   const forecastTime = candidate.predicted_for_arrival
     ? new Intl.DateTimeFormat(language === 'ru' ? 'ru-RU' : 'en-US', {
         hour: '2-digit',
@@ -48,15 +53,15 @@ export function SearchResultDetails({
         <p className="flex items-center gap-1.5">
           <Car size={14} aria-hidden />
           {t('results.driving', {
-            distance: candidate.distance_from_origin_meters,
+            distance: originDistance,
             duration,
           })}
         </p>
-        {candidate.distance_to_destination_meters !== null && (
+        {destinationDistance !== null && (
           <p className="flex items-center gap-1.5">
             <Target size={14} aria-hidden />
             {t('results.toDestination', {
-              distance: candidate.distance_to_destination_meters,
+              distance: destinationDistance,
             })}
           </p>
         )}

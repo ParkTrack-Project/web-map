@@ -53,7 +53,7 @@ describe('useResultsScrollSync', () => {
     await waitFor(() => expect(scrollToIndex).toHaveBeenCalledWith(0, expect.any(Object)));
     scrollToIndex.mockClear();
 
-    act(() => useResultSelection.getState().setHoveredZone(30));
+    act(() => useResultSelection.getState().setHoveredZone(30, 'map'));
     await waitFor(() =>
       expect(scrollToIndex).toHaveBeenCalledWith(2, {
         align: 'center',
@@ -63,9 +63,26 @@ describe('useResultsScrollSync', () => {
     scrollToIndex.mockClear();
 
     await act(async () => {
-      useResultSelection.getState().clearHoveredZone(30);
+      useResultSelection.getState().clearHoveredZone(30, 'map');
       await Promise.resolve();
     });
+    expect(scrollToIndex).not.toHaveBeenCalled();
+  });
+
+  it('does not scroll when the pointer moves across the list itself', async () => {
+    const scrollToIndex = vi.fn();
+    const virtualizer = { scrollToIndex } as unknown as Virtualizer<HTMLDivElement, Element>;
+    const candidates = [candidate(10), candidate(20), candidate(30)];
+    useResultSelection.getState().setResultCandidates(candidates);
+
+    renderHook(() => useResultsScrollSync(virtualizer, candidates), {
+      wrapper: ({ children }) => (
+        <NuqsTestingAdapter searchParams="">{children}</NuqsTestingAdapter>
+      ),
+    });
+
+    act(() => useResultSelection.getState().setHoveredZone(30, 'list'));
+    await act(() => Promise.resolve());
     expect(scrollToIndex).not.toHaveBeenCalled();
   });
 });

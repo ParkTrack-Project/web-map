@@ -2,10 +2,10 @@
 // List-item layout. data-testid="result-item-${zone_id}" для E2E + scroll-sync.
 // Лучший вариант badge — brand-green с иконкой Star (D-21).
 import { Star, MapPin, Target } from 'lucide-react';
-import { ParkingAddress, type RouteCandidate } from '@/entities/zone';
+import type { RouteCandidate } from '@/entities/zone';
 import { useResultSelection, useSelectedZone } from '@/features/select-zone';
 import { useZoomToZone } from '@/widgets/map-canvas';
-import { formatDurationFromSeconds, useI18n } from '@/shared/lib/i18n';
+import { formatDistanceFromMeters, formatDurationFromSeconds, useI18n } from '@/shared/lib/i18n';
 
 interface ResultItemProps {
   candidate: RouteCandidate;
@@ -29,6 +29,11 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
   // «2 д 18 ч». Раньше всегда печаталось в минутах → дальние маршруты
   // показывали «4000 мин» вместо «2 д 18 ч».
   const durationLabel = formatDurationFromSeconds(c.duration_from_origin_seconds, language);
+  const originDistanceLabel = formatDistanceFromMeters(c.distance_from_origin_meters, language);
+  const destinationDistanceLabel =
+    c.distance_to_destination_meters === null
+      ? null
+      : formatDistanceFromMeters(c.distance_to_destination_meters, language);
   const arrivalLabel = c.predicted_for_arrival
     ? new Intl.DateTimeFormat(language === 'ru' ? 'ru-RU' : 'en-US', {
         hour: '2-digit',
@@ -45,7 +50,7 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
 
   const handleClick = () => {
     onClick?.(c);
-    clearHoveredZone(c.zone_id);
+    clearHoveredZone(c.zone_id, 'list');
     markZoneViewed(c.zone_id);
     setSelectedZone(c.zone_id);
     // zoneId → useZoomToZone дотягивает зум до уровня, где парковка выходит из
@@ -65,10 +70,10 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
         event.currentTarget.blur();
         handleClick();
       }}
-      onPointerEnter={() => setHoveredZone(c.zone_id)}
-      onPointerLeave={() => clearHoveredZone(c.zone_id)}
-      onFocus={() => setHoveredZone(c.zone_id)}
-      onBlur={() => clearHoveredZone(c.zone_id)}
+      onPointerEnter={() => setHoveredZone(c.zone_id, 'list')}
+      onPointerLeave={() => clearHoveredZone(c.zone_id, 'list')}
+      onFocus={() => setHoveredZone(c.zone_id, 'list')}
+      onBlur={() => clearHoveredZone(c.zone_id, 'list')}
       className={
         'flex w-full flex-col gap-1 rounded-md border-2 px-3 py-2 text-left text-sm transition-colors dark:text-zinc-100 ' +
         (isSelected
@@ -101,12 +106,6 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
           )}
         </span>
       </div>
-      <ParkingAddress
-        zoneId={c.zone_id}
-        geometry={c.geometry}
-        suppliedAddress={c.address}
-        className="text-xs"
-      />
       {c.predicted_free_count !== null && arrivalLabel && (
         <div className="text-xs text-zinc-600">
           {t('results.forecast', {
@@ -117,12 +116,12 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
       )}
       <div className="flex items-center gap-1 text-xs text-zinc-600">
         <MapPin size={12} aria-hidden />
-        {t('results.driving', { distance: c.distance_from_origin_meters, duration: durationLabel })}
+        {t('results.driving', { distance: originDistanceLabel, duration: durationLabel })}
       </div>
-      {c.distance_to_destination_meters !== null && (
+      {destinationDistanceLabel !== null && (
         <div className="flex items-center gap-1 text-xs text-zinc-600">
           <Target size={12} aria-hidden />
-          {t('results.toDestination', { distance: c.distance_to_destination_meters })}
+          {t('results.toDestination', { distance: destinationDistanceLabel })}
         </div>
       )}
       <div className="text-xs text-zinc-500">

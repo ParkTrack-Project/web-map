@@ -6,7 +6,12 @@ import {
   YMapLayer as YMapLayerRaw,
 } from '@/shared/lib/ymaps';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
-import { shouldDimZone, useResultSelection, useSelectedZone } from '@/features/select-zone';
+import {
+  canHoverResultZone,
+  shouldDimZone,
+  useResultSelection,
+  useSelectedZone,
+} from '@/features/select-zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { ZONE_BADGE_MIN_ZOOM, MAP_Z } from '@/shared/config';
 import { computeZoneStyle } from '../model/zone-style';
@@ -99,10 +104,18 @@ export function ZoneBadgesLayer({ zoom }: Props) {
                   setSelectedZone(z.zone_id);
                   zoomToZone(z.geometry, { zoneId: z.zone_id });
                 }}
-                onPointerEnter={() => setHoveredZone(z.zone_id)}
-                onPointerLeave={() => clearHoveredZone(z.zone_id)}
-                onFocus={() => setHoveredZone(z.zone_id)}
-                onBlur={() => clearHoveredZone(z.zone_id)}
+                onPointerEnter={() => {
+                  if (!canHoverResultZone(z.zone_id, resultZoneIds, singletonIds)) return;
+                  setHoveredZone(z.zone_id, 'map');
+                  zoomToZone(z.geometry, { zoneId: z.zone_id });
+                }}
+                onPointerLeave={() => clearHoveredZone(z.zone_id, 'map')}
+                onFocus={() => {
+                  if (!canHoverResultZone(z.zone_id, resultZoneIds, singletonIds)) return;
+                  setHoveredZone(z.zone_id, 'map');
+                  zoomToZone(z.geometry, { zoneId: z.zone_id });
+                }}
+                onBlur={() => clearHoveredZone(z.zone_id, 'map')}
                 className={`absolute cursor-pointer rounded-full border-0 px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap shadow ${theme === 'dark' ? 'text-zinc-950' : 'text-white'}`}
                 style={{
                   left: 0,

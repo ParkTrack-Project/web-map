@@ -1,5 +1,5 @@
 // Phase 4 / RANK-03 / RANK-06 / D-23:
-// @tanstack/react-virtual list with fixed-height items including the address row.
+// @tanstack/react-virtual list with fixed-height parking result items.
 import { useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type { RouteCandidate } from '@/entities/zone';

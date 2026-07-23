@@ -81,7 +81,6 @@ interface RoutingSearchBody {
 
 interface RouteCandidatePayload {
   zone_id: number;
-  address?: string | null;
   camera_id: number | null;
   geometry: ZoneMapItem['geometry'];
   zone_type: ZoneMapItem['zone_type'];
@@ -197,7 +196,6 @@ function rankCandidates(body: RoutingSearchBody): {
         : null;
       return {
         zone_id: z.zone_id,
-        address: z.address ?? null,
         camera_id: idx + 1,
         geometry: z.geometry,
         zone_type: z.zone_type,

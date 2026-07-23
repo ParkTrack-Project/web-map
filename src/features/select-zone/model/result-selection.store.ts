@@ -1,16 +1,19 @@
 import { create } from 'zustand';
 import type { RouteCandidate } from '@/entities/zone';
 
+export type ResultHoverSource = 'list' | 'map';
+
 interface ResultSelectionState {
   resultZoneIds: number[];
   resultCandidates: RouteCandidate[];
   lastViewedZoneId: number | null;
   hoveredZoneId: number | null;
+  hoveredZoneSource: ResultHoverSource | null;
   setResultZoneIds: (zoneIds: number[]) => void;
   setResultCandidates: (candidates: RouteCandidate[]) => void;
   markZoneViewed: (zoneId: number) => void;
-  setHoveredZone: (zoneId: number | null) => void;
-  clearHoveredZone: (zoneId: number) => void;
+  setHoveredZone: (zoneId: number | null, source?: ResultHoverSource) => void;
+  clearHoveredZone: (zoneId: number, source?: ResultHoverSource) => void;
   clearResultSelection: () => void;
 }
 
@@ -23,6 +26,7 @@ export const useResultSelection = create<ResultSelectionState>((set) => ({
   resultCandidates: [],
   lastViewedZoneId: null,
   hoveredZoneId: null,
+  hoveredZoneSource: null,
   setResultZoneIds: (zoneIds) =>
     set((state) => {
       const uniqueIds = [...new Set(zoneIds)];
@@ -39,6 +43,10 @@ export const useResultSelection = create<ResultSelectionState>((set) => ({
         hoveredZoneId:
           state.hoveredZoneId !== null && uniqueIds.includes(state.hoveredZoneId)
             ? state.hoveredZoneId
+            : null,
+        hoveredZoneSource:
+          state.hoveredZoneId !== null && uniqueIds.includes(state.hoveredZoneId)
+            ? state.hoveredZoneSource
             : null,
       };
     }),
@@ -60,25 +68,39 @@ export const useResultSelection = create<ResultSelectionState>((set) => ({
           state.hoveredZoneId !== null && zoneIds.includes(state.hoveredZoneId)
             ? state.hoveredZoneId
             : null,
+        hoveredZoneSource:
+          state.hoveredZoneId !== null && zoneIds.includes(state.hoveredZoneId)
+            ? state.hoveredZoneSource
+            : null,
       };
     }),
   markZoneViewed: (zoneId) =>
     set((state) => (state.resultZoneIds.includes(zoneId) ? { lastViewedZoneId: zoneId } : state)),
-  setHoveredZone: (zoneId) =>
+  setHoveredZone: (zoneId, source = 'list') =>
     set((state) => {
-      if (zoneId === null) return state.hoveredZoneId === null ? state : { hoveredZoneId: null };
-      return state.resultZoneIds.includes(zoneId) && state.hoveredZoneId !== zoneId
-        ? { hoveredZoneId: zoneId }
+      if (zoneId === null) {
+        return state.hoveredZoneId === null
+          ? state
+          : { hoveredZoneId: null, hoveredZoneSource: null };
+      }
+      return state.resultZoneIds.includes(zoneId) &&
+        (state.hoveredZoneId !== zoneId || state.hoveredZoneSource !== source)
+        ? { hoveredZoneId: zoneId, hoveredZoneSource: source }
         : state;
     }),
-  clearHoveredZone: (zoneId) =>
-    set((state) => (state.hoveredZoneId === zoneId ? { hoveredZoneId: null } : state)),
+  clearHoveredZone: (zoneId, source) =>
+    set((state) =>
+      state.hoveredZoneId === zoneId && (source === undefined || state.hoveredZoneSource === source)
+        ? { hoveredZoneId: null, hoveredZoneSource: null }
+        : state,
+    ),
   clearResultSelection: () =>
     set({
       resultZoneIds: [],
       resultCandidates: [],
       lastViewedZoneId: null,
       hoveredZoneId: null,
+      hoveredZoneSource: null,
     }),
 }));
 
@@ -102,4 +124,12 @@ export function shouldDimCluster(
   if (hoveredZoneId !== null) return !clusterZoneIds.includes(hoveredZoneId);
   if (selectedZoneId !== null) return !clusterZoneIds.includes(selectedZoneId);
   return resultZoneIds.length > 0 && !clusterZoneIds.some((id) => resultZoneIds.includes(id));
+}
+
+export function canHoverResultZone(
+  zoneId: number,
+  resultZoneIds: readonly number[],
+  singletonIds: ReadonlySet<number>,
+) {
+  return resultZoneIds.includes(zoneId) && singletonIds.has(zoneId);
 }
