@@ -66,8 +66,8 @@ const YMapFeatureDataSource =
 const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 
 // Phase 5 D-31 (NFR-03): React.memo для тяжёлых widgets — рендерит 200+ features.
-// Props нет; memo() предотвращает rerender при изменении parent state, не
-// относящегося к зонам.
+// memo() предотвращает rerender при изменении parent state, не относящегося
+// к зонам или масштабу кластеризации.
 function ZoneLayerInner() {
   // Phase 2 Plan 03: переключено с useViewportZones на useFilteredZones —
   // тот же data shape, но с server-side + client-side фильтрами применёнными.

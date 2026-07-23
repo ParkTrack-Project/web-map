@@ -36,7 +36,7 @@ function sameSearchLocation(a: RoutingSearchBody | null, b: RoutingSearchBody | 
  * из-за чего старые ранжированные резы висели до конца нового поиска.
  *
  * `live` (2026-06-06): в режиме «Сейчас» панель результатов авто-обновляет
- * current_free_count кандидатов раз в минуту (refetchInterval). В past/future
+ * current_free_count кандидатов каждые 20 секунд (refetchInterval). В past/future
  * (история/прогноз) поллинг выключен. Передаётся из useRoutingResults по mode.
  */
 export function useRoutingSearch(body: RoutingSearchBody | null, live = false) {

@@ -2,9 +2,11 @@ import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
+import type { YMap as YMapInstance } from '@yandex/ymaps3-types';
 import { ResultItem } from './ResultItem';
 import type { RouteCandidate } from '@/entities/zone';
 import { useResultSelection } from '@/features/select-zone';
+import { MapRefContext } from '@/widgets/map-canvas';
 
 const c: RouteCandidate = {
   zone_id: 42,
@@ -42,15 +44,18 @@ const c: RouteCandidate = {
   rank: 1,
 };
 
-function wrap(children: React.ReactNode) {
+function wrap(children: React.ReactNode, map: YMapInstance | null = null) {
   // 2026-06-06: ResultItem → useZoomToZone теперь читает useFilteredZones
   // (нужны зоны для «зума разъединения»), а тот вызывает useZonesQuery →
   // требуется QueryClientProvider. Без ?bbox запрос disabled (data undefined),
   // расчёт разъединения тихо пропускается — поведение item'а не меняется.
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const mapRef = { current: map };
   return (
     <QueryClientProvider client={qc}>
-      <NuqsTestingAdapter>{children}</NuqsTestingAdapter>
+      <MapRefContext.Provider value={mapRef}>
+        <NuqsTestingAdapter>{children}</NuqsTestingAdapter>
+      </MapRefContext.Provider>
     </QueryClientProvider>
   );
 }
@@ -70,7 +75,7 @@ describe('ResultItem (RANK-04 / D-20)', () => {
   });
   it('shows zone_id, free_count/capacity, pay', () => {
     render(wrap(<ResultItem candidate={c} onClick={() => {}} />));
-    expect(screen.getByText(/Зона #42/)).toBeInTheDocument();
+    expect(screen.getByText(/Парковка #42/)).toBeInTheDocument();
     expect(screen.getByText(/5\/12/)).toBeInTheDocument();
     expect(screen.getByText(/150 ₽\/час/)).toBeInTheDocument();
   });
@@ -83,9 +88,43 @@ describe('ResultItem (RANK-04 / D-20)', () => {
     expect(screen.getByText(/850 м/)).toBeInTheDocument();
     expect(screen.getByText(/4 мин/)).toBeInTheDocument(); // 240 sec / 60 = 4 min
   });
-  it('uses a readable dark hover background', () => {
+  it('uses an opaque dark surface', () => {
     render(wrap(<ResultItem candidate={c} onClick={() => {}} />));
-    expect(screen.getByTestId('result-item-42')).toHaveClass('dark:hover:bg-zinc-800');
+    expect(screen.getByTestId('result-item-42')).toHaveClass('surface-opaque', 'dark:bg-zinc-900');
+  });
+
+  it('does not select or move the map on pointer hover or focus', () => {
+    const setLocation = vi.fn();
+    const map = {
+      zoom: 14,
+      zoomRange: { min: 2, max: 21 },
+      center: [30.5, 59.5],
+      bounds: [
+        [30, 59],
+        [31, 60],
+      ],
+      setLocation,
+    } as unknown as YMapInstance;
+    useResultSelection.getState().setResultZoneIds([c.zone_id]);
+    render(wrap(<ResultItem candidate={c} />, map));
+    const item = screen.getByTestId('result-item-42');
+
+    fireEvent.pointerEnter(item);
+    fireEvent.focus(item);
+
+    expect(setLocation).not.toHaveBeenCalled();
+    expect(useResultSelection.getState().lastViewedZoneId).toBeNull();
+    expect(item).not.toHaveClass('surface-selected', 'border-emerald-500');
+  });
+
+  it('keeps the last opened parking highlighted after returning to results', () => {
+    useResultSelection.getState().setResultZoneIds([c.zone_id]);
+    useResultSelection.getState().markZoneViewed(c.zone_id);
+    render(wrap(<ResultItem candidate={c} onClick={() => {}} />));
+    expect(screen.getByTestId('result-item-42')).toHaveClass(
+      'surface-selected',
+      'border-emerald-500',
+    );
   });
 
   // 2026-05-26: длинные маршруты конвертируем в часы/дни вместо «4000 мин».
@@ -118,7 +157,8 @@ describe('ResultItem (RANK-04 / D-20)', () => {
     const fn = vi.fn();
     useResultSelection.getState().setResultZoneIds([c.zone_id]);
     render(wrap(<ResultItem candidate={c} onClick={fn} />));
-    fireEvent.click(screen.getByTestId('result-item-42'));
+    const item = screen.getByTestId('result-item-42');
+    fireEvent.click(item);
     expect(fn).toHaveBeenCalledWith(c);
     expect(useResultSelection.getState().lastViewedZoneId).toBe(c.zone_id);
   });

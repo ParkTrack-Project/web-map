@@ -48,9 +48,7 @@ export function TimeSelectorChip({ onClick }: Props) {
         size={13}
         aria-hidden
         className={
-          isActive
-            ? 'text-emerald-600 dark:text-emerald-300'
-            : 'text-zinc-500 dark:text-zinc-300'
+          isActive ? 'text-emerald-600 dark:text-emerald-300' : 'text-zinc-500 dark:text-zinc-300'
         }
       />
       <span>{display}</span>

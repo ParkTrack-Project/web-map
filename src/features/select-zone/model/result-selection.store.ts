@@ -1,9 +1,12 @@
 import { create } from 'zustand';
+import type { RouteCandidate } from '@/entities/zone';
 
 interface ResultSelectionState {
   resultZoneIds: number[];
+  resultCandidates: RouteCandidate[];
   lastViewedZoneId: number | null;
   setResultZoneIds: (zoneIds: number[]) => void;
+  setResultCandidates: (candidates: RouteCandidate[]) => void;
   markZoneViewed: (zoneId: number) => void;
   clearResultSelection: () => void;
 }
@@ -14,6 +17,7 @@ function sameIds(left: number[], right: number[]) {
 
 export const useResultSelection = create<ResultSelectionState>((set) => ({
   resultZoneIds: [],
+  resultCandidates: [],
   lastViewedZoneId: null,
   setResultZoneIds: (zoneIds) =>
     set((state) => {
@@ -21,15 +25,39 @@ export const useResultSelection = create<ResultSelectionState>((set) => ({
       if (sameIds(state.resultZoneIds, uniqueIds)) return state;
       return {
         resultZoneIds: uniqueIds,
+        resultCandidates: state.resultCandidates.filter((candidate) =>
+          uniqueIds.includes(candidate.zone_id),
+        ),
         lastViewedZoneId:
           state.lastViewedZoneId !== null && uniqueIds.includes(state.lastViewedZoneId)
             ? state.lastViewedZoneId
             : null,
       };
     }),
+  setResultCandidates: (candidates) =>
+    set((state) => {
+      const uniqueCandidates = candidates.filter(
+        (candidate, index) =>
+          candidates.findIndex((item) => item.zone_id === candidate.zone_id) === index,
+      );
+      const zoneIds = uniqueCandidates.map((candidate) => candidate.zone_id);
+      return {
+        resultZoneIds: zoneIds,
+        resultCandidates: uniqueCandidates,
+        lastViewedZoneId:
+          state.lastViewedZoneId !== null && zoneIds.includes(state.lastViewedZoneId)
+            ? state.lastViewedZoneId
+            : null,
+      };
+    }),
   markZoneViewed: (zoneId) =>
     set((state) => (state.resultZoneIds.includes(zoneId) ? { lastViewedZoneId: zoneId } : state)),
-  clearResultSelection: () => set({ resultZoneIds: [], lastViewedZoneId: null }),
+  clearResultSelection: () =>
+    set({
+      resultZoneIds: [],
+      resultCandidates: [],
+      lastViewedZoneId: null,
+    }),
 }));
 
 export function shouldDimZone(

@@ -14,7 +14,7 @@ import { useRouteByIdQuery } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 import { useFromCoords } from '@/features/request-geolocation';
 import { isValidCoords } from '@/shared/lib/deeplink';
-import { formatDurationFromSeconds, useI18n } from '@/shared/lib/i18n';
+import { formatDistanceFromMeters, formatDurationFromSeconds, useI18n } from '@/shared/lib/i18n';
 import { DesktopDeeplinkPopover, MobileDeeplinkSheet } from '@/widgets/deeplink-menu';
 import { useRouteId } from '../model/useRouteId';
 
@@ -49,22 +49,10 @@ export function RouteSummaryCard() {
   if (!routeId || isPending || isError || !route) return null;
 
   const etaLabel = formatDurationFromSeconds(route.eta_seconds, language);
-  const distance = route.selected_candidate.distance_from_origin_meters;
-  // > 1 км → километры с одним знаком после запятой (2600 м → 2,6 км),
-  // иначе — метры.
-  const distanceLabel =
-    distance >= 1000
-      ? new Intl.NumberFormat(language === 'ru' ? 'ru-RU' : 'en-US', {
-          style: 'unit',
-          unit: 'kilometer',
-          unitDisplay: 'short',
-          maximumFractionDigits: 1,
-        }).format(distance / 1000)
-      : new Intl.NumberFormat(language === 'ru' ? 'ru-RU' : 'en-US', {
-          style: 'unit',
-          unit: 'meter',
-          unitDisplay: 'short',
-        }).format(distance);
+  const distanceLabel = formatDistanceFromMeters(
+    route.selected_candidate.distance_from_origin_meters,
+    language,
+  );
   const coordsValid = isValidCoords(from) && isValidCoords(zoneCenterLatLon);
 
   return (

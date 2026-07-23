@@ -19,7 +19,7 @@ export function useRoutingResults() {
     () => buildRoutingBody({ from, dest, filters, mode }),
     [from, dest, filters, mode],
   );
-  // В режиме «Сейчас» панель авто-обновляет живые free_count раз в минуту.
+  // В режиме «Сейчас» панель авто-обновляет живые free_count каждые 20 секунд.
   const query = useRoutingSearch(body, mode.kind === 'now');
 
   return { ...query, body };

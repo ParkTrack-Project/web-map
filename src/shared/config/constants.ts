@@ -11,11 +11,11 @@ export const VIEWPORT_DEBOUNCE_MS = 400;
 export const BBOX_ROUND_DECIMALS = 5;
 
 // 2026-06-06: авто-обновление «живых» данных о парковках (occupancy/free_count)
-// с бэка — раз в минуту в режиме «Сейчас». TanStack refetchInterval тянет
+// с бэка — раз в 20 секунд в режиме «Сейчас». TanStack refetchInterval тянет
 // свежие данные сам, пока вкладка в фокусе (в фоне не дёргаем — экономим квоту).
 // В past/future данные не «живые» (история неизменна, прогноз на фикс. время),
 // поэтому там интервальный refetch выключен.
-export const LIVE_DATA_REFETCH_MS = 60_000;
+export const LIVE_DATA_REFETCH_MS = 20_000;
 
 // D-02 (Phase 2): на zoom < 14 бейджи free_count скрываются, чтобы не превращать
 // карту в шум; сами полигоны зон остаются видимы.
@@ -103,9 +103,9 @@ export const DEEPLINK_FALLBACK_MS = 2_500;
 export const RESULTS_PANEL_WIDTH_PX = 400;
 
 // Phase 4 / D-23 / RANK-06: фиксированная высота list-item в @tanstack/react-virtual.
-// 140px учитывает 5 строк layout D-20 (badge + name+price+free + forecast +
-// distance + confidence).
-export const RESULTS_LIST_ITEM_HEIGHT_PX = 140;
+// 160px вмещает лучший вариант со всеми строками: прогнозом, двумя
+// расстояниями и уверенностью, не обрезая нижнюю строку.
+export const RESULTS_LIST_ITEM_HEIGHT_PX = 160;
 
 // Phase 4 / SEARCH-01: минимум символов перед triggering Suggest fetch
 // (research Pitfall 5 — single-letter API hits убивают free-tier quota).

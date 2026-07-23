@@ -30,7 +30,7 @@ function isAuthorized(request: Request): boolean {
 const ZONES: ZoneMapItem[] = generateMockZones({ seed: 42, count: 200 });
 
 // 2026-06-06: демо-«живость» occupancy. zone.queries делает авто-refetch /zones
-// и /zones/:id раз в минуту (refetchInterval в режиме «Сейчас»). В mock-режиме
+// и /zones/:id каждые 20 секунд (refetchInterval в режиме «Сейчас»). В mock-режиме
 // ZONES детерминирован → refetch вернул бы те же числа и обновление было бы НЕ
 // видно. Чтобы в прод-демо (Docker, VITE_API_MODE=mock) оно было заметно, слегка
 // колышем occupied/free_count по бакету времени (раз в минуту). Детерминированно

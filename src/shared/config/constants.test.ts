@@ -5,6 +5,7 @@ import {
   GEOLOCATION_TIMEOUT_MS,
   RESULTS_PANEL_WIDTH_PX,
   RESULTS_LIST_ITEM_HEIGHT_PX,
+  LIVE_DATA_REFETCH_MS,
   SUGGEST_MIN_QUERY_LENGTH,
   Z_INDEX,
   MAP_Z,
@@ -23,8 +24,12 @@ describe('Phase 4 constants', () => {
   it('RESULTS_PANEL_WIDTH_PX = 400 (D-18)', () => {
     expect(RESULTS_PANEL_WIDTH_PX).toBe(400);
   });
-  it('RESULTS_LIST_ITEM_HEIGHT_PX = 140 (D-23)', () => {
-    expect(RESULTS_LIST_ITEM_HEIGHT_PX).toBe(140);
+  it('RESULTS_LIST_ITEM_HEIGHT_PX fits the parking metrics', () => {
+    expect(RESULTS_LIST_ITEM_HEIGHT_PX).toBe(160);
+  });
+  it('refreshes live occupancy within 15–30 seconds', () => {
+    expect(LIVE_DATA_REFETCH_MS).toBeGreaterThanOrEqual(15_000);
+    expect(LIVE_DATA_REFETCH_MS).toBeLessThanOrEqual(30_000);
   });
   it('SUGGEST_MIN_QUERY_LENGTH = 2 (Pitfall 5)', () => {
     expect(SUGGEST_MIN_QUERY_LENGTH).toBe(2);

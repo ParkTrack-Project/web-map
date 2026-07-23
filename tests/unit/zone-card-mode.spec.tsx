@@ -10,6 +10,19 @@ import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 
+const resultSelectionState = vi.hoisted(() => ({
+  resultZoneIds: [] as number[],
+  resultCandidates: [],
+  lastViewedZoneId: null,
+  hoveredZoneId: null,
+  setResultZoneIds: vi.fn(),
+  setResultCandidates: vi.fn(),
+  markZoneViewed: vi.fn(),
+  setHoveredZone: vi.fn(),
+  clearHoveredZone: vi.fn(),
+  clearResultSelection: vi.fn(),
+}));
+
 vi.mock('@/entities/zone', async () => {
   const actual = await vi.importActual<typeof import('@/entities/zone')>('@/entities/zone');
   return {
@@ -23,6 +36,8 @@ vi.mock('@/features/select-zone', () => ({
     setSelectedZone: vi.fn(),
     closeCard: vi.fn(),
   }),
+  useResultSelection: (selector: (state: typeof resultSelectionState) => unknown) =>
+    selector(resultSelectionState),
 }));
 
 import { useZoneByIdQuery } from '@/entities/zone';
