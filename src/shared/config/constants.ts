@@ -103,8 +103,9 @@ export const DEEPLINK_FALLBACK_MS = 2_500;
 export const RESULTS_PANEL_WIDTH_PX = 400;
 
 // Phase 4 / D-23 / RANK-06: фиксированная высота list-item в @tanstack/react-virtual.
-// 140px учитывает номер парковки и строки метрик без обрезания текста.
-export const RESULTS_LIST_ITEM_HEIGHT_PX = 140;
+// 160px вмещает лучший вариант со всеми строками: прогнозом, двумя
+// расстояниями и уверенностью, не обрезая нижнюю строку.
+export const RESULTS_LIST_ITEM_HEIGHT_PX = 160;
 export const RESULTS_MAP_HOVER_SCROLL_DELAY_MS = 500;
 
 // Phase 4 / SEARCH-01: минимум символов перед triggering Suggest fetch

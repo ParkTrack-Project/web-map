@@ -26,7 +26,7 @@ describe('Phase 4 constants', () => {
     expect(RESULTS_PANEL_WIDTH_PX).toBe(400);
   });
   it('RESULTS_LIST_ITEM_HEIGHT_PX fits the parking metrics', () => {
-    expect(RESULTS_LIST_ITEM_HEIGHT_PX).toBe(140);
+    expect(RESULTS_LIST_ITEM_HEIGHT_PX).toBe(160);
   });
   it('delays map-hover list synchronization to ignore accidental hover', () => {
     expect(RESULTS_MAP_HOVER_SCROLL_DELAY_MS).toBe(500);
