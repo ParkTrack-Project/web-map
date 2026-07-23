@@ -19,14 +19,17 @@ export function MobileTimeSelectorSheet({ open, onOpenChange }: Props) {
   return (
     <Drawer.Root open={open} onOpenChange={onOpenChange} dismissible>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden" />
+        <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40 lg:hidden dark:bg-black/60" />
         <Drawer.Content
-          className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[92dvh] flex-col rounded-t-2xl bg-white shadow-2xl outline-none lg:hidden"
+          className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[92dvh] flex-col rounded-t-2xl bg-white shadow-2xl outline-none lg:hidden dark:bg-zinc-900 dark:text-zinc-100"
           aria-describedby={undefined}
           style={{ maxHeight: 'calc(var(--keyboard-aware-height, 100dvh) - 80px)' }}
         >
-          <div className="mx-auto mt-2 mb-1 h-1 w-10 rounded-full bg-zinc-300" aria-hidden />
-          <Drawer.Title className="px-5 pt-2 pb-1 text-base font-semibold text-zinc-900">
+          <div
+            className="mx-auto mt-2 mb-1 h-1 w-10 rounded-full bg-zinc-300 dark:bg-zinc-600"
+            aria-hidden
+          />
+          <Drawer.Title className="px-5 pt-2 pb-1 text-base font-semibold text-zinc-900 dark:text-zinc-50">
             {t('time.title')}
           </Drawer.Title>
           <div className="overflow-y-auto pb-4">

@@ -37,11 +37,19 @@ export function TimeSelectorPopover() {
           className={
             'hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium shadow-sm ring-1 transition-colors active:scale-[0.98] lg:inline-flex ' +
             (isActive
-              ? 'bg-emerald-50 text-emerald-800 ring-emerald-200 hover:bg-emerald-100'
-              : 'bg-white text-zinc-700 ring-zinc-200 hover:bg-zinc-50')
+              ? 'bg-emerald-50 text-emerald-800 ring-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/95 dark:text-emerald-200 dark:ring-emerald-700 dark:hover:bg-emerald-900'
+              : 'bg-white text-zinc-700 ring-zinc-200 hover:bg-zinc-50 dark:bg-zinc-900 dark:text-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-800')
           }
         >
-          <Icon size={13} aria-hidden className={isActive ? 'text-emerald-600' : 'text-zinc-500'} />
+          <Icon
+            size={13}
+            aria-hidden
+            className={
+              isActive
+                ? 'text-emerald-600 dark:text-emerald-300'
+                : 'text-zinc-500 dark:text-zinc-300'
+            }
+          />
           <span>{display}</span>
         </button>
       </Popover.Trigger>
@@ -49,7 +57,7 @@ export function TimeSelectorPopover() {
         <Popover.Content
           align="start"
           sideOffset={6}
-          className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 z-50 w-[380px] rounded-xl border border-zinc-200 bg-white shadow-md outline-none"
+          className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 z-50 w-[380px] rounded-xl border border-zinc-200 bg-white shadow-md outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
         >
           <TimeSelectorContent />
         </Popover.Content>
