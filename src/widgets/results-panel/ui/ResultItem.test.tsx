@@ -8,6 +8,7 @@ import { useResultSelection } from '@/features/select-zone';
 
 const c: RouteCandidate = {
   zone_id: 42,
+  address: 'Невский проспект, 1',
   camera_id: null,
   geometry: {
     type: 'Polygon',
@@ -70,9 +71,10 @@ describe('ResultItem (RANK-04 / D-20)', () => {
   });
   it('shows zone_id, free_count/capacity, pay', () => {
     render(wrap(<ResultItem candidate={c} onClick={() => {}} />));
-    expect(screen.getByText(/Зона #42/)).toBeInTheDocument();
+    expect(screen.getByText(/Парковка #42/)).toBeInTheDocument();
     expect(screen.getByText(/5\/12/)).toBeInTheDocument();
     expect(screen.getByText(/150 ₽\/час/)).toBeInTheDocument();
+    expect(screen.getByText('Невский проспект, 1')).toBeInTheDocument();
   });
   it('pay=0 shows «Бесплатно»', () => {
     render(wrap(<ResultItem candidate={{ ...c, pay: 0 }} onClick={() => {}} />));
@@ -83,9 +85,33 @@ describe('ResultItem (RANK-04 / D-20)', () => {
     expect(screen.getByText(/850 м/)).toBeInTheDocument();
     expect(screen.getByText(/4 мин/)).toBeInTheDocument(); // 240 sec / 60 = 4 min
   });
-  it('uses a readable dark hover background', () => {
+  it('uses an opaque dark surface before hover', () => {
     render(wrap(<ResultItem candidate={c} onClick={() => {}} />));
-    expect(screen.getByTestId('result-item-42')).toHaveClass('dark:hover:bg-zinc-800');
+    expect(screen.getByTestId('result-item-42')).toHaveClass('surface-opaque', 'dark:bg-zinc-900');
+  });
+
+  it('synchronizes hover without applying the selected green border', () => {
+    useResultSelection.getState().setResultZoneIds([c.zone_id]);
+    render(wrap(<ResultItem candidate={c} onClick={() => {}} />));
+    const item = screen.getByTestId('result-item-42');
+
+    fireEvent.pointerEnter(item);
+    expect(useResultSelection.getState().hoveredZoneId).toBe(c.zone_id);
+    expect(item).toHaveClass('surface-hovered', 'border-transparent');
+    expect(item).not.toHaveClass('border-emerald-500');
+
+    fireEvent.pointerLeave(item);
+    expect(useResultSelection.getState().hoveredZoneId).toBeNull();
+  });
+
+  it('keeps the last opened parking highlighted after returning to results', () => {
+    useResultSelection.getState().setResultZoneIds([c.zone_id]);
+    useResultSelection.getState().markZoneViewed(c.zone_id);
+    render(wrap(<ResultItem candidate={c} onClick={() => {}} />));
+    expect(screen.getByTestId('result-item-42')).toHaveClass(
+      'surface-selected',
+      'border-emerald-500',
+    );
   });
 
   // 2026-05-26: длинные маршруты конвертируем в часы/дни вместо «4000 мин».
@@ -118,9 +144,12 @@ describe('ResultItem (RANK-04 / D-20)', () => {
     const fn = vi.fn();
     useResultSelection.getState().setResultZoneIds([c.zone_id]);
     render(wrap(<ResultItem candidate={c} onClick={fn} />));
-    fireEvent.click(screen.getByTestId('result-item-42'));
+    const item = screen.getByTestId('result-item-42');
+    fireEvent.pointerEnter(item);
+    fireEvent.click(item);
     expect(fn).toHaveBeenCalledWith(c);
     expect(useResultSelection.getState().lastViewedZoneId).toBe(c.zone_id);
+    expect(useResultSelection.getState().hoveredZoneId).toBeNull();
   });
 
   it('releases focus before the results drawer becomes hidden', () => {

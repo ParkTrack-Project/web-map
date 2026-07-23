@@ -13,6 +13,7 @@ export type ConfidenceLevel = 'very_low' | 'low' | 'medium' | 'high';
 
 export interface ZoneMapItem {
   zone_id: number;
+  address?: string | null;
   zone_type: 'parallel' | 'standard';
   capacity: number;
   occupied: number;

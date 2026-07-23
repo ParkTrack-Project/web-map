@@ -19,9 +19,10 @@
 // - Закрытие карточки (X / outside click) → clearRouteId + closeCard atomically
 import { useEffect, useState } from 'react';
 import { ArrowLeft, X, Lock, Accessibility, Car, MapPin, Navigation } from 'lucide-react';
-import { useSelectedZone } from '@/features/select-zone';
+import { useResultSelection, useSelectedZone } from '@/features/select-zone';
 import { useTimeMode } from '@/features/select-time-mode';
 import {
+  ParkingAddress,
   useZoneByIdQuery,
   useCreateRouteMutation,
   useRouteByIdQuery,
@@ -36,10 +37,12 @@ import { useRouteId, RouteSummaryCard } from '@/widgets/route-preview-summary';
 import { useZoomToZone } from '@/widgets/map-canvas';
 import { formatRelative, useI18n, type MessageKey } from '@/shared/lib/i18n';
 import { Spinner } from '@/shared/ui';
+import { SearchResultDetails } from './SearchResultDetails';
 
 export function ZoneCard() {
   const { t } = useI18n();
   const { selectedZoneId, closeCard } = useSelectedZone();
+  const resultZoneIds = useResultSelection((state) => state.resultZoneIds);
   // D-28: при закрытии карточки — atomic clear ?route + ?sel.
   const { clearRouteId } = useRouteId();
   const handleClose = () => {
@@ -55,7 +58,12 @@ export function ZoneCard() {
     >
       {/* D-08a: key={selectedZoneId} — React reconciliation вместо unmount/remount
           при быстром перетыке зон (race-guard). */}
-      <ZoneCardContent key={selectedZoneId} zoneId={selectedZoneId} onClose={handleClose} />
+      <ZoneCardContent
+        key={selectedZoneId}
+        zoneId={selectedZoneId}
+        onClose={handleClose}
+        navigation={resultZoneIds.includes(selectedZoneId) ? 'back' : 'close'}
+      />
     </aside>
   );
 }
@@ -72,6 +80,23 @@ export function ZoneCardContent({ zoneId, onClose, navigation = 'close' }: Conte
   const { mode, setNow } = useTimeMode();
   const { data, isPending, isError, refetch } = useZoneByIdQuery(zoneId, mode);
   const zoomToZone = useZoomToZone();
+  const { setSelectedZone } = useSelectedZone();
+  const resultCandidates = useResultSelection((state) => state.resultCandidates);
+  const markZoneViewed = useResultSelection((state) => state.markZoneViewed);
+  const setHoveredZone = useResultSelection((state) => state.setHoveredZone);
+  const resultIndex = resultCandidates.findIndex((candidate) => candidate.zone_id === zoneId);
+  const resultCandidate = resultIndex >= 0 ? resultCandidates[resultIndex] : undefined;
+  const { clearRouteId } = useRouteId();
+
+  const selectResult = (index: number) => {
+    const candidate = resultCandidates[index];
+    if (!candidate) return;
+    clearRouteId();
+    setHoveredZone(null);
+    markZoneViewed(candidate.zone_id);
+    setSelectedZone(candidate.zone_id);
+    zoomToZone(candidate.geometry, { zoneId: candidate.zone_id });
+  };
 
   return (
     <div
@@ -107,6 +132,13 @@ export function ZoneCardContent({ zoneId, onClose, navigation = 'close' }: Conte
         )}
       </header>
 
+      <ParkingAddress
+        zoneId={zoneId}
+        geometry={data?.geometry ?? resultCandidate?.geometry}
+        suppliedAddress={data?.address ?? resultCandidate?.address}
+        truncate={false}
+      />
+
       {isPending && <Spinner label={t('zone.loading')} />}
       {isError && (
         <div role="alert" className="rounded bg-red-50 p-3 text-sm text-red-700">
@@ -137,7 +169,21 @@ export function ZoneCardContent({ zoneId, onClose, navigation = 'close' }: Conte
           )}
         </div>
       )}
-      {data && data.is_active !== false && <ZoneCardBody zone={data} mode={mode} />}
+      {data && data.is_active !== false && (
+        <>
+          <ZoneCardBody zone={data} mode={mode} />
+          {resultCandidate && (
+            <SearchResultDetails
+              candidate={resultCandidate}
+              index={resultIndex}
+              total={resultCandidates.length}
+              onPrevious={() => selectResult(resultIndex - 1)}
+              onNext={() => selectResult(resultIndex + 1)}
+            />
+          )}
+          <BuildRouteSection zoneId={data.zone_id} />
+        </>
+      )}
     </div>
   );
 }
@@ -247,9 +293,6 @@ function ZoneCardBody({
           </li>
         )}
       </ul>
-
-      {/* CARD-05 / D-27: Build route mutation + RouteSummaryCard inline. */}
-      <BuildRouteSection zoneId={zone.zone_id} />
     </>
   );
 }

@@ -8,6 +8,8 @@ export type {
 } from './model/zone.types';
 export { fetchZones, fetchZoneById } from './api/zone.api';
 export { useZonesQuery, useZoneByIdQuery } from './queries/zone.queries';
+export { useParkingAddress } from './queries/parking-address.queries';
+export { ParkingAddress } from './ui/ParkingAddress';
 export { timeModeAdapter } from './model/time-mode-adapter';
 export type { TimeModeRequest } from './model/time-mode-adapter';
 export { TimeModeUnavailableError } from './model/time-mode-error';

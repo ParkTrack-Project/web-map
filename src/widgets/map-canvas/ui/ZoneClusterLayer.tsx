@@ -59,6 +59,7 @@ export function ZoneClusterLayer({ zoom }: Props) {
   const theme = usePreferences((state) => state.theme);
   const { selectedZoneId } = useSelectedZone();
   const resultZoneIds = useResultSelection((state) => state.resultZoneIds);
+  const hoveredZoneId = useResultSelection((state) => state.hoveredZoneId);
 
   if (clusters.length === 0) return null;
 
@@ -120,7 +121,14 @@ export function ZoneClusterLayer({ zoom }: Props) {
                   height: size,
                   backgroundColor: clusterColor(cl.freeSum, theme),
                   fontSize: size >= 38 ? 13 : 11,
-                  opacity: shouldDimCluster(cl.zoneIds, selectedZoneId, resultZoneIds) ? 0.38 : 1,
+                  opacity: shouldDimCluster(
+                    cl.zoneIds,
+                    selectedZoneId,
+                    resultZoneIds,
+                    hoveredZoneId,
+                  )
+                    ? 0.38
+                    : 1,
                 }}
               >
                 {cl.freeSum}

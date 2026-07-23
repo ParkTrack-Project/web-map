@@ -6,6 +6,7 @@ import type { PolygonGeometry, LocationType } from './zone.types';
 /** §8.4 RouteCandidate — кандидат на парковку, рассчитанный сервером. */
 export interface RouteCandidate {
   zone_id: number;
+  address?: string | null;
   camera_id: number | null;
   geometry: PolygonGeometry;
   zone_type: 'parallel' | 'standard';

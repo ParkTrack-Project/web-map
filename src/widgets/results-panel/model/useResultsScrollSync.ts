@@ -13,14 +13,18 @@ export function useResultsScrollSync(
 ) {
   const { selectedZoneId } = useSelectedZone();
   const lastViewedZoneId = useResultSelection((state) => state.lastViewedZoneId);
-  const focusedZoneId = selectedZoneId ?? lastViewedZoneId;
-  const lastSyncedRef = useRef<number | null>(null);
+  const hoveredZoneId = useResultSelection((state) => state.hoveredZoneId);
+  const persistentZoneId = selectedZoneId ?? lastViewedZoneId;
+  const lastHoveredRef = useRef<number | null>(null);
+  const lastPersistentRef = useRef<number | null>(null);
   useEffect(() => {
+    const focusedZoneId = hoveredZoneId ?? persistentZoneId;
     if (focusedZoneId == null) return;
+    const lastSyncedRef = hoveredZoneId === null ? lastPersistentRef : lastHoveredRef;
     if (lastSyncedRef.current === focusedZoneId) return;
     const idx = candidates.findIndex((c) => c.zone_id === focusedZoneId);
     if (idx === -1) return; // not in candidates → no scroll
     virtualizer.scrollToIndex(idx, { align: 'center', behavior: 'smooth' });
     lastSyncedRef.current = focusedZoneId;
-  }, [focusedZoneId, candidates, virtualizer]);
+  }, [candidates, hoveredZoneId, persistentZoneId, virtualizer]);
 }

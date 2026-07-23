@@ -13,6 +13,7 @@ const LON_PER_M = 1 / (111_000 * Math.cos((59.9575 * Math.PI) / 180));
 // Облегчённая ZoneMapItem (docs api/parking_zones.mdx §5.5)
 export interface ZoneMapItem {
   zone_id: number;
+  address?: string | null;
   zone_type: 'parallel' | 'standard';
   capacity: number;
   occupied: number;
@@ -127,6 +128,7 @@ export function generateMockZones(opts: GenerateMockZonesOptions = {}): ZoneMapI
 
     zones.push({
       zone_id: i + 1,
+      address: `Кронверкский проспект, ${i + 1}`,
       zone_type,
       capacity,
       occupied,

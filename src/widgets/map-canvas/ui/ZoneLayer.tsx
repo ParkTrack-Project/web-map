@@ -44,6 +44,8 @@ type YMapFeatureProps = {
   style: ReturnType<typeof toDrawingStyle>;
   source: string;
   onClick?: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 };
 
 type YMapFeatureDataSourceProps = {
@@ -75,7 +77,10 @@ function ZoneLayerInner() {
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
   const resultZoneIds = useResultSelection((state) => state.resultZoneIds);
+  const hoveredZoneId = useResultSelection((state) => state.hoveredZoneId);
   const markZoneViewed = useResultSelection((state) => state.markZoneViewed);
+  const setHoveredZone = useResultSelection((state) => state.setHoveredZone);
+  const clearHoveredZone = useResultSelection((state) => state.clearHoveredZone);
   const zoomToZone = useZoomToZone();
   const theme = usePreferences((state) => state.theme);
 
@@ -103,7 +108,7 @@ function ZoneLayerInner() {
           is_active: z.is_active,
           mode: 'now', // Phase 3 forward-compat
           selected: z.zone_id === selectedZoneId, // D-08 highlight
-          dimmed: shouldDimZone(z.zone_id, selectedZoneId, resultZoneIds),
+          dimmed: shouldDimZone(z.zone_id, selectedZoneId, resultZoneIds, hoveredZoneId),
           theme,
         });
 
@@ -120,11 +125,14 @@ function ZoneLayerInner() {
             style={toDrawingStyle(style)}
             source="ptk-zones-standard"
             onClick={() => {
+              clearHoveredZone(z.zone_id);
               markZoneViewed(z.zone_id);
               setSelectedZone(z.zone_id);
               // клик по карте → приближаем к зоне, дотягивая до выхода из кластера
               zoomToZone(z.geometry, { zoneId: z.zone_id });
             }}
+            onMouseEnter={() => setHoveredZone(z.zone_id)}
+            onMouseLeave={() => clearHoveredZone(z.zone_id)}
           />
         );
       })}
