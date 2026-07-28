@@ -8,8 +8,7 @@ import { getZonePalette, MAP_Z } from '@/shared/config';
 import { MapRefContext } from '../model/map-ref-context';
 import { useFilteredZones } from '@/features/viewport-driven-zones';
 import { MAP_MAX_ZOOM } from '@/shared/config';
-import { useZoneClusters } from '../model/useZoneClusters';
-import { clusterBubbleSizePx } from '../model/cluster-zones';
+import { clusterBubbleSizePx, type ZoneCluster } from '../model/cluster-zones';
 import { nextClusterExpansionZoom } from '../model/cluster-expansion';
 import { useI18n } from '@/shared/lib/i18n';
 import { usePreferences } from '@/features/preferences';
@@ -17,6 +16,7 @@ import { shouldDimCluster, useResultSelection, useSelectedZone } from '@/feature
 
 interface Props {
   zoom: number;
+  clusters: readonly ZoneCluster[];
 }
 
 type YMapMarkerProps = {
@@ -50,9 +50,8 @@ function clusterColor(freeSum: number, theme: 'light' | 'dark'): string {
   return zonePalette.freeHigh.stroke;
 }
 
-export function ZoneClusterLayer({ zoom }: Props) {
+export function ZoneClusterLayer({ zoom, clusters }: Props) {
   const { t } = useI18n();
-  const { clusters } = useZoneClusters(zoom);
   const { data: zones = [] } = useFilteredZones();
   const ctx = useContext(MapRefContext);
   const theme = usePreferences((state) => state.theme);

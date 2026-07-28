@@ -9,13 +9,13 @@ import { shouldDimZone, useResultSelection, useSelectedZone } from '@/features/s
 import { zoneCentroid } from '@/shared/lib/geo';
 import { ZONE_BADGE_MIN_ZOOM, MAP_Z } from '@/shared/config';
 import { computeZoneStyle } from '../model/zone-style';
-import { useZoneClusters } from '../model/useZoneClusters';
 import { useI18n } from '@/shared/lib/i18n';
 import { usePreferences } from '@/features/preferences';
 import { useZoomToZone } from '../model/useZoomToZone';
 
 interface Props {
   zoom: number;
+  singletonIds: ReadonlySet<number>;
 }
 
 type YMapMarkerProps = {
@@ -42,14 +42,13 @@ const YMapFeatureDataSource =
 
 const YMapLayer = YMapLayerRaw as unknown as ComponentType<YMapLayerProps>;
 
-export function ZoneBadgesLayer({ zoom }: Props) {
+export function ZoneBadgesLayer({ zoom, singletonIds }: Props) {
   const { t } = useI18n();
   const { data } = useFilteredZones();
   const { selectedZoneId, setSelectedZone } = useSelectedZone();
   const resultZoneIds = useResultSelection((state) => state.resultZoneIds);
   const markZoneViewed = useResultSelection((state) => state.markZoneViewed);
   const zoomToZone = useZoomToZone();
-  const { singletonIds } = useZoneClusters(zoom);
   const theme = usePreferences((state) => state.theme);
 
   if (zoom < ZONE_BADGE_MIN_ZOOM) return null;

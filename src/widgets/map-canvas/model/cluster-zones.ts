@@ -106,18 +106,58 @@ interface Agg {
   key: string;
 }
 
+interface ProjectedAgg {
+  x: number;
+  y: number;
+  radius: number;
+}
+
+// Максимальный диаметр любого cluster bubble вместе с внешним кольцом.
+// Ячейка такого размера гарантирует, что пересекающиеся кружки находятся
+// либо в одной, либо в одной из восьми соседних ячеек.
+const OVERLAP_CELL_PX = clusterBubbleRadiusPx(Number.MAX_SAFE_INTEGER) * 2;
+
 function mergeOnce(aggs: Agg[], zoom: number): boolean {
+  const projected: ProjectedAgg[] = aggs.map((agg) => {
+    const [x, y] = projectWorldPx(agg.sumLon / agg.count, agg.sumLat / agg.count, zoom);
+    return { x, y, radius: clusterBubbleRadiusPx(agg.count) };
+  });
+
+  const grid = new Map<string, number[]>();
+  projected.forEach((point, index) => {
+    const cx = Math.floor(point.x / OVERLAP_CELL_PX);
+    const cy = Math.floor(point.y / OVERLAP_CELL_PX);
+    const key = `${cx}:${cy}`;
+    const bucket = grid.get(key);
+    if (bucket) bucket.push(index);
+    else grid.set(key, [index]);
+  });
+
   for (let i = 0; i < aggs.length; i++) {
     const a = aggs[i]!;
-    const [ax, ay] = projectWorldPx(a.sumLon / a.count, a.sumLat / a.count, zoom);
-    const ra = clusterBubbleRadiusPx(a.count);
-    for (let j = i + 1; j < aggs.length; j++) {
+    const ap = projected[i]!;
+    const cx = Math.floor(ap.x / OVERLAP_CELL_PX);
+    const cy = Math.floor(ap.y / OVERLAP_CELL_PX);
+    const candidates: number[] = [];
+
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        const bucket = grid.get(`${cx + dx}:${cy + dy}`);
+        if (bucket) candidates.push(...bucket);
+      }
+    }
+
+    // Старый полный scan выбирал первую пару по (i, j). Сортировка сохраняет
+    // тот же детерминированный порядок и, следовательно, те же кластеры.
+    candidates.sort((left, right) => left - right);
+    for (const j of candidates) {
+      if (j <= i) continue;
       const b = aggs[j]!;
-      const [bx, by] = projectWorldPx(b.sumLon / b.count, b.sumLat / b.count, zoom);
-      const rsum = ra + clusterBubbleRadiusPx(b.count);
-      const dx = ax - bx;
-      const dy = ay - by;
-      if (dx * dx + dy * dy < rsum * rsum) {
+      const bp = projected[j]!;
+      const rsum = ap.radius + bp.radius;
+      const distanceX = ap.x - bp.x;
+      const distanceY = ap.y - bp.y;
+      if (distanceX * distanceX + distanceY * distanceY < rsum * rsum) {
         a.sumLon += b.sumLon;
         a.sumLat += b.sumLat;
         a.free += b.free;

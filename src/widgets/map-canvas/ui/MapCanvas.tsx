@@ -22,6 +22,7 @@ import {
   useDefault,
 } from '@/shared/lib/ymaps';
 import { useBboxTracking } from '../model/useBboxTracking';
+import { useZoneClusters } from '../model/useZoneClusters';
 import { ZoneLayer } from './ZoneLayer';
 import { ParallelZoneLayer } from './ParallelZoneLayer';
 import { ZoneBadgesLayer } from './ZoneBadgesLayer';
@@ -103,6 +104,7 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
   const theme = usePreferences((state) => state.theme);
 
   const [clusterZoom, setClusterZoom] = useState(zoom);
+  const zoneClusters = useZoneClusters(clusterZoom);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const isHidden = () => !rootRef.current || rootRef.current.offsetParent === null;
@@ -122,7 +124,7 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
   );
 
   useEffect(() => {
-    if (isHidden()) return; // только видимый инстанс сеет ?bbox
+    if (isHidden()) return; // не сеем viewport до завершения responsive-layout
     if (bbox != null) return;
 
     const w = typeof window !== 'undefined' ? window.innerWidth : 1280;
@@ -159,8 +161,7 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
 
         <YMapListener
           onUpdate={({ location }) => {
-            // Только видимый инстанс пишет viewport-URL (см. isHidden выше) —
-            // иначе скрытый 0-размерный MapCanvas пинг-понгует ?bbox/?z.
+            // Не записываем вырожденный viewport во время смены layout.
             if (isHidden()) return;
 
             // Живой дробный зум → квант CLUSTER_ZOOM_STEP для кластер-слоёв.
@@ -190,8 +191,8 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
         <MapGestureLayer />
         <ZoneLayer />
         <ParallelZoneLayer />
-        <ZoneBadgesLayer zoom={clusterZoom} />
-        <ZoneClusterLayer zoom={clusterZoom} />
+        <ZoneBadgesLayer zoom={clusterZoom} singletonIds={zoneClusters.singletonIds} />
+        <ZoneClusterLayer zoom={clusterZoom} clusters={zoneClusters.clusters} />
 
         <RoutePreviewLayer />
         <DestinationMarkerLayer />

@@ -13,8 +13,8 @@ export function useBboxTracking() {
   // Debounced writer — вызывается из YMapListener.onUpdate с актуальными bounds + zoom.
   const writeViewport = useDebouncedCallback((bounds: MapBounds, currentZoom: number) => {
     const next = roundBbox5(bboxFromBounds(bounds));
-    // Игнорируем вырожденный bbox от скрытого (0-размер) MapCanvas — иначе
-    // два инстанса пинг-понгуют ?bbox и зоны мигают (см. шапку файла).
+    // Игнорируем вырожденный bbox от 0-размерного MapCanvas во время
+    // переключения responsive-layout.
     if (next[2] - next[0] < MIN_VIEWPORT_SPAN_DEG || next[3] - next[1] < MIN_VIEWPORT_SPAN_DEG) {
       return;
     }
