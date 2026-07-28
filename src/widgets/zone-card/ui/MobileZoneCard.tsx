@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react';
 import { Drawer } from 'vaul';
 import { useResultSelection, useSelectedZone } from '@/features/select-zone';
 import { useTimeMode } from '@/features/select-time-mode';
@@ -15,6 +15,8 @@ import { mobileZoneMapCenter } from '../model/mobile-zone-center';
 interface MobileZoneCardProps {
   onBackToResults?: () => void;
 }
+
+const MOBILE_ZONE_CARD_MIN_HEIGHT = 112;
 
 export function MobileZoneCard({ onBackToResults }: MobileZoneCardProps) {
   const { t } = useI18n();
@@ -36,9 +38,74 @@ export function MobileZoneCard({ onBackToResults }: MobileZoneCardProps) {
     selectedZoneId !== null && resultZoneIds.includes(selectedZoneId) && !!onBackToResults;
   const mapRefHolder = useContext(MapRefContext);
   const contentRef = useRef<HTMLDivElement>(null);
+  const expandedHeight = useRef(0);
+  const pointerStartY = useRef<number | null>(null);
+  const pointerStartHeight = useRef(0);
+  const latestDragHeight = useRef(0);
 
   const { mode } = useTimeMode();
   const { data: zone } = useZoneByIdQuery(selectedZoneId, mode);
+
+  const centerZoneAboveCard = (sheetHeight: number, duration: number) => {
+    const map = mapRefHolder?.current;
+    if (!map || !zone || zone.is_active === false || !zone.geometry?.coordinates?.[0]?.length)
+      return;
+
+    try {
+      map.setLocation({
+        center: mobileZoneMapCenter(
+          zoneCentroid(zone.geometry),
+          map.zoom,
+          sheetHeight,
+          map.projection,
+        ),
+        duration,
+      });
+    } catch (error) {
+      console.warn('[ptk] mobile pan failed:', error);
+    }
+  };
+
+  const setCardHeight = (height: number, duration = 0) => {
+    if (!contentRef.current) return;
+    contentRef.current.style.height = `${height}px`;
+    latestDragHeight.current = height;
+    document.documentElement.style.setProperty('--bottom-sheet-offset', `${height + 20}px`);
+    centerZoneAboveCard(height, duration);
+  };
+
+  const beginDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const height = contentRef.current?.getBoundingClientRect().height ?? 0;
+    if (height <= 0) return;
+    expandedHeight.current = Math.max(expandedHeight.current, height);
+    pointerStartY.current = event.clientY;
+    pointerStartHeight.current = height;
+    latestDragHeight.current = height;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const continueDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (pointerStartY.current === null || expandedHeight.current <= 0) return;
+    const requestedHeight = pointerStartHeight.current - (event.clientY - pointerStartY.current);
+    const minHeight = Math.min(MOBILE_ZONE_CARD_MIN_HEIGHT, expandedHeight.current);
+    const nextHeight = Math.min(expandedHeight.current, Math.max(minHeight, requestedHeight));
+    setCardHeight(nextHeight);
+  };
+
+  const endDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (pointerStartY.current === null) return;
+    pointerStartY.current = null;
+    centerZoneAboveCard(latestDragHeight.current, 0);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  useEffect(() => {
+    expandedHeight.current = 0;
+    pointerStartY.current = null;
+    if (contentRef.current) contentRef.current.style.removeProperty('height');
+  }, [selectedZoneId]);
 
   useEffect(() => {
     if (!isOpen || !zone || !mapRefHolder?.current) return;
@@ -59,6 +126,9 @@ export function MobileZoneCard({ onBackToResults }: MobileZoneCardProps) {
       const map = mapRefHolder.current;
       const sheetHeight = contentRef.current?.getBoundingClientRect().height ?? 0;
       if (!map) return;
+      expandedHeight.current = Math.max(expandedHeight.current, sheetHeight);
+      latestDragHeight.current = sheetHeight;
+      document.documentElement.style.setProperty('--bottom-sheet-offset', `${sheetHeight + 20}px`);
       try {
         map.setLocation({
           center: mobileZoneMapCenter(zoneCenter, map.zoom, sheetHeight, map.projection),
@@ -79,6 +149,7 @@ export function MobileZoneCard({ onBackToResults }: MobileZoneCardProps) {
         if (!open) handleClose();
       }}
       dismissible
+      handleOnly
       modal={false}
       noBodyStyles
       disablePreventScroll
@@ -93,7 +164,16 @@ export function MobileZoneCard({ onBackToResults }: MobileZoneCardProps) {
           style={{ maxHeight: 'calc(var(--keyboard-aware-height, 100dvh) - 80px)' }}
         >
           <Drawer.Title className="sr-only">{t('zone.card')}</Drawer.Title>
-          <div className="mx-auto my-2 h-1.5 w-12 shrink-0 rounded-full bg-zinc-300" aria-hidden />
+          <div
+            className="flex h-7 shrink-0 cursor-grab touch-none items-center justify-center select-none active:cursor-grabbing"
+            data-testid="mobile-zone-card-drag-region"
+            onPointerDown={beginDrag}
+            onPointerMove={continueDrag}
+            onPointerUp={endDrag}
+            onPointerCancel={endDrag}
+          >
+            <span className="h-1.5 w-12 rounded-full bg-zinc-300 dark:bg-zinc-600" aria-hidden />
+          </div>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[15px]">
             {selectedZoneId != null && (
               <ZoneCardContent
