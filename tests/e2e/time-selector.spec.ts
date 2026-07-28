@@ -12,6 +12,7 @@ async function openTimeSelector(page: Page) {
 
 test.describe('Phase 3 — TimeSelector URL serialization', () => {
   test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
     await openTimeSelector(page);
   });
@@ -54,6 +55,7 @@ test.describe('Phase 3 — TimeSelector URL serialization', () => {
   });
 
   test('Deeplink ?t=past:ISO → segment «Прошлое» pressed при загрузке', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/?t=past:2026-04-22T09:00:00.000Z');
     await openTimeSelector(page);
     await expect(page.getByRole('button', { name: 'Прошлое' })).toHaveAttribute(

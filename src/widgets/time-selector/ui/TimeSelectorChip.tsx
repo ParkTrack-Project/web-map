@@ -25,6 +25,7 @@ export function TimeSelectorChip({ onClick }: Props) {
   return (
     <button
       type="button"
+      data-testid="time-selector-trigger"
       onClick={onClick}
       aria-label={ariaLabel}
       className={
