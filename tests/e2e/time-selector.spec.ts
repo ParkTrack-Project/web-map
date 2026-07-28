@@ -1,10 +1,19 @@
 import { test, expect } from '@playwright/test';
+import type { Page } from '@playwright/test';
+
+test.use({ viewport: { width: 1280, height: 720 } });
+
+async function openTimeSelector(page: Page) {
+  const timeButton = page.getByTestId('time-selector-trigger');
+  await expect(timeButton).toBeVisible({ timeout: 20_000 });
+  await timeButton.click();
+  await expect(page.getByTestId('time-selector-content')).toBeVisible({ timeout: 20_000 });
+}
 
 test.describe('Phase 3 — TimeSelector URL serialization', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: /Время:/ }).click();
-    await expect(page.getByTestId('time-selector-content')).toBeVisible({ timeout: 20_000 });
+    await openTimeSelector(page);
   });
 
   test('Прошлое → URL содержит ?t=past:ISO', async ({ page }) => {
@@ -46,6 +55,7 @@ test.describe('Phase 3 — TimeSelector URL serialization', () => {
 
   test('Deeplink ?t=past:ISO → segment «Прошлое» pressed при загрузке', async ({ page }) => {
     await page.goto('/?t=past:2026-04-22T09:00:00.000Z');
+    await openTimeSelector(page);
     await expect(page.getByRole('button', { name: 'Прошлое' })).toHaveAttribute(
       'aria-pressed',
       'true',
