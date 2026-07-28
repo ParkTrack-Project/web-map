@@ -1,16 +1,3 @@
-// Phase 4 / SEARCH-01 + Quick-fix 2026-05-16 (п.4):
-// Раньше — прямой HTTP-вызов suggest-maps.yandex.ru (отдельный платный продукт
-// Yandex; прод-ключ к нему НЕ подключён → 403/пустой ответ → «поиск ничего не
-// находит»). Теперь — через встроенный `ymaps3.search` (JS-API, авторизуется
-// тем же ключом, что грузит карту). Он сразу отдаёт координаты, поэтому
-// отдельный Geocoder-резолв больше не нужен — coords едут в SuggestResult
-// и потребитель (Desktop/MobileSearchBar) использует их напрямую.
-//
-// Fix 2026-05-26: useResolveCoordinates/geocodeByUri удалены — повторный
-// поиск по `sug.uri` (там был только title, без региона из subtitle) уводил
-// адрес в чужой город (напр. «Ломоносова 9 СПб» → В. Новгород).
-//
-// Публичный контракт (SuggestResult / классы ошибок) сохранён.
 import { searchGeo } from '@/shared/lib/ymaps';
 import { SUGGEST_MIN_QUERY_LENGTH } from '@/shared/config';
 

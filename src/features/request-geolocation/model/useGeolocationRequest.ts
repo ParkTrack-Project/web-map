@@ -1,9 +1,3 @@
-// Phase 4 / WTP-02..05 / D-11..D-13 / Pitfall 4:
-// Promise-wrapper над navigator.geolocation.getCurrentPosition.
-// - вызывается ТОЛЬКО по клику (lifecycle owned by widgets/wtp-cta)
-// - первый запрос экономный; временный POSITION_UNAVAILABLE (в частности,
-//   kCLErrorLocationUnknown на macOS) повторяется с повышенной точностью
-// - error code → discriminated status; error message русский, ready для inline banner (D-12)
 import { useState } from 'react';
 import { GEOLOCATION_TIMEOUT_MS } from '@/shared/config';
 import { useI18n } from '@/shared/lib/i18n';

@@ -1,6 +1,3 @@
-// Phase 4 / ROUTE-07 / D-33:
-// useNavigatorLauncher unit tests — coordinate validation, yandexnavi:// scheme,
-// timer-fallback после 2500ms, window.open для maps web и google maps.
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useNavigatorLauncher } from './useNavigatorLauncher';

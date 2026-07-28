@@ -164,7 +164,6 @@ describe('<ZoneCard /> mode-awareness (TIME-07, Plan 05)', () => {
     );
     expect(screen.queryByTestId('zone-card-inactive')).toBeNull();
     expect(screen.queryByText('Зона неактивна в этот период')).toBeNull();
-    // Реальный рендер (CARD-06 plural «5 мест») — sanity check, что карточка работает.
     expect(screen.getByText(/5 мест/)).toBeInTheDocument();
   });
 });

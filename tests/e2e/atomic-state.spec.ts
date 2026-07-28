@@ -1,6 +1,3 @@
-// Phase 5 D-35 (NFR-08): atomic state — no stale-data flash during simultaneous
-// time + filters + zone changes. ModeTransitionOverlay (Phase 3 + Phase 4 extended)
-// gates rendering until all in-flight queries settle.
 import { test, expect } from '@playwright/test';
 
 test.describe('Atomic state transitions (D-35 NFR-08)', () => {

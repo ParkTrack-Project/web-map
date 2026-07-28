@@ -1,7 +1,3 @@
-// A11Y-03 / D-17: ARIA live region объявляет смену TimeMode для скрин-ридеров.
-// Debounce 500мс (Pitfall #8) — при rapid mode toggle SR не спамит.
-// Lazy initial: первое объявление приходит только после первой СМЕНЫ mode
-// (не при mount), иначе SR зачитает «Режим: Сейчас» при каждом mount страницы.
 import { useEffect, useRef, useState } from 'react';
 import { useTimeMode } from '@/features/select-time-mode';
 import { formatTimeLabel, useI18n } from '@/shared/lib/i18n';

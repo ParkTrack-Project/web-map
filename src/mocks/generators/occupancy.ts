@@ -72,12 +72,6 @@ export function generateOccupancyTimeseries(zones: ZoneMapItem[], at: Date): Occ
   });
 }
 
-// Phase 3 Plan 01 Task 4 (Q1 fix / D-18):
-// ZoneMapItem-shaped snapshot для /occupancy?view=map&at=...
-// Возвращает ПОЛНУЮ зону (geometry/pay/zone_type/etc.) + подменённые
-// occupied/free_count/confidence согласно historical baseline на момент `at`.
-// Это позволяет ZoneLayer/ZoneBadgesLayer рендерить past mode без второго запроса
-// (см. RESEARCH Pitfall #1 — Q1 schema mismatch resolution).
 export function generateOccupancyZoneSnapshot(zones: ZoneMapItem[], at: Date): ZoneMapItem[] {
   const hour = at.getUTCHours();
   const dow = at.getUTCDay();

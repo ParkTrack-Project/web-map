@@ -1,5 +1,3 @@
-// 2026-05-26: контракт formatDurationFromSeconds — естественные единицы
-// «мин / ч мин / д ч», как Яндекс.Карты.
 import { describe, it, expect } from 'vitest';
 import { formatDurationFromSeconds } from './duration';
 
@@ -16,7 +14,7 @@ describe('formatDurationFromSeconds', () => {
   });
 
   it('целые минуты < часа', () => {
-    expect(formatDurationFromSeconds(240)).toBe('4 мин'); // legacy assert ResultItem
+    expect(formatDurationFromSeconds(240)).toBe('4 мин');
     expect(formatDurationFromSeconds(60 * 59)).toBe('59 мин');
   });
 

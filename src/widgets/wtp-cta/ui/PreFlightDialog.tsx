@@ -1,12 +1,3 @@
-// Phase 4 / WTP-03 / D-10:
-// Desktop pre-flight modal через @radix-ui/react-dialog.
-// Текст из CONTEXT D-10 verbatim. Brand-green primary CTA.
-// Pure presentational — request flow lifted to parent (WTPCTAButton) чтобы Permissions API
-// мог пропустить pre-flight при state='granted' и переиспользовать тот же request handler.
-//
-// Fix 2026-05-26: убрана secondary-кнопка «Указать вручную» (по запросу
-// продукта). Manual entry остаётся доступен через поиск в шапке карты —
-// дублирующий путь в pre-flight'е не нужен.
 import * as Dialog from '@radix-ui/react-dialog';
 import { Locate } from 'lucide-react';
 import { useI18n } from '@/shared/lib/i18n';
@@ -28,12 +19,6 @@ export function PreFlightDialog({ open, onOpenChange, onAllow }: PreFlightDialog
   };
 
   return (
-    // Fix 2026-05-30: modal={false}. Modal Radix-диалог вешает `pointer-events: none`
-    // на <body> и после закрытия с async-действием (запрос геолокации + нативный
-    // browser-prompt) иногда НЕ снимает его → вся страница перестаёт ловить клики
-    // («Где припарковаться?» мертва, оживает только после движения карты —
-    // случайный re-layout). Non-modal не лочит body вовсе. Оверлей делаем
-    // pointer-events-none: он лишь затемняет фон, но не блокирует карту/кнопки.
     <Dialog.Root open={open} onOpenChange={onOpenChange} modal={false}>
       <Dialog.Portal>
         <Dialog.Overlay className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 pointer-events-none fixed inset-0 z-[60] bg-black/40" />

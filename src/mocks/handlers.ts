@@ -1,5 +1,3 @@
-// MSW handlers для всех endpoint'ов Phase 1-4.
-// baseUrl берётся из env.VITE_API_BASE_URL (axios с adapter:'fetch' эмитит абсолютные URL).
 import { http, HttpResponse } from 'msw';
 import { env, MAX_PAST_DAYS, MAX_FUTURE_HOURS } from '@/shared/config';
 import { generateMockUserProfile } from './generators/users';
@@ -260,7 +258,7 @@ function buildRoute(body: RoutingSearchBody & { selected_zone_id?: number }): Ro
     selected_candidate: selected,
     eta_seconds,
     arrival_time,
-    polyline: null, // D-29: MVP — straight line на client
+    polyline: null,
     deeplink_url,
     status: 'active',
     created_at,

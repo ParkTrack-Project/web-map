@@ -1,9 +1,3 @@
-// Q1 Schema Fix: /occupancy и /forecasts MSW generators возвращают ZoneMapItem[]
-// для view=map (не узкие OccupancyItem/ForecastItem). Это фундамент Phase 3 —
-// без полной формы ZoneLayer показывает пустую карту в past/future режимах.
-//
-// Тестируем generators напрямую (без поднятия MSW node) — проще и надёжнее
-// в jsdom-окружении. MSW handler logic покрывается через E2E (Plan 04).
 import { describe, it, expect } from 'vitest';
 import { generateOccupancyZoneSnapshot } from '@/mocks/generators/occupancy';
 import { generateForecastZoneSnapshot } from '@/mocks/generators/forecasts';

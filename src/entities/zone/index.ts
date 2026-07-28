@@ -12,7 +12,6 @@ export { timeModeAdapter } from './model/time-mode-adapter';
 export type { TimeModeRequest } from './model/time-mode-adapter';
 export { TimeModeUnavailableError } from './model/time-mode-error';
 
-// Phase 4 routing layer
 export type {
   RouteCandidate,
   Route,

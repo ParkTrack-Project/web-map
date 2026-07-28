@@ -1,5 +1,3 @@
-// Phase 5 D-03 / RESP-05 unit tests.
-// happy-dom (vitest setup) НЕ предоставляет window.visualViewport — мокаем явно.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useVisualViewportHeight } from './useVisualViewportHeight';

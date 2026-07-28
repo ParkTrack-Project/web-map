@@ -1,7 +1,3 @@
-// Phase 2 Plan 03 — types для всех 7 фильтров (FILTER-01..07).
-// Дефолты согласованы с D-09: hideInactive default ON, всё остальное OFF.
-// minConf=0 (без ограничения), maxPay=null (без ограничения), locationType=[] (все типы).
-
 export type LocationType = 'street' | 'yard' | 'open_lot' | 'underground' | 'multilevel';
 
 export const ALL_LOCATION_TYPES: readonly LocationType[] = [
@@ -13,14 +9,14 @@ export const ALL_LOCATION_TYPES: readonly LocationType[] = [
 ] as const;
 
 export interface ZoneFilters {
-  hideNoFree: boolean; // FILTER-01 default false
+  hideNoFree: boolean;
   minFreeCount: number;
-  minConf: number; // FILTER-02 default 0 (no min)
-  maxPay: number | null; // FILTER-03 default null (no max)
-  hidePrivate: boolean; // FILTER-04 default false
-  hideAccessible: boolean; // FILTER-05 default false
-  locationType: LocationType[]; // FILTER-06 default [] (все видимы)
-  hideInactive: boolean; // FILTER-07 default true (D-09 default ON)
+  minConf: number;
+  maxPay: number | null;
+  hidePrivate: boolean;
+  hideAccessible: boolean;
+  locationType: LocationType[];
+  hideInactive: boolean;
 }
 
 export const DEFAULT_FILTERS: ZoneFilters = {

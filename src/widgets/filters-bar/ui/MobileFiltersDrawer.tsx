@@ -1,7 +1,3 @@
-// D-06 / D-10: высокий drawer для mobile workflow фильтров.
-// На мобильном popover'ы не используются — slider'ы и
-// чек-боксы как form-list. Reset-кнопка находится в заголовке. Apply-кнопки нет —
-// изменения применяются live (FILTER-08 «без перезагрузки»).
 import { Drawer } from 'vaul';
 import { useFiltersHydration, useFilters } from '@/features/filter-zones';
 import { ALL_LOCATION_TYPES, type LocationType } from '@/entities/filters';
@@ -16,8 +12,6 @@ interface Props {
 export function MobileFiltersDrawer({ open, onOpenChange }: Props) {
   const { t } = useI18n();
   useFiltersHydration();
-  // Phase 5 D-03: side-effect — sets --keyboard-aware-height на :root, чтобы
-  // sheet content не уходил под on-screen keyboard на iOS Safari.
   useVisualViewportHeight();
   const f = useFilters();
 

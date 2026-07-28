@@ -45,10 +45,6 @@ const c: RouteCandidate = {
 };
 
 function wrap(children: React.ReactNode, map: YMapInstance | null = null) {
-  // 2026-06-06: ResultItem → useZoomToZone теперь читает useFilteredZones
-  // (нужны зоны для «зума разъединения»), а тот вызывает useZonesQuery →
-  // требуется QueryClientProvider. Без ?bbox запрос disabled (data undefined),
-  // расчёт разъединения тихо пропускается — поведение item'а не меняется.
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const mapRef = { current: map };
   return (
@@ -127,7 +123,6 @@ describe('ResultItem (RANK-04 / D-20)', () => {
     );
   });
 
-  // 2026-05-26: длинные маршруты конвертируем в часы/дни вместо «4000 мин».
   it('конвертирует длинную поездку: 4000 мин (≈240000с) → «2 д 18 ч»', () => {
     render(
       wrap(

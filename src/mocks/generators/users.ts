@@ -1,4 +1,3 @@
-// Mock-пользователь для /users/me. Форма соответствует docs-website/docs/api/users.mdx §2.4.
 export interface MockUserProfile {
   user: {
     user_id: number;

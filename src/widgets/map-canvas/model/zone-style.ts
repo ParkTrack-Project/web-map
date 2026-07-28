@@ -1,13 +1,3 @@
-// MAP-08 + ZONE-02 + D-01/D-08: семантическая раскраска зон.
-//
-// Ключ кеша: (zoneId, free_count, confidence, is_active, mode, selected) —
-// все 6 параметров, которые могут изменить визуал. Memoized — без аллокации
-// стилей per render (PITFALLS #2 в RESEARCH.md, MAP-08).
-//
-// Phase 1 был STUB (нейтрально-серый). Phase 2 Plan 01 Task 2 включает
-// семантику D-01 + selected: 3px stroke (D-08). Outer-glow рисуется как
-// дублирующий feature в ZoneLayer (Plan 02 wires selected по-настоящему,
-// сейчас Plan 01 ставит selected=false для всех — см. ZoneLayer.tsx).
 import { getZonePalette, CONFIDENCE_THRESHOLD } from '@/shared/config/zone-palette';
 
 export type StyleKey = {

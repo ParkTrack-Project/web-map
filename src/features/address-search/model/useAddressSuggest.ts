@@ -1,15 +1,3 @@
-// Phase 4 / SEARCH-01..02 / D-01..D-03:
-// Debounced TanStack Query поверх suggestAddresses (shared/lib/yandex).
-// - debounce 300ms через use-debounce (Phase 1 dep)
-// - min length 2 — enforce'итcя в suggestAddresses + здесь дополнительно (enabled gate)
-// - на 429 / 5xx — error прокинут в caller (toast в widget)
-// - AbortSignal автоматически от TanStack Query при смене queryKey (cancellation на typing)
-// - retry:false — на 429 ждём пользовательского нового ввода (или 60s manual retry в widget)
-//
-// Bbox даёт nearby-first выдачу, но suggestAddresses также делает глобальный
-// поиск и добавляет дальние уникальные результаты после локальных.
-// bbox в queryKey округлён до 1 знака (~11км) — чтобы микропан не инвалидил
-// кэш на каждом дрейфе карты, при этом смена района перезагружает подсказки.
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useDebounce } from 'use-debounce';

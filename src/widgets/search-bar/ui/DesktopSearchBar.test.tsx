@@ -1,4 +1,3 @@
-// Phase 4 / SEARCH-01..03 / D-04 (TDD).
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

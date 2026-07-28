@@ -1,10 +1,6 @@
-// Phase 5 D-21 (UX-05): every useQuery/useMutation must have onError or throwOnError.
 import { describe, expect, it } from 'vitest';
 import { Project, SyntaxKind, type CallExpression } from 'ts-morph';
 
-// Mirror Plan 05-03 W-1 / Plan 05-02 ambient-declare philosophy: vitest is Node,
-// but app tsconfig.app.json (which включает tests/) НЕ имеет @types/node — чтобы
-// исключить Buffer/fs из app surface. Объявляем минимальные symbols локально.
 declare const process: { cwd(): string };
 
 describe('No silent failures (D-21)', () => {

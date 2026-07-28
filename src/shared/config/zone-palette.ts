@@ -1,9 +1,3 @@
-// D-01: 5-цветная OkLCH-сбалансированная палитра, colorblind-safe (Deuteranopia +
-// Protanopia). Hex'ы выбраны вручную с alpha для fill, solid для stroke.
-// Контрастность бейджа на жёлтом / светло-зелёном требует непрозрачного белого
-// фона (D-20 — реализуется в ZoneBadgesLayer).
-// Phase 5: UI-kit Миши заменит values, не consumers — палитра подключается только
-// через named tokens, поэтому замена value не сломает downstream.
 export interface ZonePalette {
   inactive: { fill: string; stroke: string };
   full: { fill: string; stroke: string };
@@ -24,7 +18,6 @@ export const zonePalette: ZonePalette = {
   freeLow: { fill: '#86efac96', stroke: '#2d8714' },
   // free_count>=2 && confidence >= CONFIDENCE_THRESHOLD — ParkTrack brand green
   freeHigh: { fill: '#16a34aaa', stroke: '#155e2a' },
-  // D-08 — outer-glow для selected zone (альфа 0.3 на brand-green)
   selected: { stroke: '#16a34a', glow: '#16a34a4d' },
 };
 

@@ -1,10 +1,3 @@
-// FILTER-08 / D-12 / TIME-05: один query на (viewport + filters + mode).
-// Phase 3 Plan 04: mode читается из useTimeMode() (URL ?t=...) — atomic mode-switch
-// через TanStack queryKey ['zones', mode, ...].
-//
-// FSD: features → entities (zone) + features (filter-zones, select-time-mode) импорты
-// — допустимо для downward feature dependencies (через barrel'ы), горизонтальных
-// циклов нет.
 import { useMemo } from 'react';
 import { useQueryState } from 'nuqs';
 import { parseAsBbox } from '@/shared/lib/url';

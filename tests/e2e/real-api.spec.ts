@@ -1,35 +1,13 @@
-// Phase 5 D-16: real-API smoke. Run manually via `npm run test:e2e:real-api`.
-// NOT in default CI. Asserts SHAPE only (real API may return 0 zones in test bbox).
-// Failures should be logged to `phase-05-uat/real-api-smoke.log` for Niki coordination.
-//
-// Scope: smoke covers all 6 endpoints used by web-map MVP:
-//   1. GET /zones?bbox=...&view=map
-//   2. GET /zones/<id>
-//   3. GET /occupancy?view=map&at=...
-//   4. GET /forecasts?view=map&at=...
-//   5. POST /routing/search
-//   6. POST /routing/new
-// Plus 1 filter-coverage test (D-17) verifying real API accepts all 7 filter params.
-//
-// Per D-18 — if any of these tests reveal shape divergence vs our `Zone` interface
-// (web-map/src/entities/zone/model/zone.types.ts), Plan 05-05 should create
-// entities/zone/api/normalizers.ts. No normalizer is created speculatively.
 import { test, expect } from '@playwright/test';
 
-// Spec runs only under Playwright (Node runtime). The app tsconfig does not
-// include "node" in `types` (intentional — keeps app strict), so we declare
-// just the slice of `process` we need rather than polluting global types.
-// Mirrors Plan 05-02 W-1 fix philosophy (avoid global type pollution).
 declare const process: { env: Record<string, string | undefined> };
 
 const API_BASE = process.env.VITE_API_BASE_URL ?? 'https://api.parktrack.live';
-// Saint-Petersburg ITMO area bbox (matches Phase 1 ITMO_CENTER constants).
 const BBOX_SPB = '30.30,59.95,30.32,59.97';
 // Past timestamp for /occupancy (1 hour ago, ISO with Z suffix).
 const PAST_AT = new Date(Date.now() - 3600_000).toISOString();
 // Future timestamp for /forecasts (1 hour from now).
 const FUTURE_AT = new Date(Date.now() + 3600_000).toISOString();
-// ITMO origin point (matches Phase 4 ITMO_CENTER for routing tests).
 const ITMO_ORIGIN = { latitude: 59.9575, longitude: 30.3086 };
 
 test.describe('Real API smoke (D-16)', () => {

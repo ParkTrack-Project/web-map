@@ -1,6 +1,3 @@
-// Phase 4 / D-26 / RANK-07:
-// Memo'd selector. Перерендерится только при изменении candidates или filters.
-// Используется внутри ResultsList после useRoutingSearch.
 import { useMemo } from 'react';
 import type { RouteCandidate } from '@/entities/zone';
 import { useFilters } from './useFilters';

@@ -1,7 +1,3 @@
-// Phase 5 D-25 (A11Y-06): @axe-core/playwright critical-only scan.
-// D-26: critical blocks merge; serious/moderate → backlog (a11y-backlog.md).
-// W-2 fix: backlog is human-curated; this spec only console.warn's serious findings
-//          (no fs writes — backlog file is edited manually after CI run).
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 

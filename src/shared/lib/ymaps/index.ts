@@ -1,14 +1,3 @@
-// THE single load-bearing module touching window.ymaps3 (Anti-Pattern #5: больше нигде в src/
-// нельзя ссылаться на window.ymaps3 — всё через этот barrel).
-//
-// FOUND-03: Yandex Maps API v3 загружается как runtime-only через CDN-script здесь.
-// Внешние пакеты UI-контролов НЕ импортируем обычным Vite import(...).
-// Их нужно грузить через ymaps3.import(...), предварительно зарегистрировав CDN-loader.
-//
-// Pitfall #1 (imperative desync): location и другие "controlled" props НЕ применяются повторно.
-// Используйте reactify.useDefault для controlled-биндингов или onUpdate-callback для чтения.
-// При необходимости управления location снаружи — обновляйте через map ref напрямую,
-// иначе React будет переписывать состояние карты.
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 

@@ -1,7 +1,3 @@
-// ZONE-05 / D-03: collapsible <details>-карточка в bottom-left.
-// По умолчанию СВЁРНУТА — новый пользователь видит компактный chip «Легенда» и
-// открывает по клику. Раньше open by default занимало много места карты + перекрывало
-// контролы. Compact triggered open: max-w-[260px], меньшие swatches, tighter padding.
 import { getZonePalette } from '@/shared/config';
 import { useI18n, type MessageKey } from '@/shared/lib/i18n';
 import { usePreferences } from '@/features/preferences';

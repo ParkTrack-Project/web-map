@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Кнопка компаса</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      background: #f2f1ef;
+    }
+
+    .compass-button {
+      width: 52px;
+      height: 52px;
+      padding: 0;
+
+      display: grid;
+      place-items: center;
+
+      border: none;
+      border-radius: 50%;
+      background: #ffffff;
+
+      box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.14),
+        0 2px 5px rgba(0, 0, 0, 0.08);
+
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .compass-button:active {
+      transform: scale(0.97);
+    }
+
+    .compass-icon {
+      width: 23px;
+      height: 31px;
+      display: block;
+
+      transform-origin: 50% 50%;
+      transition: transform 140ms linear;
+      will-change: transform;
+
+      shape-rendering: geometricPrecision;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .compass-icon {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <button
+    class="compass-button"
+    id="compassButton"
+    type="button"
+    aria-label="Вернуть карту севером вверх"
+  >
+    <svg
+      class="compass-icon"
+      id="compassIcon"
+      viewBox="0 0 32 44"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <!-- Красная северная часть -->
+      <path
+        d="M5 22
+           L16 0
+           L28 22
+           Z"
+        fill="#ff2f27"
+      />
+
+      <!-- Серая южная часть -->
+      <path
+        d="
+           M5 22
+           L16 44
+           L28 22
+           Z"
+        fill="#bfc1c3"
+      />
+
+      <!-- Белая центральная ось -->
+      <circle
+        cx="16.25"
+        cy="22.25"
+        r="4"
+        fill="#ffffff"
+      />
+    </svg>
+  </button>
+</body>
+</html>

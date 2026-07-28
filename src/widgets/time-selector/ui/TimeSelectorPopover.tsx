@@ -1,11 +1,3 @@
-// TIME-03 desktop / D-01 / D-03:
-// Floating compact pill в top-4 left-4 (зеркало FiltersFAB справа на mobile).
-// При клике открывается Radix Popover с TimeSelectorContent — экономит
-// vertical space карты (раньше strip занимал ~120px сверху).
-//
-// UI iter 2: убран backdrop-blur (создавал лишний halo на карте), shadow
-// снижен до shadow-md, animation = fade-only (без zoom-in/out — на карте
-// zoom выглядел как «замыливание»).
 import * as Popover from '@radix-ui/react-popover';
 import { Clock, History, TrendingUp } from 'lucide-react';
 import { useTimeMode } from '@/features/select-time-mode';
@@ -16,8 +8,6 @@ export function TimeSelectorPopover() {
   const { t, language } = useI18n();
   const { mode } = useTimeMode();
   const Icon = mode.kind === 'past' ? History : mode.kind === 'future' ? TrendingUp : Clock;
-  // Quick task 260426-hhb: short-form display (без «История на »/«Прогноз на »
-  // prefix-text) — consistency с TimeSelectorChip mobile.
   const fullLabel = formatTimeLabel(mode, language);
   const display =
     mode.kind === 'now'

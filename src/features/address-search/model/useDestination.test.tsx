@@ -1,5 +1,3 @@
-// Phase 4 / URL-05 / D-17 (TDD RED):
-// Tests for useDestination — initial null, set/clear через nuqs adapter.
 import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';

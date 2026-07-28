@@ -1,5 +1,3 @@
-// Phase 4 / D-31 / ROUTE-05: RouteSummaryCard tests.
-// Pre-hydrated TanStack cache with fakeRoute → ?route=7001 → expected text rendered.
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -19,7 +17,6 @@ const fakeRoute: Route = {
   selected_candidate: {
     zone_id: 42,
     camera_id: null,
-    // W-5 fix: 4 distinct vertices + closing — реалистичный quad.
     geometry: {
       type: 'Polygon',
       coordinates: [
@@ -84,7 +81,6 @@ describe('RouteSummaryCard (D-31 / ROUTE-05)', () => {
     expect(screen.getByText(/4 мин/)).toBeInTheDocument();
   });
 
-  // 2026-05-26: длинные маршруты не отображаем в минутах (раньше было «4000 мин»).
   it('конвертирует длинный ETA: 4000 мин → «2 д 18 ч», без «мин»-портянки', () => {
     const qc = new QueryClient();
     qc.setQueryData(['route', 7001], { ...fakeRoute, eta_seconds: 4000 * 60 });

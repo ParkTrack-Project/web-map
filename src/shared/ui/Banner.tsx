@@ -1,12 +1,3 @@
-// Phase 5 D-13 (UX-05): inline banner для cases где Sonner toast не достигает
-// (например, внутри vaul Drawer с focus trap — Pitfall 3).
-//
-// Usage:
-//   <Banner variant="error" onDismiss={() => clearError()}>
-//     Не удалось загрузить детали зоны
-//   </Banner>
-//
-// 44x44 tap target на dismiss-кнопке (Plan 05-01 RESP-06 / WCAG 2.5.5).
 import { clsx } from 'clsx';
 import type { ReactNode } from 'react';
 import { useI18n } from '@/shared/lib/i18n';

@@ -1,6 +1,3 @@
-// Phase 4 / RANK-04 / D-20:
-// List-item layout. data-testid="result-item-${zone_id}" для E2E + scroll-sync.
-// Лучший вариант badge — brand-green с иконкой Star (D-21).
 import { Star, MapPin, Target } from 'lucide-react';
 import type { RouteCandidate } from '@/entities/zone';
 import { useResultSelection, useSelectedZone } from '@/features/select-zone';
@@ -21,9 +18,6 @@ export function ResultItem({ candidate: c, onClick }: ResultItemProps) {
   const isSelected =
     selectedZoneId === c.zone_id || (selectedZoneId === null && lastViewedZoneId === c.zone_id);
   const isBest = c.rank === 1;
-  // 2026-05-26: единый форматтер длительности — «4 мин», «1 ч 30 мин»,
-  // «2 д 18 ч». Раньше всегда печаталось в минутах → дальние маршруты
-  // показывали «4000 мин» вместо «2 д 18 ч».
   const durationLabel = formatDurationFromSeconds(c.duration_from_origin_seconds, language);
   const originDistanceLabel = formatDistanceFromMeters(c.distance_from_origin_meters, language);
   const destinationDistanceLabel =

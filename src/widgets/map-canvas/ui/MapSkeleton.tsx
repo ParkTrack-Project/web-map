@@ -1,5 +1,3 @@
-// UX-01: лёгкий skeleton, отображается через Suspense, пока MapCanvas-чанк
-// и top-level await @/shared/lib/ymaps инициализируются.
 import { useI18n } from '@/shared/lib/i18n';
 
 export function MapSkeleton() {

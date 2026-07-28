@@ -1,6 +1,3 @@
-// Phase 4 / ROUTE-06 / D-32 mobile vaul Drawer.
-// 3 кнопки (Яндекс Навигатор autoFocus / Яндекс Карты web / Google Maps) + Отмена.
-// 44×44 tap targets per A11Y guidelines (min-h-[44px]).
 import { useState } from 'react';
 import { Drawer } from 'vaul';
 import { Navigation, ArrowRightCircle } from 'lucide-react';

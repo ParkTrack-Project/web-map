@@ -1,5 +1,3 @@
-// Pitfall #6: datetime-local helpers — local↔UTC roundtrip без off-by-tz ошибок.
-// «2026-04-25T17:00» (local) → ISO UTC → обратно в «2026-04-25T17:00» (для input).
 import { describe, it, expect } from 'vitest';
 import { inputValueToUtcIso, utcIsoToInputValue } from '@/shared/lib/i18n';
 

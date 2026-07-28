@@ -1,13 +1,3 @@
-// Phase 5 D-03 (RESP-05): keyboard-aware viewport height для mobile.
-// iOS Safari НЕ обновляет 100dvh при появлении on-screen keyboard
-// (Pitfall 1 RESEARCH §1) — только visualViewport API даёт честную динамическую
-// высоту. Хук возвращает текущую vv.height в px и устанавливает
-// CSS-переменную --keyboard-aware-height на :root, чтобы CSS-only потребители
-// могли использовать `max-height: calc(var(--keyboard-aware-height, 100dvh) - 80px)`
-// без JS-prop drilling.
-//
-// Side-effect-only по умолчанию (return value игнорируется потребителями).
-// SSR-safe: возвращает 0 при typeof window === 'undefined'.
 import { useEffect, useState } from 'react';
 
 export function useVisualViewportHeight(): number {

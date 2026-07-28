@@ -68,11 +68,6 @@ export function generateForecasts(zones: ZoneMapItem[], at: Date): ForecastItem[
   });
 }
 
-// Phase 3 Plan 01 Task 4 (Q1 fix / D-19):
-// ZoneMapItem-shaped forecast snapshot для /forecasts?view=map&at=...
-// confidence ниже occupancy, noise шире (горизонт-зависимо). Возвращает
-// полную зону (geometry/pay/zone_type/etc.) с подменёнными time-skewed
-// occupied/free_count/confidence — ZoneLayer рендерит future mode без второго запроса.
 export function generateForecastZoneSnapshot(zones: ZoneMapItem[], at: Date): ZoneMapItem[] {
   const hour = at.getUTCHours();
   const dow = at.getUTCDay();

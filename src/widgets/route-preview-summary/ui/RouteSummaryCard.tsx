@@ -1,13 +1,3 @@
-// Phase 4 / ROUTE-05 / D-31:
-// ETA + distance + arrival summary + [В путь] CTA → opens deeplink menu.
-// Mounted parent'ом когда ?route присутствует (parent ZoneCardBody уже gates).
-//
-// - eta_seconds → formatDurationFromSeconds: «N мин» / «N ч M мин» / «N д M ч»
-//   (Fix 2026-05-26: раньше всегда печатали в минутах → 4000 мин для длинных маршрутов)
-// - distance → Intl.NumberFormat ru-RU: метры, либо километры при ≥ 1000 м
-// - arrival_time → Intl.DateTimeFormat HH:MM с timeZone:'Europe/Moscow' → «Прибытие в HH:MM МСК»
-// - coordsValid := isValidCoords(from) && isValidCoords([zoneLat, zoneLon])
-//   зашит в DesktopDeeplinkPopover/MobileDeeplinkSheet (disabled trigger при !coordsValid).
 import { useEffect, useMemo } from 'react';
 import { Clock, Ruler } from 'lucide-react';
 import { useRouteByIdQuery } from '@/entities/zone';
@@ -32,7 +22,6 @@ export function RouteSummaryCard() {
 
   const zoneCenterLatLon = useMemo<[number, number] | null>(() => {
     if (!route) return null;
-    // W-4 fix: minimal-shape принимается напрямую.
     const [lon, lat] = zoneCentroid(route.selected_candidate.geometry);
     return [lat, lon];
   }, [route]);

@@ -1,6 +1,3 @@
-// Quick-fix 2026-05-16 (п.4): suggestAddresses теперь поверх ymaps3.search
-// (JS-API), а не HTTP suggest-maps. @/shared/lib/ymaps глобально замокан в
-// tests/setup.ts (searchGeo: vi.fn) — переопределяем per-case.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { searchGeo } from '@/shared/lib/ymaps';
 import { suggestAddresses, SuggestApiError } from './suggest';

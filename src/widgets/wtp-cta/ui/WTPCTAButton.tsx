@@ -1,13 +1,3 @@
-// Phase 4 / WTP-01 / D-08 / CO-01 (B-4 fix):
-// Desktop primary CTA. Inline-flex within parent flex-row in DesktopLayout (CO-01 fix).
-// Permissions API skip-logic: если user уже разрешил геолокацию ранее (state='granted'),
-// при click пропускаем pre-flight modal и сразу запрашиваем координаты — explainer
-// показывается ТОЛЬКО при первом запросе (когда state='prompt' или 'denied').
-// Request flow владеется здесь, передаётся в PreFlightDialog как onAllow prop.
-// НЕ вызывает getCurrentPosition при mount (WTP-02 enforcement).
-//
-// Fix 2026-05-26: пропс `onManualEntry` удалён — кнопка «Указать вручную» из
-// PreFlightDialog убрана, callback некому вызывать.
 import { useCallback } from 'react';
 import { Z_INDEX } from '@/shared/config';
 import { ClassicCarIcon } from '@/shared/ui';
@@ -31,8 +21,6 @@ async function isGeolocationAlreadyGranted(): Promise<boolean> {
 
 export function WTPCTAButton() {
   const { t } = useI18n();
-  // Quick-fix 2026-05-16: open вынесен в общий стор — SearchBar открывает это
-  // же окно после выбора адреса.
   const open = useWtpPrompt((s) => s.open);
   const setOpen = useWtpPrompt((s) => s.setOpen);
   const { request, state } = useGeolocationRequest();

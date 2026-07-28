@@ -1,27 +1,3 @@
-// Quick-fix 2026-05-17: непрерывная (scale-adaptive) кластеризация зон.
-//
-// Раньше было ДВА жёстких режима через CLUSTER_ZOOM_THRESHOLD=14: zoom<14 —
-// всё схлопнуто в grid-кружки, zoom>=14 — НИ одной кластеризации (каждая зона
-// своим бейджем, даже если бейджи налезают друг на друга — см. скрин с 4
-// парковками впритык). Пользователь просил: степень группировки должна
-// подбираться под масштаб, на любом зуме показываем максимум РАЗЛИЧИМЫХ точек,
-// а при отдалении точки СЛИВАЮТСЯ ПОСТЕПЕННО, по одной.
-//
-// Решение: на каждом зуме проецируем центроиды в world-пиксели (Web Mercator,
-// slippy-схема — та же, что у Яндекс-вектора без наклона) и single-link
-// кластеризуем всё, что ближе CLUSTER_MERGE_PX пикселей. Порог в ПИКСЕЛЯХ →
-// при отдалении один и тот же гео-зазор даёт меньше px → группы растут;
-// при приближении px-зазор растёт → кластеры распадаются по одной зоне.
-// Никакого бинарного порога зума: переход непрерывный.
-//
-// zoneCount===1 → зона рисуется как обычно (полигон + бейдж, точно).
-// zoneCount>1   → агрегированный кружок (сумма свободных, число парковок),
-//                 а её зоны-участники из полигон/бейдж-слоёв исключаются.
-//
-// n≈200 зон → grid-hash (ячейка = радиус слияния) + проверка 9 соседних
-// ячеек — O(n) на практике, чинит «соседние точки по разные стороны линии
-// сетки не слились» (баг старой grid-only схемы и причина 4 несведённых
-// парковок на скрине).
 import type { ZoneMapItem } from '@/entities/zone';
 import { zoneCentroid } from '@/shared/lib/geo';
 
@@ -56,8 +32,6 @@ export function clusterBubbleSizePx(zoneCount: number): number {
   return Math.min(28 + Math.floor(zoneCount / 4) * 4, 44);
 }
 
-// Радиус занимаемого кружком места: половина диаметра + 2px кольцо (ring-2).
-// Два кружка перекрываются ⇔ dist(центров) < rA + rB.
 const CLUSTER_RING_PX = 2;
 function clusterBubbleRadiusPx(zoneCount: number): number {
   return clusterBubbleSizePx(zoneCount) / 2 + CLUSTER_RING_PX;
@@ -132,26 +106,58 @@ interface Agg {
   key: string;
 }
 
-// Пост-проход: если НАРИСОВАННЫЕ кружки физически перекрываются
-// (dist(центров) < rA + rB на текущем зуме), сливаем их в один. Радиус
-// зависит от count → после слияния растёт → может зацепить соседей: гоняем
-// до фикспоинта. Перекрытые кружки всё равно неразличимы, поэтому слияние
-// имеет приоритет над потолком свободных мест (iter.4) — сумма свободных в
-// слитой ноде может превысить cap, это норм (визуальная корректность важнее).
-// Одна попытка слить первую же перекрывающуюся пару. true — слили (надо
-// повторить, т.к. радиус вырос и мог зацепить соседей).
+interface ProjectedAgg {
+  x: number;
+  y: number;
+  radius: number;
+}
+
+// Максимальный диаметр любого cluster bubble вместе с внешним кольцом.
+// Ячейка такого размера гарантирует, что пересекающиеся кружки находятся
+// либо в одной, либо в одной из восьми соседних ячеек.
+const OVERLAP_CELL_PX = clusterBubbleRadiusPx(Number.MAX_SAFE_INTEGER) * 2;
+
 function mergeOnce(aggs: Agg[], zoom: number): boolean {
+  const projected: ProjectedAgg[] = aggs.map((agg) => {
+    const [x, y] = projectWorldPx(agg.sumLon / agg.count, agg.sumLat / agg.count, zoom);
+    return { x, y, radius: clusterBubbleRadiusPx(agg.count) };
+  });
+
+  const grid = new Map<string, number[]>();
+  projected.forEach((point, index) => {
+    const cx = Math.floor(point.x / OVERLAP_CELL_PX);
+    const cy = Math.floor(point.y / OVERLAP_CELL_PX);
+    const key = `${cx}:${cy}`;
+    const bucket = grid.get(key);
+    if (bucket) bucket.push(index);
+    else grid.set(key, [index]);
+  });
+
   for (let i = 0; i < aggs.length; i++) {
     const a = aggs[i]!;
-    const [ax, ay] = projectWorldPx(a.sumLon / a.count, a.sumLat / a.count, zoom);
-    const ra = clusterBubbleRadiusPx(a.count);
-    for (let j = i + 1; j < aggs.length; j++) {
+    const ap = projected[i]!;
+    const cx = Math.floor(ap.x / OVERLAP_CELL_PX);
+    const cy = Math.floor(ap.y / OVERLAP_CELL_PX);
+    const candidates: number[] = [];
+
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        const bucket = grid.get(`${cx + dx}:${cy + dy}`);
+        if (bucket) candidates.push(...bucket);
+      }
+    }
+
+    // Старый полный scan выбирал первую пару по (i, j). Сортировка сохраняет
+    // тот же детерминированный порядок и, следовательно, те же кластеры.
+    candidates.sort((left, right) => left - right);
+    for (const j of candidates) {
+      if (j <= i) continue;
       const b = aggs[j]!;
-      const [bx, by] = projectWorldPx(b.sumLon / b.count, b.sumLat / b.count, zoom);
-      const rsum = ra + clusterBubbleRadiusPx(b.count);
-      const dx = ax - bx;
-      const dy = ay - by;
-      if (dx * dx + dy * dy < rsum * rsum) {
+      const bp = projected[j]!;
+      const rsum = ap.radius + bp.radius;
+      const distanceX = ap.x - bp.x;
+      const distanceY = ap.y - bp.y;
+      if (distanceX * distanceX + distanceY * distanceY < rsum * rsum) {
         a.sumLon += b.sumLon;
         a.sumLat += b.sumLat;
         a.free += b.free;
@@ -166,7 +172,6 @@ function mergeOnce(aggs: Agg[], zoom: number): boolean {
 }
 
 function mergeOverlapping(aggs: Agg[], zoom: number): Agg[] {
-  // ≤ N-1 слияний (каждое убирает один agg) → гарантированно сходится.
   while (mergeOnce(aggs, zoom));
   return aggs;
 }

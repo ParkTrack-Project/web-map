@@ -1,18 +1,3 @@
-// TIME-03 / Quick task 260426-hhb (SUPERSEDES D-03):
-// Single picker — без segmented control past/now/future.
-//
-// Структура:
-//   - Один <input type="datetime-local"> ВСЕГДА видим (пустое значение когда mode=now)
-//   - Объединённый chip-список (PRESETS из Task 1) ВСЕГДА видим
-//   - Reset «Сейчас» CTA — conditional, появляется только когда mode != now
-//   - Inline out-of-range message (D-10) — role="status" data-testid="out-of-range-msg"
-//
-// Mode derivation: setMode принимает derived mode через deriveMode(at, Date.now()).
-// Tap по chip → applyPreset → setMode(deriveMode(at)).
-// Tap по input → onChange → inputValueToUtcIso → setMode(deriveMode(iso)).
-//
-// B-4 sustainability: input min/max мемоизированы по «mount-once» паттерну —
-// никаких new strings на каждый rerender (mobile webkit teardown'ит controlled input).
 import { useMemo, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { X, CalendarClock } from 'lucide-react';
@@ -67,11 +52,6 @@ export function TimeSelectorContent() {
     setNow();
   };
 
-  // B-4: input bounds + default-now мемоизированы — никаких new strings на каждый rerender
-  // (mobile webkit teardown'ит controlled input при flux-strings).
-  // Mount-once: вычисляются единожды при первом рендере; deps пустые.
-  // defaultNowValue показывается в input когда mode=now — UX-affordance, чтобы
-  // пользователь сразу видел «вот моё текущее время, могу его подвинуть».
   const { inputMin, inputMax, defaultNowValue } = useMemo(() => {
     const now = Date.now();
     return {

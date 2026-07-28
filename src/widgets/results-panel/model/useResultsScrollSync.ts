@@ -1,5 +1,3 @@
-// Phase 4 / D-22 / RANK-05:
-// Постоянный выбор по клику синхронизируем со списком сразу.
 import { useEffect, useRef } from 'react';
 import type { Virtualizer } from '@tanstack/react-virtual';
 import type { RouteCandidate } from '@/entities/zone';

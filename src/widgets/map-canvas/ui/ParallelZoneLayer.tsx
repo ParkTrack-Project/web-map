@@ -1,4 +1,3 @@
-// ZONE-03 / D-04: parallel-зоны рисуются как полоса (LineString).
 import { memo, type ComponentType } from 'react';
 import type { LngLat } from '@yandex/ymaps3-types/common/types/lng-lat';
 import {
@@ -59,8 +58,6 @@ function ParallelZoneLayerInner() {
 
   if (!data) return null;
 
-  // 2026-05-30: рисуем ВСЕ parallel-зоны, даже схлопнутые в кластер — полигоны
-  // (полосы) остаются видны под кружком ZoneClusterLayer. Раньше — только singletonIds.
   const parallel = data.filter(
     (z) => z.zone_type === 'parallel' && z.geometry?.coordinates?.length,
   );

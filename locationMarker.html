@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Точка местоположения</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background: #eef1e8;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Условная область карты */
+    .map {
+      position: relative;
+      width: min(700px, 90vw);
+      height: 420px;
+      overflow: hidden;
+      border-radius: 24px;
+      background:
+        linear-gradient(32deg, transparent 47%, #ffffff 48%, #ffffff 52%, transparent 53%),
+        linear-gradient(-18deg, transparent 47%, #ffffff 48%, #ffffff 52%, transparent 53%),
+        #e7eadf;
+      box-shadow: 0 20px 60px rgb(0 0 0 / 12%);
+    }
+
+    .user-location {
+      /*
+       * 0deg   — вправо
+       * 90deg  — вниз
+       * 180deg — влево
+       * 270deg — вверх
+       */
+      --heading: 180deg;
+      --marker-color: #ff3b30;
+      --arrow-color: #d83329;
+
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 64px;
+      height: 64px;
+      transform: translate(-50%, -50%);
+    }
+
+    /* Стрелка направления */
+    .user-location__direction {
+      position: absolute;
+      z-index: 1;
+      top: 50%;
+      left: 50%;
+      width: 30px;
+      height: 55px;
+
+      transform:
+        translate(0px, -50%)
+        rotate(var(--heading));
+
+      transform-origin: 0 50%;
+
+      background: var(--arrow-color);
+
+      clip-path: polygon(
+        0 18%,
+        100% 50%,
+        0 82%,
+        0% 50%
+      );
+
+      filter: drop-shadow(0 2px 2px rgb(0 0 0 / 16%));
+    }
+
+    /* Белое внешнее кольцо */
+    .user-location__point {
+      position: absolute;
+      z-index: 2;
+      top: 50%;
+      left: 50%;
+      width: 36px;
+      height: 36px;
+
+      transform: translate(-50%, -50%);
+
+      border: 3px solid rgb(255 255 255 / 92%);
+      border-radius: 50%;
+
+      background: #ffffff;
+
+      box-shadow:
+        0 2px 7px rgb(0 0 0 / 25%),
+        0 0 0 1px rgb(0 0 0 / 3%);
+    }
+
+    /* Красная центральная точка */
+    .user-location__point::after {
+      content: "";
+      position: absolute;
+      inset: 4.5px;
+
+      border-radius: 50%;
+      background: var(--marker-color);
+
+      box-shadow:
+        inset 0 1px 1px rgb(255 255 255 / 32%),
+        0 1px 2px rgb(0 0 0 / 18%);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="map">
+    <div
+      class="user-location"
+      aria-label="Ваше местоположение"
+    >
+      <span class="user-location__direction"></span>
+      <span class="user-location__point"></span>
+    </div>
+  </div>
+</body>
+</html>

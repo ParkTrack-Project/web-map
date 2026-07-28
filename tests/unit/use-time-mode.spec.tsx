@@ -1,8 +1,3 @@
-// TIME-04 / URL-02: useTimeMode hook — URL ↔ TimeMode round-trip.
-// NuqsTestingAdapter эмулирует URL state без реального DOM/router'а.
-//
-// Quick task 260426-hhb: новый формат URL = чистый ISO UTC; legacy past:/future:
-// silently stripped. TimeMode становится derived из at через parser.
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';

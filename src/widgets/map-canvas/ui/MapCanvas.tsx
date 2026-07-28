@@ -1,21 +1,3 @@
-// MAP-01/02/03: единственный владелец YMap-ref. Все children используют reactify-обёртки
-// из @/shared/lib/ymaps. Pitfall #1: location устанавливается ТОЛЬКО при mount —
-// если изменить location-проп позже, ymaps3 имеет тенденцию переписывать карту;
-// для управления извне нужен ref + явный imperative-вызов или reactify.useDefault.
-//
-// Phase 2 Plan 01 Task 3: добавлены 3 zone-layer'а:
-//   - ZoneLayer (standard-полигоны)
-//   - ParallelZoneLayer (LineString для parallel — D-04)
-//   - ZoneBadgesLayer (free_count pills, скрыты при zoom < ZONE_BADGE_MIN_ZOOM=14)
-//
-// Phase 2 Plan 02 Task 3: экспонируем ref на YMap через MapRefContext
-// (вынесен в model/map-ref-context.ts из-за react-refresh/only-export-components).
-// MobileZoneCard использует map.setLocation({center, duration:300}) для CARD-07
-// mobile pan -20% viewport (D-07 mobile half).
-//
-// Phase 2 Plan 03 (URL-01): zoom поднят в URL-state ?z=N через nuqs внутри
-// useBboxTracking. Локальный useState удалён; ZoneBadgesLayer читает зум из
-// единого источника (URL или DEFAULT_ZOOM как fallback при пустом URL).
 import {
   useEffect,
   useRef,
@@ -40,6 +22,7 @@ import {
   useDefault,
 } from '@/shared/lib/ymaps';
 import { useBboxTracking } from '../model/useBboxTracking';
+import { useZoneClusters } from '../model/useZoneClusters';
 import { ZoneLayer } from './ZoneLayer';
 import { ParallelZoneLayer } from './ParallelZoneLayer';
 import { ZoneBadgesLayer } from './ZoneBadgesLayer';
@@ -120,30 +103,12 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
   const zoom = urlZoom ?? DEFAULT_ZOOM;
   const theme = usePreferences((state) => state.theme);
 
-  // Quick-fix 2026-05-17 (iter.2): кластеризация ведётся по ЖИВОМУ дробному
-  // зуму карты, квантованному CLUSTER_ZOOM_STEP, а не по округлённому URL ?z —
-  // иначе между целыми зумами нет промежуточного состояния (14→13 схлопывает
-  // всё в одну ноду). setState только при смене кванта (Object.is bail-out в
-  // ф-обновлении) → пересчёт на границах шага, а не каждый кадр зум-анимации.
   const [clusterZoom, setClusterZoom] = useState(zoom);
+  const zoneClusters = useZoneClusters(clusterZoom);
 
-  // Fix 2026-05-16: MapPage монтирует ДВА MapCanvas (Desktop + Mobile, CSS-gated
-  // hidden/flex). Скрытый инстанс (display:none) НЕ должен трогать viewport-URL —
-  // иначе два инстанса пинг-понгуют ?bbox/?z и зоны мигают. offsetParent === null
-  // ⇔ элемент (или предок) display:none → это надёжный признак «я невидимый».
   const rootRef = useRef<HTMLDivElement>(null);
   const isHidden = () => !rootRef.current || rootRef.current.offsetParent === null;
 
-  // Regression-fix 2026-05-16 (Pitfall #1): initial location вычисляется РОВНО
-  // ОДИН раз (lazy useState) из URL на mount и больше НИКОГДА не меняется.
-  // Баг п.2-версии: center/zoom деривились из реактивного bbox, который сам
-  // переписывается из YMapListener.onUpdate → объект location менялся каждый
-  // кадр → reactify пушил setLocation по кругу: карту «дёргало», bbox прыгал,
-  // зоны мигали, выпадашка поиска схлопывалась. Стабильная ссылка разрывает
-  // цикл (как было с константой ITMO/DEFAULT_ZOOM в оригинале), но при этом
-  // ?bbox/?z всё ещё применяются — читаются один раз при инициализации.
-  //   ?bbox → центр = середина bbox; зум = ?z (или DEFAULT_ZOOM)
-  //   только ?z → ITMO + этот зум; ничего → ITMO + DEFAULT_ZOOM
   const [initialLocationValue] = useState<MapLocation>(() => ({
     center: bbox ? centerFromBbox(bbox) : ITMO_CENTER,
     zoom,
@@ -158,11 +123,8 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
     [],
   );
 
-  // Quick-fix п.0: если ?bbox нет — один раз засеваем его из initial view,
-  // чтобы зоны грузились без сдвига карты. setBbox только пишет URL-параметр,
-  // карту НЕ двигает (location стабилен) → цикла нет.
   useEffect(() => {
-    if (isHidden()) return; // только видимый инстанс сеет ?bbox
+    if (isHidden()) return; // не сеем viewport до завершения responsive-layout
     if (bbox != null) return;
 
     const w = typeof window !== 'undefined' ? window.innerWidth : 1280;
@@ -195,13 +157,11 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
         theme={theme}
       >
         <YMapDefaultSchemeLayer />
-        {/* MAP-03: встроенный парковочный слой Yandex входит в default features layer */}
         <YMapDefaultFeaturesLayer />
 
         <YMapListener
           onUpdate={({ location }) => {
-            // Только видимый инстанс пишет viewport-URL (см. isHidden выше) —
-            // иначе скрытый 0-размерный MapCanvas пинг-понгует ?bbox/?z.
+            // Не записываем вырожденный viewport во время смены layout.
             if (isHidden()) return;
 
             // Живой дробный зум → квант CLUSTER_ZOOM_STEP для кластер-слоёв.
@@ -224,39 +184,22 @@ export function MapCanvas({ mapRef }: MapCanvasProps) {
 
         <YMapControls position="right">
           <YMapZoomControl />
-          {/* 2026-05-26: «Моё местоположение» как в Яндекс.Картах. Built-in
-              control — запрашивает navigator.geolocation, центрирует карту,
-              рисует синюю точку. ?from не трогает (это отдельный WTP-флоу). */}
           <YMapGeolocationControl />
-          {/* 2026-05-26: встроенный компас Яндекса. Сам прячется при
-              azimuth=0 + tilt=0; клик возвращает «север сверху, top-down»
-              с плавной анимацией. Свой CompassButton больше не нужен. */}
           <YMapRotateTiltControl />
         </YMapControls>
 
-        {/* Quick-fix 2026-05-17: бинарный порог зума убран. Все слои активны на
-            ЛЮБОМ зуме. ZoneBadgesLayer/ZoneClusterLayer делят членство через
-            useZoneClusters(clusterZoom): кружок рисуется при zoneCount>1, бейджи —
-            только для одиночек. clusterZoom = живой дробный зум (квант
-            CLUSTER_ZOOM_STEP) → точки сливаются постепенно, без скачка 14→13.
-            2026-05-30: полигон-слои (ZoneLayer/ParallelZoneLayer) больше НЕ
-            фильтруются по кластерам — парковки видны всегда, кружок ложится
-            поверх схлопнутой группы. */}
         <MapGestureLayer />
         <ZoneLayer />
         <ParallelZoneLayer />
-        <ZoneBadgesLayer zoom={clusterZoom} />
-        <ZoneClusterLayer zoom={clusterZoom} />
+        <ZoneBadgesLayer zoom={clusterZoom} singletonIds={zoneClusters.singletonIds} />
+        <ZoneClusterLayer zoom={clusterZoom} clusters={zoneClusters.clusters} />
 
-        {/* Phase 4 / ROUTE-03: route preview как изолированный children — не сбрасывает viewport */}
         <RoutePreviewLayer />
-        {/* Quick-fix 2026-05-16: маркер выбранного адреса (?dest) */}
         <DestinationMarkerLayer />
       </YMap>
 
       {/* Z_INDEX.zoneStateOverlay=20 — empty/error overlay / time drift overlay */}
       <ZoneStateOverlay />
-      {/* Z_INDEX.modeTransitionOverlay=30 — mode-switch skeleton (Phase 3 TIME-06) */}
       <ModeTransitionOverlay />
     </div>
   );

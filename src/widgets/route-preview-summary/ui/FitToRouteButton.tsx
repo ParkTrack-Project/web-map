@@ -1,7 +1,3 @@
-// Phase 4 / ROUTE-04 / D-30:
-// User-initiated fit-to-route. Bottom-right map area, z-25.
-// Использует bbox дорожной геометрии Yandex Maps; пока геометрия загружается,
-// безопасно подгоняет карту по двум конечным точкам.
 import { useContext } from 'react';
 import { Maximize2 } from 'lucide-react';
 import { useRouteByIdQuery } from '@/entities/zone';

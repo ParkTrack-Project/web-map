@@ -1,8 +1,3 @@
-// URL parsers для всех Phase 2 query params.
-// D-13: per-параметр naming (НЕ единый JSON-blob).
-// D-15: дефолты не сериализуются (clearOnDefault: true — встроенное nuqs поведение).
-// D-16: zod-валидация невалидных значений → console.warn + игнор (используем встроенные nuqs guards
-//       плюс кастомные createParser для сложных кейсов).
 import { createParser } from 'nuqs';
 import { z } from 'zod';
 import { bboxFromString, bboxToString, type Bbox } from '@/shared/lib/geo';
@@ -49,20 +44,6 @@ export const parseAsLocationTypeCsv = createParser<string[]>({
   eq: (a, b) => a.length === b.length && a.every((v, i) => v === b[i]),
 });
 
-// Quick task 260426-hhb (SUPERSEDES D-11):
-// ?t= формат → derived TimeMode из чистого ISO UTC.
-// - отсутствие param'а или 'now' → { kind: 'now' }
-// - <ISO UTC> → derived past/future относительно Date.now() ± TOLERANCE_MS
-// - past:<ISO> / future:<ISO> (legacy) → silently strip prefix → derive normally
-// - битый ввод → null + console.warn
-//
-// TOLERANCE_MS ≈ MIN_RESOLUTION_MINUTES/2 минут — буфер от flicker'а на границе now.
-// Если parsed time в пределах ±TOLERANCE — округляем к now (избегаем mode-jumping
-// между past/future при минутном сдвиге).
-//
-// clearOnDefault для 'now' (D-11) — пустой URL когда mode = 'now'.
-// eq обязателен — TimeMode это объект, без eq nuqs не сможет правильно
-// работать с clearOnDefault и withDefault (Pitfall #3 — двунаправленный URL↔state цикл).
 const ISO_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{3})?)?Z$/;
 const TOLERANCE_MS = (MIN_RESOLUTION_MINUTES / 2) * 60_000;
 
@@ -82,8 +63,6 @@ export const parseAsTimeMode = createParser<TimeMode>({
   parse: (v) => {
     if (v === 'now' || v === '') return { kind: 'now' };
 
-    // Legacy backward-compat: silently strip past:/future: prefix.
-    // Новые ссылки используют чистый ISO; старые расшаренные URL продолжают работать.
     const legacyMatch = v.match(/^(past|future):(.+)$/);
     const iso = legacyMatch ? (legacyMatch[2] ?? v) : v;
 
@@ -105,12 +84,6 @@ export const parseAsTimeMode = createParser<TimeMode>({
 // Re-export commonly used nuqs parsers — чтобы виджеты импортили из одного barrel
 export { parseAsBoolean, parseAsFloat, parseAsInteger, parseAsString } from 'nuqs';
 
-// Phase 4 / URL-05 / URL-06 / D-17:
-// ?from=lat,lon  ?dest=lat,lon
-// - precision 5 знаков (5-digit toFixed при serialize; regex enforce'ит на parse)
-// - range guard: lat∈[-90,90], lon∈[-180,180]; out-of-range → null
-// - невалидное → null + console.warn (silent fallback, как parseAsTimeMode)
-// - eq для tuple [lat, lon] — element-wise equality
 const COORDS_RE = /^-?\d+\.\d{1,5},-?\d+\.\d{1,5}$/;
 const CoordsSchema = z.string().regex(COORDS_RE);
 

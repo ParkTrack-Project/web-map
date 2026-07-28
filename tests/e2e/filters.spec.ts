@@ -1,15 +1,3 @@
-// FILTER-12 / D-13: каждый из 7 фильтров пишется в URL отдельным параметром.
-// D-15: дефолтные значения не сериализуются — toggle ON-then-OFF удаляет
-// ?f-param из URL (default-skip behavior, обеспечивается nuqs clearOnDefault).
-// Этот тест переключает каждый фильтр через UI и проверяет, что URL обновлён.
-//
-// Замечание: FILTER-02/03/06 теперь под Radix Popover'ом (D-09 — Issue #2 fix).
-// E2E сначала открывает popover (click trigger), затем взаимодействует со
-// slider'ом / чек-боксом внутри.
-//
-// Полная DOM-проверка изменения количества зон зависит от реального ymaps3
-// рендера — здесь surrogate-проверка через URL-state (надёжна в jsdom-like
-// окружении). Реальное interactive validation — HUMAN-UAT.
 import { test, expect } from '@playwright/test';
 
 test.describe('Phase 2 filters — URL serialization (FILTER-12)', () => {
@@ -73,7 +61,6 @@ test.describe('Phase 2 filters — URL serialization (FILTER-12)', () => {
     await expect(page).not.toHaveURL(/fNoFree/);
   });
 
-  // D-15 default-skip explicit test
   test('default-skip: toggling hideNoFree off removes ?fNoFree from URL (D-15)', async ({
     page,
   }) => {
