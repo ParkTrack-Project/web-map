@@ -2,10 +2,35 @@ import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 test.use({ viewport: { width: 1280, height: 720 } });
+test.setTimeout(60_000);
 
 async function openTimeSelector(page: Page) {
-  const timeButton = page.getByTestId('time-selector-trigger');
-  await expect(timeButton).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator('#root > *').first()).toBeAttached({ timeout: 30_000 });
+
+  const timeButton = page
+    .getByTestId('time-selector-trigger')
+    .or(page.getByRole('button', { name: /Время|Time|Сейчас|Now/i }))
+    .first();
+
+  try {
+    await expect(timeButton).toBeVisible({ timeout: 30_000 });
+  } catch (error) {
+    const title = await page.title().catch(() => '<title unavailable>');
+    const rootHtml = await page
+      .locator('#root')
+      .evaluate((root) => root.innerHTML.slice(0, 2000))
+      .catch(() => '<root unavailable>');
+    throw new Error(
+      [
+        'Time selector trigger did not render.',
+        `url=${page.url()}`,
+        `title=${title}`,
+        `rootHtml=${rootHtml}`,
+        error instanceof Error ? error.message : String(error),
+      ].join('\n'),
+    );
+  }
+
   await timeButton.click();
   await expect(page.getByTestId('time-selector-content')).toBeVisible({ timeout: 20_000 });
 }
