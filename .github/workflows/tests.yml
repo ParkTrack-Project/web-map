@@ -10,6 +10,7 @@ permissions:
 
 env:
   NODE_VERSION: '20'
+  VITE_YMAP_KEY: test-yandex-maps-key
 
 jobs:
   unit-tests:
