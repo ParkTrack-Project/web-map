@@ -3,10 +3,8 @@ import { test, expect } from '@playwright/test';
 test.describe('Phase 3 — TimeSelector URL serialization', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    // Auth-ready ~500мс + TimeSelectorStrip mount
-    await expect(page.getByRole('toolbar', { name: 'Селектор времени' })).toBeVisible({
-      timeout: 10_000,
-    });
+    await page.getByRole('button', { name: /Время:/ }).click();
+    await expect(page.getByTestId('time-selector-content')).toBeVisible({ timeout: 20_000 });
   });
 
   test('Прошлое → URL содержит ?t=past:ISO', async ({ page }) => {
