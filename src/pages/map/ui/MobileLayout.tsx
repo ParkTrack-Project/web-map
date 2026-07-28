@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, memo, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import type { YMap as YMapInstance } from '@yandex/ymaps3-types';
 import { MapErrorBoundary } from '@/app/errors';
 import { MapSkeleton } from '@/widgets/map-canvas/ui/MapSkeleton';
@@ -19,8 +19,8 @@ import {
 import { FitToRouteButton } from '@/widgets/route-preview-summary';
 import { AccountMenu } from '@/widgets/account-menu';
 
-const MapCanvas = lazy(() =>
-  import('@/widgets/map-canvas/ui/MapCanvas').then((m) => ({ default: m.MapCanvas })),
+const MapCanvas = memo(
+  lazy(() => import('@/widgets/map-canvas/ui/MapCanvas').then((m) => ({ default: m.MapCanvas }))),
 );
 
 export function MobileLayout() {
@@ -34,7 +34,6 @@ export function MobileLayout() {
   );
   const { selectedZoneId } = useSelectedZone();
   const openResults = useCallback(() => {
-    setResultsSnapPoint(RESULTS_SNAP_LOW);
     setResultsSheetOpen(true);
   }, []);
   // Полноэкранные панели требуют большого отступа, а карточка парковки имеет

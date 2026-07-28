@@ -1,7 +1,7 @@
 import type { LngLat, Margin, Projection } from '@yandex/ymaps3-types';
 
-export const RESULTS_OVERVIEW_MIN_ZOOM = 10.5;
-export const RESULTS_OVERVIEW_MAX_ZOOM = 15.5;
+export const RESULTS_OVERVIEW_MIN_ZOOM = 0;
+export const RESULTS_OVERVIEW_MAX_ZOOM = 21;
 
 interface ViewportSize {
   width: number;
@@ -13,7 +13,7 @@ export interface ResultOverviewLocation {
   zoom: number;
 }
 
-/** Fits result centres into the part of the map not covered by mobile UI. */
+/** Fits all result geometry points into the part of the map not covered by mobile UI. */
 export function resultOverviewLocation(
   points: readonly LngLat[],
   projection: Projection,
@@ -42,8 +42,9 @@ export function resultOverviewLocation(
   );
   const zoom = Math.min(maxZoom, Math.max(minZoom, fitZoom));
   const pixelsPerWorldUnit = 2 ** (zoom + 7);
-  // Shift the camera towards the covered bottom/right side so the results'
-  // midpoint appears in the centre of the actually visible map rectangle.
+  // Yandex world Y grows upwards. Shift the camera away from the covered
+  // bottom side so the results' midpoint appears in the centre of the
+  // actually visible map rectangle.
   const centerX = (minX + maxX) / 2 + (right - left) / 2 / pixelsPerWorldUnit;
   const centerY = (minY + maxY) / 2 - (bottom - top) / 2 / pixelsPerWorldUnit;
   return {
