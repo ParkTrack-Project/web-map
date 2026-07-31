@@ -1,4 +1,3 @@
-import { searchGeo } from '@/shared/lib/ymaps';
 import { SUGGEST_MIN_QUERY_LENGTH } from '@/shared/config';
 
 export interface SuggestResult {
@@ -44,6 +43,11 @@ export async function suggestAddresses(
 ): Promise<SuggestResult[]> {
   if (text.trim().length < SUGGEST_MIN_QUERY_LENGTH) return [];
   try {
+    // Loading the Yandex Maps runtime at module evaluation time blocks the
+    // whole application shell when the external SDK is unavailable. Address
+    // search is user-initiated, so load its runtime only when it is needed.
+    const { searchGeo } = await import('@/shared/lib/ymaps');
+
     // bbox = [west, south, east, north] (наш канонический формат) → bounds
     // [[swLon, swLat], [neLon, neLat]] для ymaps3.search. Передаём viewport
     // как bias: улицы рядом с тем, что юзер видит на карте, идут первыми.
