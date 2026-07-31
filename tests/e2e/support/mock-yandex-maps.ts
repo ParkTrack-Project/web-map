@@ -95,11 +95,10 @@ const YANDEX_MAPS_STUB = String.raw`
 `;
 
 export async function mockYandexMaps(page: Page): Promise<void> {
-  await page.route('https://api-maps.yandex.ru/v3/**', (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'application/javascript; charset=utf-8',
-      body: YANDEX_MAPS_STUB,
-    }),
-  );
+  // The app starts MSW before rendering. A service worker handles requests
+  // before Playwright's page.route(), so routing the SDK URL here would let an
+  // unhandled MSW request reach Yandex with the fake CI key. Install the shim
+  // before any application script instead; loadYmaps() then sees ymaps3 and
+  // never creates the external SDK script element.
+  await page.addInitScript({ content: YANDEX_MAPS_STUB });
 }

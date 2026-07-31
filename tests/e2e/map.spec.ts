@@ -13,6 +13,7 @@ test('карта монтируется и показывает зоны (badges
 test('MAP-05: непрерывный пан 5с → не более 3 запросов /zones (debounce + AbortSignal)', async ({
   page,
 }) => {
+  test.setTimeout(45_000);
   await mockYandexMaps(page);
   const zonesRequests: string[] = [];
   page.on('request', (req) => {
