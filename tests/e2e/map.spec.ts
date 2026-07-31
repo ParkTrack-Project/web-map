@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { mockYandexMaps } from './support/mock-yandex-maps';
 
 test('карта монтируется и показывает зоны (badges visible at zoom >= 14)', async ({ page }) => {
+  await mockYandexMaps(page);
   await page.goto('/');
   // MapPage → MapCanvas → ZoneLayer (после первого ответа /zones) + ZoneBadgesLayer.
   // Таймаут с запасом под загрузку ymaps3-CDN на медленных машинах.
@@ -11,6 +13,7 @@ test('карта монтируется и показывает зоны (badges
 test('MAP-05: непрерывный пан 5с → не более 3 запросов /zones (debounce + AbortSignal)', async ({
   page,
 }) => {
+  await mockYandexMaps(page);
   const zonesRequests: string[] = [];
   page.on('request', (req) => {
     const url = req.url();

@@ -10,6 +10,8 @@ permissions:
 
 env:
   NODE_VERSION: '20'
+  # The app schema requires a non-empty key; map-focused E2E tests intercept
+  # the SDK request with a deterministic local stub.
   VITE_YMAP_KEY: test-yandex-maps-key
 
 jobs:
