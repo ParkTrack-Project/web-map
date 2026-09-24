@@ -1,9 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router';
+import { BrowserRouter } from 'react-router';
 import { AppProviders } from '@/app/providers';
-import { AppPage } from '@/pages/app';
-import { MapPage } from '@/pages/map';
+import { AppRoutes } from '@/app/routes/AppRoutes';
 import '@/index.css';
 
 // VITE_API_MODE controls MSW registration.
@@ -25,11 +24,7 @@ function renderApp() {
     <StrictMode>
       <BrowserRouter>
         <AppProviders>
-          <Routes>
-            <Route path="/" element={<MapPage />} />
-            <Route path="/map" element={<MapPage />} />
-            <Route path="/app" element={<AppPage />} />
-          </Routes>
+          <AppRoutes />
         </AppProviders>
       </BrowserRouter>
     </StrictMode>,
