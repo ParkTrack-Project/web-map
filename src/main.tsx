@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router';
 import { AppProviders } from '@/app/providers';
+import { AppPage } from '@/pages/app';
 import { MapPage } from '@/pages/map';
 import '@/index.css';
 
@@ -27,6 +28,7 @@ function renderApp() {
           <Routes>
             <Route path="/" element={<MapPage />} />
             <Route path="/map" element={<MapPage />} />
+            <Route path="/app" element={<AppPage />} />
           </Routes>
         </AppProviders>
       </BrowserRouter>
