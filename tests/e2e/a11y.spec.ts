@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { mockYandexMaps } from './support/mock-yandex-maps';
 
 const flows: Array<{ name: string; url: string }> = [
   { name: 'main-map', url: '/map' },
@@ -11,6 +12,7 @@ const flows: Array<{ name: string; url: string }> = [
 test.describe('A11Y axe-core scan (D-25)', () => {
   for (const { name, url } of flows) {
     test(`${name}: critical violations === 0`, async ({ page }) => {
+      await mockYandexMaps(page);
       await page.goto(url);
       await page.waitForLoadState('networkidle');
 

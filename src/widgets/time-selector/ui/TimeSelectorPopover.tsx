@@ -23,6 +23,7 @@ export function TimeSelectorPopover() {
       <Popover.Trigger asChild>
         <button
           type="button"
+          data-testid="time-selector-trigger"
           aria-label={t('time.aria', { label: display })}
           className={
             'hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium shadow-sm ring-1 transition-colors active:scale-[0.98] lg:inline-flex ' +

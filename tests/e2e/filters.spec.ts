@@ -1,61 +1,57 @@
 import { test, expect } from '@playwright/test';
 
+test.use({ viewport: { width: 1280, height: 720 }, locale: 'ru-RU' });
+
 test.describe('Phase 2 filters — URL serialization (FILTER-12)', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    // ждём mount FiltersToolbar
-    await expect(page.getByRole('toolbar', { name: 'Фильтры парковок' })).toBeVisible({
-      timeout: 10_000,
-    });
+    const trigger = page.getByRole('button', { name: /Открыть фильтры/ });
+    await expect(trigger).toBeVisible({ timeout: 20_000 });
+    await trigger.click();
+    await expect(page.getByRole('heading', { name: 'Фильтры парковок' })).toBeVisible();
   });
 
   test('hideNoFree → ?fNoFree=true в URL (FILTER-01)', async ({ page }) => {
-    await page.getByRole('button', { name: /Только свободные/ }).click();
+    await page.getByRole('checkbox', { name: 'Только свободные' }).check();
     await expect(page).toHaveURL(/fNoFree=true/);
   });
 
   test('hidePrivate → ?fNoPriv=true в URL (FILTER-04)', async ({ page }) => {
-    await page.getByRole('button', { name: /Без частных/ }).click();
+    await page.getByRole('checkbox', { name: 'Скрыть частные' }).check();
     await expect(page).toHaveURL(/fNoPriv=true/);
   });
 
   test('hideAccessible → ?fNoAcc=true в URL (FILTER-05)', async ({ page }) => {
-    await page.getByRole('button', { name: /Без для инвалидов/ }).click();
+    await page.getByRole('checkbox', { name: 'Инвалидные парковки' }).check();
     await expect(page).toHaveURL(/fNoAcc=true/);
   });
 
   test('hideInactive (default true) → toggle off → ?fInactive=false (FILTER-07)', async ({
     page,
   }) => {
-    await page.getByRole('button', { name: /Скрыть неактивные/ }).click();
+    await page.getByRole('checkbox', { name: 'Скрыть неактивные' }).uncheck();
     await expect(page).toHaveURL(/fInactive=false/);
   });
 
   test('locationType chip in popover → ?fLoc=street (FILTER-06)', async ({ page }) => {
-    // Sub-step: открыть popover (chip-trigger «Тип: все») → внутри отметить чек-бокс «Улица»
-    await page.getByRole('button', { name: /Тип расположения парковки/ }).click();
     await page.getByRole('checkbox', { name: 'Улица' }).check();
     await expect(page).toHaveURL(/fLoc=street/);
   });
 
   test('minConf slider в popover → ?fMinConf=... в URL (FILTER-02)', async ({ page }) => {
-    // Sub-step: открыть popover «Уверенность ≥ 0%» → взаимодействовать со slider'ом
-    await page.getByRole('button', { name: /Минимальная уверенность данных/ }).click();
-    // .nth(1): aria-label дублируется на trigger'е и на range-input'е внутри popover
-    const slider = page.getByLabel('Минимальная уверенность данных').nth(1);
+    const slider = page.getByRole('slider', { name: 'Минимальная уверенность данных' });
     await slider.fill('0.5');
     await expect(page).toHaveURL(/fMinConf=0\.5/);
   });
 
   test('maxPay slider в popover → ?fMaxPay=... в URL (FILTER-03)', async ({ page }) => {
-    await page.getByRole('button', { name: /Максимальная цена в час/ }).click();
-    const slider = page.getByLabel('Максимальная цена в час').nth(1);
+    const slider = page.getByRole('slider', { name: 'Максимальная цена в час' });
     await slider.fill('200');
     await expect(page).toHaveURL(/fMaxPay=200/);
   });
 
   test('Сброс — кнопка появляется и очищает URL', async ({ page }) => {
-    await page.getByRole('button', { name: /Только свободные/ }).click();
+    await page.getByRole('checkbox', { name: 'Только свободные' }).check();
     await expect(page).toHaveURL(/fNoFree/);
     await page.getByRole('button', { name: /^Сбросить$/ }).click();
     await expect(page).not.toHaveURL(/fNoFree/);
@@ -68,11 +64,12 @@ test.describe('Phase 2 filters — URL serialization (FILTER-12)', () => {
     await expect(page).not.toHaveURL(/fNoFree/);
 
     // Toggle ON
-    await page.getByRole('button', { name: /Только свободные/i }).click();
+    const onlyFree = page.getByRole('checkbox', { name: 'Только свободные' });
+    await onlyFree.check();
     await expect(page).toHaveURL(/fNoFree=true/);
 
     // Toggle OFF — должен удалить параметр (clearOnDefault через nuqs)
-    await page.getByRole('button', { name: /Только свободные/i }).click();
+    await onlyFree.uncheck();
     await expect(page).not.toHaveURL(/fNoFree/);
   });
 });

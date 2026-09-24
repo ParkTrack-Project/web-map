@@ -1,0 +1,99 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - '**'
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '20'
+  # The app schema requires a non-empty key; map-focused E2E tests intercept
+  # the SDK request with a deterministic local stub.
+  VITE_YMAP_KEY: test-yandex-maps-key
+
+jobs:
+  unit-tests:
+    name: Unit and component tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run Vitest
+        run: npm test
+
+  e2e-tests:
+    name: Playwright e2e tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright e2e
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+
+  real-api-tests:
+    name: Playwright real API smoke tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run Playwright real API smoke
+        run: npm run test:e2e:real-api
+
+      - name: Upload Playwright real API report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-real-api-report
+          path: |
+            phase-05-uat/real-api-report/
+            test-results/
+          if-no-files-found: ignore

@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { env, MAX_PAST_DAYS, MAX_FUTURE_HOURS } from '@/shared/config';
 import { generateMockUserProfile } from './generators/users';
 import { generateMockAuthUser } from './generators/auth';
@@ -338,7 +338,13 @@ export const handlers = [
   // hide_location_types) и применяет их через applyMockFilters после filterByBbox.
   // Это эмулирует server-side filter path D-12 — E2E тест видит реальное
   // изменение количества зон при переключении фильтров.
-  http.get(`${baseUrl}/zones`, ({ request }) => {
+  http.get(`${baseUrl}/zones`, async ({ request }) => {
+    // Keep the browser mock asynchronous enough for rapid viewport/filter
+    // changes to exercise React Query's AbortSignal cascade. An immediate
+    // in-memory response always wins the race and makes cancellation E2E tests
+    // measure mock speed instead of application behaviour.
+    await delay(250);
+
     const url = new URL(request.url);
     const bboxRaw = url.searchParams.get('bbox');
     const view = url.searchParams.get('view') ?? 'full';

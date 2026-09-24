@@ -25,7 +25,9 @@ dist-ssr
 
 .env
 
+# Local Git worktrees
+.worktrees/
+
 # Playwright artefacts
 playwright-report
 test-results
-

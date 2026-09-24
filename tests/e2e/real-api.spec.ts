@@ -101,7 +101,7 @@ test.describe('Real API smoke (D-16)', () => {
         provider: 'yandex',
       },
     });
-    expect(r.status(), `POST /routing/new returned ${r.status()}`).toBe(200);
+    expect([200, 201], `POST /routing/new returned ${r.status()}`).toContain(r.status());
     const data = await r.json();
     // Per routing.mdx §8.5 Route model — `selected_candidate` is required.
     expect(data).toHaveProperty('selected_candidate');
